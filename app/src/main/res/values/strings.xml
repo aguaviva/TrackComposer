@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TrackComposer</string>
+    <string name="action_settings">Settings</string>
+    <string name="alert_dialog_ok" />
+    <string name="alert_dialog_cancel" />
+    <string name="title_activity_percussion">ActivityPercussion</string>
+    <string name="title_activity_note">ActivityNote</string>
+</resources>
