@@ -8,8 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -61,10 +59,19 @@ public class MainActivity extends AppCompatActivity {
 
         masterView = (PatternView) findViewById(R.id.masterView);
         masterView.SetPattern(mAppState.mPatternMaster);
-        masterView.setInstrumentTouchedListener(new PatternView.InstrumentTouchedListener() {
+        masterView.setInstrumentListener(new PatternView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
                 instrumentChooser(channel);
+            }
+
+            @Override
+            public String getInstrumentName(int n)
+            {
+                Pattern pattern = mAppState.mPatternMaster.mChannels[n];
+                if (pattern==null)
+                    return "--";
+                return pattern.GetName();
             }
         });
 
@@ -87,13 +94,14 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_load) {
-            mAppState.mPatternMaster.Load(mAppState.soundPool);
+            mAppState.Load("mysong");
+            masterView.SetPattern(mAppState.mPatternMaster);
             masterView.invalidate();
             return true;
         }
 
         if (id == R.id.action_save) {
-            mAppState.mPatternMaster.Save();
+            mAppState.Save("mysong");
             return true;
         }
 
@@ -102,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void instrumentChooser(final int channel) {
 
-        if (mAppState.mPatternMaster.getChannelName(channel)!=null)
+        if (mAppState.mPatternMaster.mChannels[channel]!=null)
         {
             mAppState.mLastPatternAdded = mAppState.mPatternMaster.mChannels[channel];
 

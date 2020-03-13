@@ -1,46 +1,37 @@
 package com.example.trackcomposer;
 
-import android.media.SoundPool;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-
 class PatternNote extends Pattern
 {
-    Sample sample = new Sample();
+    int sampleId = -1;
     int baseNote = 40;
     public PatternNote(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
     }
 
-    String getChannelName(int n)
+    @Override
+    public void Play(Mixer sp, int note)
     {
-        return sample.getNoteName(n+baseNote);
+        if (sampleId>=0)
+        {
+            float speed = Misc.GetFrequency(baseNote + note) / Misc.GetFrequency(baseNote);
+            sp.play(sampleId, 0, speed);
+        }
     }
 
     @Override
-    public void Play(MySoundPool sp, int note)
-    {
-        sample.Play(sp, baseNote+ note);
-    }
-
-
-    @Override
-    void PatternToJson(JSONObject jsonObj) throws JSONException {
-        super.PatternToJson(jsonObj);
-        jsonObj.put("baseNote", baseNote);
-        sample.PatternToJson(jsonObj);
+    void serializeToJson(JSONObject jsonObj) throws JSONException {
+        super.serializeToJson(jsonObj);
+        jsonObj.put("sampleId", sampleId);
     }
 
     @Override
-    void PatternFromJson(MySoundPool sp, JSONObject jsonObj) throws JSONException {
-        super.PatternFromJson(sp, jsonObj);
-        //baseNote = jsonObj.getInt("baseNote");
-        sample.PatternFromJson(sp, jsonObj);
-
+    void serializeFromJson(JSONObject jsonObj) throws JSONException {
+        super.serializeFromJson(jsonObj);
+        sampleId = jsonObj.getInt("sampleId");
     }
 
 };

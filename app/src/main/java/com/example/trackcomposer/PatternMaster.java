@@ -1,12 +1,8 @@
 package com.example.trackcomposer;
 
-import android.media.SoundPool;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.Iterator;
 
 class PatternMaster extends Pattern
@@ -20,23 +16,15 @@ class PatternMaster extends Pattern
     }
 
     @Override
-    String getChannelName(int channel)
-    {
-        Pattern ch = mChannels[channel];
-
-        if (ch!=null)
-            return ch.GetName();
-        return null;
-    }
-
-    @Override
-    void PlayBeat(MySoundPool sp, int beat)
+    void PlayBeat(Mixer sp, int beat)
     {
         int pattern = beat / length;
         pattern = pattern % length;
 
+        CallBeatListener(pattern);
+
         for (int c = 0; c < channels; c++) {
-            int note = hits[c][pattern];
+            int note = hits[c][pattern].hit;
             if (note>0) {
                 Pattern p =mChannels[c];
                 if (p!=null)
@@ -51,9 +39,12 @@ class PatternMaster extends Pattern
     }
 
     @Override
-    void PatternToJson(JSONObject jsonObj) throws JSONException
+    void serializeToJson(JSONObject jsonObj) throws JSONException
     {
-        super.PatternToJson(jsonObj);
+        super.serializeToJson(jsonObj);
+
+        JSONObject jsonInstruments = new JSONObject();
+
 
         JSONObject jsonPatterns = new JSONObject();
         JSONObject jsonNotes = new JSONObject();
@@ -62,7 +53,7 @@ class PatternMaster extends Pattern
             if (channel!=null) {
                 JSONObject jsonObj3 = new JSONObject();
 
-                channel.PatternToJson(jsonObj3);
+                channel.serializeToJson(jsonObj3);
 
                 if (channel instanceof PatternPercussion) {
                     jsonPatterns.put(String.valueOf(i), jsonObj3);
@@ -78,9 +69,9 @@ class PatternMaster extends Pattern
     }
 
     @Override
-    void PatternFromJson(MySoundPool sp, JSONObject jsonObj) throws JSONException
+    void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
-        super.PatternFromJson(sp, jsonObj);
+        super.serializeFromJson(jsonObj);
 
         mChannels = new Pattern[channels];
         {
@@ -90,8 +81,8 @@ class PatternMaster extends Pattern
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                mChannels[i] = new PatternPercussion(name, fileName, 16, 16);
-                mChannels[i].PatternFromJson(sp, jsonObj3);
+                mChannels[i] = new PatternPercussion("", "", 16, 16);
+                mChannels[i].serializeFromJson(jsonObj3);
             }
         }
 
@@ -102,19 +93,10 @@ class PatternMaster extends Pattern
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                mChannels[i] = new PatternNote(name, fileName, 16, 16);
-                mChannels[i].PatternFromJson(sp, jsonObj3);
+                mChannels[i] = new PatternNote("", "", 16, 16);
+                mChannels[i].serializeFromJson(jsonObj3);
             }
         }
     }
 
-    @Override
-    public void Load(MySoundPool sp) {
-        super.Load(sp);
-    }
-
-    @Override
-    public void Save() {
-        super.Save();
-    }
 };

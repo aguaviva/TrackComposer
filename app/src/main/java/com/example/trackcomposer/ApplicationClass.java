@@ -1,11 +1,10 @@
 package com.example.trackcomposer;
 
 import android.app.Application;
-import android.media.AudioAttributes;
-import android.media.SoundPool;
 import android.os.Environment;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,21 +21,25 @@ public class ApplicationClass extends Application {
     private int count = 0;
 
     MySoundPool soundPool;
-
+    InstrumentList instrumentList;
+    Mixer mixer;
     void Init()
     {
-        AudioAttributes attributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build();
-
+        instrumentList = new InstrumentList();
+        mixer = new Mixer(instrumentList);
         soundPool = new MySoundPool();
         soundPool.init(44100, new MySoundPool.NextBeatListener()
         {
             @Override
+            public void renderChunk(short[] chunk, int ini, int fin)
+            {
+                mixer.renderChunk(chunk, ini, fin);
+            }
+
+            @Override
             public void beat() {
                 if (mPlaying) {
-                    mPatternMaster.PlayBeat(soundPool, count);
+                    mPatternMaster.PlayBeat(mixer, count);
                     count++;
                 }
             }
@@ -57,4 +60,53 @@ public class ApplicationClass extends Application {
     {
         mPlaying=!mPlaying;
     }
+
+    public void Load(String filename)
+    {
+        try {
+            FileInputStream fileInputStream = new FileInputStream (new File(extStoreDir+filename+".json"));
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            StringBuffer stringBuffer = new StringBuffer();
+            String lines=bufferedReader.readLine();
+
+            JSONObject jsonObj = new JSONObject(lines);
+
+            instrumentList = new InstrumentList();
+            mixer = new Mixer(instrumentList);
+            instrumentList.serializeFromJson(jsonObj);
+
+            mPatternMaster = new PatternMaster("caca", filename, 16,16);
+            mPatternMaster.serializeFromJson(jsonObj);
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void Save(String filename)
+    {
+        try {
+            JSONObject jsonObj = new JSONObject();
+            instrumentList.serializeToJson(jsonObj);
+            mPatternMaster.serializeToJson(jsonObj);
+            String str = jsonObj.toString();
+
+            FileOutputStream fileOutputStream = new FileOutputStream (new File(extStoreDir+filename+".json"), false);
+            fileOutputStream.write(str.getBytes());
+            fileOutputStream.close();
+        }
+        catch (JSONException e) {
+            e.printStackTrace();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -1,77 +1,52 @@
 package com.example.trackcomposer;
 
-import android.media.SoundPool;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.Iterator;
 
 class PatternPercussion extends Pattern
 {
-    public Sample [] mChannels;
-    int baseNote = 40;
+    public int[] mChannels;
 
     public PatternPercussion(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
 
-        mChannels = new Sample[channels];
-        for(int i=0;i<channels;i++)
-        {
-            mChannels[i] = new Sample();
+        mChannels = new int[channels];
+        for (int i = 0; i < mChannels.length; i++) {
+            mChannels[i] = -1;
         }
     }
 
     @Override
-    String getChannelName(int channel)
+    public void Play(Mixer sp, int note)
     {
-        Sample ch = mChannels[channel];
-        if (ch!=null)
-            return mChannels[channel].instrumentName;
-        return null;
+        if (mChannels[note]>=0)
+            sp.play(mChannels[note], 0, 1.0f);
     }
 
     @Override
-    public void Play(MySoundPool sp, int note)
+    void serializeToJson(JSONObject jsonObj) throws JSONException
     {
-        if (mChannels[note]!=null)
-            mChannels[note].Play(sp, baseNote);
-    }
+        super.serializeToJson(jsonObj);
 
-    @Override
-    void PatternToJson(JSONObject jsonObj) throws JSONException
-    {
-        super.PatternToJson(jsonObj);
-
-        JSONObject jsonObj2 = new JSONObject();
-        int i=0;
-        for (Sample channel : mChannels) {
-            if (channel!=null) {
-                JSONObject jsonObj3 = new JSONObject();
-                channel.PatternToJson(jsonObj3);
-                jsonObj2.put(String.valueOf(i), jsonObj3);
-            }
-            i++;
+        JSONArray jsonObj2 = new JSONArray();
+        for (int sampleId : mChannels) {
+            jsonObj2.put(sampleId);
         }
-        jsonObj.put("instruments", jsonObj2);
+        jsonObj.put("sampleId", jsonObj2);
     }
 
     @Override
-    void PatternFromJson(MySoundPool sp, JSONObject jsonObj) throws JSONException
+    void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
-        super.PatternFromJson(sp, jsonObj);
+        super.serializeFromJson(jsonObj);
 
-        JSONObject jsonObj2 = jsonObj.getJSONObject("instruments");
-        mChannels = new Sample[channels];
-        Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
-        while(iter.hasNext()){
-            String key = iter.next();
-            int i = Integer.parseInt(key);
-            mChannels[i] = new Sample();
-            mChannels[i].PatternFromJson(sp,  jsonObj2.getJSONObject(key));
+        JSONArray jsonObj2 = jsonObj.getJSONArray("sampleId");
+        for (int i=0;i<mChannels.length;i++) {
+            mChannels[i] = jsonObj2.getInt(i);
         }
     }
 };

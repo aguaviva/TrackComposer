@@ -11,8 +11,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.File;
-
 /**
  * TODO: document your custom view class.
  */
@@ -23,7 +21,7 @@ public class PatternView extends View {
     Paint box;
     Paint gray;
     Paint blue;
-    private int currentBeat = 0;
+    private int mCurrentBeat = 0;
 
     private int header = 200;
 
@@ -40,8 +38,19 @@ public class PatternView extends View {
     private int mContentHeight;
 
     Pattern mPattern = null;
-    void SetPattern(Pattern pattern) { mPattern = pattern; }
     Pattern GetPattern() { return mPattern; }
+    void SetPattern(Pattern pattern)
+    {
+        mPattern = pattern;
+        pattern.SetBeatListener(new Pattern.BeatListener() {
+            @Override
+            public void beat(int currentBeat) {
+                mCurrentBeat = currentBeat;
+                invalidate();
+            }
+        });
+
+    }
 
     public PatternView(Context context) {
         super(context);
@@ -123,15 +132,18 @@ public class PatternView extends View {
             yy = 16;
         }
 
-        canvas.drawRect(paddingLeft + header + (currentBeat*trackWidth/yy), 0,  paddingTop + header + ((currentBeat+1)*trackWidth/yy), contentHeight,blue);
+        canvas.drawRect(paddingLeft + header + (mCurrentBeat *trackWidth/yy), 0,  paddingTop + header + ((mCurrentBeat +1)*trackWidth/yy), contentHeight,blue);
 
         for(int i=0;i<yy;i++) {
 
             String str = "--";
             if (mPattern!=null) {
-                str = mPattern.getChannelName(i);
+                if (instrumentListener!=null) {
+                    str = instrumentListener.getInstrumentName(i);
+                }
                 if (str == null) str = "--";
             }
+
             float y = getHeight() - (paddingBottom + (i*contentHeight / yy));
             y -= ((contentHeight / yy)-mTextPaint.getTextSize())/2;
             float x = paddingLeft + 5;
@@ -154,7 +166,7 @@ public class PatternView extends View {
 
         for(int x=0;x<xx;x++) {
             for(int y=0;y<yy;y++) {
-                if (mPattern.Get(y,x)>0) {
+                if (mPattern.Get(y,x).hit>0) {
                     float _x = paddingLeft + header + ((x*trackWidth)/xx) + 5;
                     float _y = getHeight() - (paddingBottom  + ((y*contentHeight)/yy) + 5);
                     canvas.drawRect(_x,_y-((contentHeight/yy)-10),_x+(trackWidth/xx)-10,_y, box);
@@ -193,8 +205,8 @@ public class PatternView extends View {
             case MotionEvent.ACTION_DOWN:
 
                 if (x<header) {
-                    if (instrumentTouchedListener!=null) {
-                        instrumentTouchedListener.instrumentTouched(channel);
+                    if (instrumentListener !=null) {
+                        instrumentListener.instrumentTouched(channel);
                         invalidate();
                     }
                     break;
@@ -221,7 +233,7 @@ public class PatternView extends View {
     public void onTouchEvent(int x, int y)
     {
         Pattern mPattern = GetPattern();
-        mPattern.Set(x,y, mPattern.Get(x,y)==1?0:1);
+        mPattern.Get(x,y).hit = mPattern.Get(x,y).hit==1?0:1;
     }
 
     void SetSoundPool(SoundPool sp)
@@ -231,7 +243,7 @@ public class PatternView extends View {
 
     public void SetCurrentBeatCursor(int currentBeat)
     {
-        this.currentBeat=currentBeat;
+        this.mCurrentBeat =currentBeat;
         postInvalidate();
     }
 
@@ -239,14 +251,15 @@ public class PatternView extends View {
 
     // instrument touched listener
     //
-    public interface InstrumentTouchedListener {
+    public interface InstrumentListener {
         void instrumentTouched(int channel);
+        String getInstrumentName(int i);
     }
-    public PatternView setInstrumentTouchedListener(InstrumentTouchedListener instrumentTouched) {
-        this.instrumentTouchedListener = instrumentTouched;
+    public PatternView setInstrumentListener(InstrumentListener instrumentTouched) {
+        this.instrumentListener = instrumentTouched;
         return this;
     }
-    private InstrumentTouchedListener instrumentTouchedListener;
+    private InstrumentListener instrumentListener;
 
     // note touched listener
     //

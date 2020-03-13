@@ -1,24 +1,14 @@
 package com.example.trackcomposer;
 
-import android.media.SoundPool;
-import android.os.Environment;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class Pattern {
     String type, name, fileName;
     int channels;
     int length;
-    int[][] hits;
+    GeneratorInfo[][] hits;
 
     public Pattern(String name, String fileName, int channels, int length)
     {
@@ -26,107 +16,89 @@ public class Pattern {
         this.fileName = fileName;
         this.channels = channels;
         this.length = length;
-        hits = new int[channels][length];
+        hits = new GeneratorInfo[channels][length];
+
+        for (int c = 0; c < GetChannelCount(); c++)
+        {
+            for (int l = 0; l < GetLength(); l++)
+            {
+                Set(c, l, new GeneratorInfo());
+            }
+        }
+
     }
 
     String GetName() { return name;}
     int GetLength() { return length; }
     int GetChannelCount() { return channels; }
-    String getChannelName(int channel) { return "none";}
-    int Get(int channel, int pos) { return hits[channel][pos]; }
-    void Set(int channel, int pos, int hit)
+    GeneratorInfo Get(int channel, int pos) { return hits[channel][pos]; }
+    void Set(int channel, int pos, GeneratorInfo hit)
     {
         hits[channel][pos] = hit;
     }
 
-    void PlayBeat(MySoundPool sp, int beat)
+    public interface BeatListener { public void beat(int currentBeat); }
+    BeatListener mBeatListener;
+    public void SetBeatListener(BeatListener beatListener) { mBeatListener = beatListener;}
+    public void CallBeatListener(int currentBeat)
+    {
+        if (mBeatListener!=null)
+            mBeatListener.beat(currentBeat);
+    }
+
+    void PlayBeat(Mixer sp, int beat)
     {
         beat = beat % length;
+        CallBeatListener(beat);
         for (int c = 0; c < channels; c++) {
-            int note = hits[c][beat];
-            if (note>0) {
+            GeneratorInfo note = hits[c][beat];
+            if (note.hit>0) {
                 Play(sp, c);
             }
         }
     }
 
-    public void Play(MySoundPool sp, int note)
+    public void Play(Mixer sp, int note)
     {
 
     }
 
-    void PatternToJson(JSONObject jsonObj) throws JSONException
+    void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         jsonObj.put("name", name);
         jsonObj.put("length", length);
         jsonObj.put("channels", channels);
 
         JSONArray jsonArrC = new JSONArray();
-        for (int c = 0; c < GetChannelCount(); c++) {
+        for (int c = 0; c < GetChannelCount(); c++)
+        {
             JSONArray jsonArrL = new JSONArray();
-            for (int l = 0; l < GetLength(); l++) {
-                jsonArrL.put(Get(c, l));
+            for (int l = 0; l < GetLength(); l++)
+            {
+                JSONObject json = new JSONObject();
+                Get(c, l).serializeToJson(json);
+                jsonArrL.put(json);
             }
             jsonArrC.put(jsonArrL);
         }
         jsonObj.put("pattern", jsonArrC);
     }
 
-    void PatternFromJson(MySoundPool sp, JSONObject jsonObj) throws JSONException
+    void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
         name = jsonObj.getString("name");
         length = jsonObj.getInt("length");
         channels = jsonObj.getInt("channels");
-        hits = new int[channels][length];
+        hits = new GeneratorInfo[channels][length];
         JSONArray jArrC = jsonObj.getJSONArray("pattern");
-        for (int c = 0; c < jArrC.length(); c++) {
+        for (int c = 0; c < jArrC.length(); c++)
+        {
             JSONArray jArrL = jArrC.getJSONArray(c);
-            for (int l = 0; l < jArrL.length(); l++) {
-                Set(c, l, jArrL.getInt(l));
+            for (int l = 0; l < jArrL.length(); l++)
+            {
+                Set(c, l, new GeneratorInfo());
+                Get(c, l).serializeFromJson(jArrL.getJSONObject(l));
             }
         }
     }
-
-    public void Load(MySoundPool sp)
-    {
-        try {
-            FileInputStream fileInputStream = new FileInputStream (new File(fileName+".json"));
-            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuffer stringBuffer = new StringBuffer();
-            String lines=bufferedReader.readLine();
-
-            JSONObject jsonObj = new JSONObject(lines);
-            PatternFromJson(sp, jsonObj);
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    public void Save()
-    {
-        try {
-            JSONObject jsonObj = new JSONObject();
-            PatternToJson(jsonObj);
-            String str = jsonObj.toString();
-
-            FileOutputStream fileOutputStream = new FileOutputStream (new File(fileName+".json"), false);
-            fileOutputStream.write(str.getBytes());
-            fileOutputStream.close();
-        }
-        catch (JSONException e) {
-            e.printStackTrace();
-        }
-        catch(IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-
 }
