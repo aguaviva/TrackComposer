@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            // Create Percussion
+            // Create Chords
             Button btnNewChord = (Button) dialog.findViewById(R.id.buttonNewChord);
             btnNewChord.setOnClickListener(new View.OnClickListener() {
                 @Override
