@@ -45,9 +45,9 @@ class PatternMaster extends Pattern
 
         JSONObject jsonInstruments = new JSONObject();
 
-
         JSONObject jsonPatterns = new JSONObject();
         JSONObject jsonNotes = new JSONObject();
+        JSONObject jsonChords = new JSONObject();
         int i=0;
         for (Pattern channel : mChannels) {
             if (channel!=null) {
@@ -61,11 +61,15 @@ class PatternMaster extends Pattern
                 else if (channel instanceof PatternNote) {
                     jsonNotes.put(String.valueOf(i), jsonObj3);
                 }
+                else if (channel instanceof PatternChord) {
+                    jsonChords.put(String.valueOf(i), jsonObj3);
+                }
             }
             i++;
         }
         jsonObj.put("patterns", jsonPatterns);
         jsonObj.put("notes", jsonNotes);
+        jsonObj.put("chords", jsonChords);
     }
 
     @Override
@@ -94,6 +98,18 @@ class PatternMaster extends Pattern
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
                 mChannels[i] = new PatternNote("", "", 16, 16);
+                mChannels[i].serializeFromJson(jsonObj3);
+            }
+        }
+
+        {
+            JSONObject jsonObj2 = jsonObj.getJSONObject("chords");
+            Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
+            while (iter.hasNext()) {
+                String key = iter.next();
+                int i = Integer.parseInt(key);
+                JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
+                mChannels[i] = new PatternChord("", "", 16, 16);
                 mChannels[i].serializeFromJson(jsonObj3);
             }
         }

@@ -132,7 +132,7 @@ public class PatternView extends View {
             yy = 16;
         }
 
-        canvas.drawRect(paddingLeft + header + (mCurrentBeat *trackWidth/yy), 0,  paddingTop + header + ((mCurrentBeat +1)*trackWidth/yy), contentHeight,blue);
+        canvas.drawRect(paddingLeft + header + (mCurrentBeat *trackWidth/xx), 0,  paddingLeft + header + ((mCurrentBeat +1)*trackWidth/xx), contentHeight,blue);
 
         for(int i=0;i<yy;i++) {
 
@@ -181,8 +181,8 @@ public class PatternView extends View {
         int eventAction = event.getAction();
 
         Pattern mPattern = GetPattern();
-        int xx = mPattern.GetChannelCount();
-        int yy = mPattern.GetLength();
+        int xx = mPattern.GetLength();
+        int yy = mPattern.GetChannelCount();
 
         int paddingLeft = getPaddingLeft();
         int paddingTop = getPaddingTop();

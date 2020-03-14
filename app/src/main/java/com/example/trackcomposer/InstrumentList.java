@@ -27,7 +27,7 @@ public class InstrumentList
             return sample.sampleId;
         } else {
             sample.sampleId = sampleId;
-            mSamples.add(sampleId, sample);
+            mSamples.set(sampleId, sample);
             return sampleId;
         }
     }

@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
         masterView = (PatternView) findViewById(R.id.masterView);
         masterView.SetPattern(mAppState.mPatternMaster);
         masterView.setInstrumentListener(new PatternView.InstrumentListener() {
@@ -122,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
             else if (mAppState.mLastPatternAdded instanceof PatternNote) {
                 intent = new Intent(mContext, ActivityNote.class);
             }
+            else if (mAppState.mLastPatternAdded instanceof PatternChord) {
+                intent = new Intent(mContext, ActivityChord.class);
+            }
 
             startActivity(intent);
         }
@@ -148,6 +150,23 @@ public class MainActivity extends AppCompatActivity {
                     masterView.invalidate();
                 }
             });
+
+            // Create Percussion
+            Button btnNewChord = (Button) dialog.findViewById(R.id.buttonNewChord);
+            btnNewChord.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String filename = editTextKeywordToBlock.getText().toString();
+                    mAppState.mLastPatternAdded = new PatternChord(filename, mAppState.extStoreDir+ "/"+filename, 4*3, 16);
+                    mAppState.mPatternMaster.NewPatterns(mAppState.mLastPatternAdded, channel);
+                    dialog.dismiss();
+
+                    Intent intent = new Intent(mContext, ActivityChord.class);
+                    startActivity(intent);
+                    masterView.invalidate();
+                }
+            });
+
 
             // Create Notes
             Button btnNewNote = (Button) dialog.findViewById(R.id.buttonNewNote);

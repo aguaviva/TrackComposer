@@ -21,6 +21,10 @@
             android:name=".ActivityNote"
             android:label="@string/title_activity_percussion"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".ActivityChord"
+            android:label="ActivityChord"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <activity
             android:name=".MainActivity"
