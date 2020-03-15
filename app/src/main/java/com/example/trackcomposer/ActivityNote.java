@@ -25,7 +25,7 @@ public class ActivityNote extends AppCompatActivity {
         patternNote = (PatternNote)mAppState.mLastPatternAdded;
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternNote);
+        mNoteView.SetPattern(patternNote, true);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
@@ -36,11 +36,9 @@ public class ActivityNote extends AppCompatActivity {
             @Override
             public String getInstrumentName(int n)
             {
-                return Misc.getNoteName(n + patternNote.baseNote);
+                return Misc.getNoteName(16-n + patternNote.baseNote);
             }
-        });
 
-        mNoteView.setNoteTouchedListener(new PatternBaseView.NoteTouchedListener() {
             @Override
             public void noteTouched(int note, int beat) {
                 patternNote.Play(mAppState.mixer, note, 1);

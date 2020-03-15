@@ -31,7 +31,8 @@ class PatternMaster extends PatternBase
             if (note>0) {
                 PatternBase p =mChannels[c];
                 if (p!=null)
-                    p.PlayBeat(sp, beat, mVolume[c]);
+                    if (mVolume[c]>0)
+                        p.PlayBeat(sp, beat, mVolume[c]);
             }
         }
     }

@@ -16,7 +16,7 @@ import android.view.View;
  */
 public class PatternBaseView extends View {
     SoundPool mSp;
-
+    boolean bInvertY = false;
     Paint black;
     Paint box;
     Paint gray;
@@ -39,9 +39,10 @@ public class PatternBaseView extends View {
 
     PatternBase mPattern = null;
     PatternBase GetPattern() { return mPattern; }
-    void SetPattern(PatternBase pattern)
+    void SetPattern(PatternBase pattern, boolean bInvertY)
     {
         mPattern = pattern;
+        this.bInvertY = bInvertY;
         pattern.SetBeatListener(new PatternBase.BeatListener() {
             @Override
             public void beat(int currentBeat) {
@@ -136,6 +137,8 @@ public class PatternBaseView extends View {
 
         for(int i=0;i<yy;i++) {
 
+            int ii = (bInvertY)?(mPattern.GetChannelCount() -1 - i):i;
+
             String str = "--";
             if (mPattern!=null) {
                 if (instrumentListener!=null) {
@@ -166,7 +169,9 @@ public class PatternBaseView extends View {
 
         for(int x=0;x<xx;x++) {
             for(int y=0;y<yy;y++) {
-                if (mPattern.Get(y,x).hit>0) {
+
+                int cy = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
+                if (mPattern.Get(cy,x).hit>0) {
                     float _x = paddingLeft + header + ((x*trackWidth)/xx) + 5;
                     float _y = paddingTop  + ((y*contentHeight)/yy) + 5;
                     canvas.drawRect(_x,_y,_x+(trackWidth/xx)-10,_y+((contentHeight/yy)-10), box);
@@ -200,6 +205,9 @@ public class PatternBaseView extends View {
         int beat = (x-header)/trackWidth;
         int channel = (y-paddingTop)/contentHeight;
 
+        if (bInvertY)
+            channel = mPattern.GetChannelCount()-1 - channel;
+
         // put your code in here to handle the event
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
@@ -214,8 +222,8 @@ public class PatternBaseView extends View {
 
                 if (channel< mPattern.GetChannelCount() && beat<mPattern.GetLength()) {
                     onTouchEvent(channel, beat);
-                    if (noteTouchedListener!=null) {
-                        noteTouchedListener.noteTouched(channel, beat);
+                    if (instrumentListener!=null) {
+                        instrumentListener.noteTouched(channel, beat);
                     }
                     invalidate();
                 }
@@ -233,6 +241,7 @@ public class PatternBaseView extends View {
     public void onTouchEvent(int x, int y)
     {
         PatternBase mPattern = GetPattern();
+
         mPattern.Get(x,y).hit = mPattern.Get(x,y).hit==1?0:1;
     }
 
@@ -254,22 +263,11 @@ public class PatternBaseView extends View {
     public interface InstrumentListener {
         void instrumentTouched(int channel);
         String getInstrumentName(int i);
+        void noteTouched(int note, int beat);
     }
     public PatternBaseView setInstrumentListener(InstrumentListener instrumentTouched) {
         this.instrumentListener = instrumentTouched;
         return this;
     }
     private InstrumentListener instrumentListener;
-
-    // note touched listener
-    //
-    public interface NoteTouchedListener {
-        void noteTouched(int note, int beat);
-    }
-    public PatternBaseView setNoteTouchedListener(NoteTouchedListener noteTouched) {
-        this.noteTouchedListener = noteTouched;
-        return this;
-    }
-    private NoteTouchedListener noteTouchedListener;
-
 }

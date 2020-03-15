@@ -24,7 +24,7 @@ public class ActivityPercussion extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
         mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
-        mDrumTracker.SetPattern(mAppState.mLastPatternAdded);
+        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, false);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
@@ -39,6 +39,10 @@ public class ActivityPercussion extends AppCompatActivity {
                 if (sampleId>=0)
                     return mAppState.instrumentList.get(sampleId).instrumentName;
                 return "none";
+            }
+
+            @Override
+            public void noteTouched(int note, int beat) {
             }
         });
     }

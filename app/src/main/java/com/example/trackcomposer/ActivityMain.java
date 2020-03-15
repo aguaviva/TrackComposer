@@ -19,12 +19,14 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.io.File;
 
@@ -72,7 +74,7 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster);
+        masterView.SetPattern(mAppState.mPatternMaster, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
@@ -87,6 +89,12 @@ public class ActivityMain extends AppCompatActivity {
                     return "--";
                 return pattern.GetName();
             }
+
+            @Override
+            public void noteTouched(int note, int beat) {
+
+            }
+
         });
 
         isStoragePermissionGranted();
@@ -114,6 +122,20 @@ public class ActivityMain extends AppCompatActivity {
                 }
             });
 
+            // mute
+            ToggleButton toggleMute = (ToggleButton)trackControls[i].findViewById(R.id.toggleMute);
+            toggleMute.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                    float vol = mAppState.mPatternMaster.getVolume(finalI);
+                    if (isChecked)
+                        mAppState.mPatternMaster.setVolume(finalI,-Math.abs(vol));
+                    else
+                        mAppState.mPatternMaster.setVolume(finalI,Math.abs(vol));
+                }
+            });
+
+            // volume
             trackVolumes[i] = (SeekBar)trackControls[i].findViewById(R.id.seekBar);
             trackVolumes[i].setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
             {
@@ -175,7 +197,7 @@ public class ActivityMain extends AppCompatActivity {
                 public void fileSelected(String file)
                 {
                     mAppState.Load(file);
-                    masterView.SetPattern(mAppState.mPatternMaster);
+                    masterView.SetPattern(mAppState.mPatternMaster, false);
                     setTrackNames();
                     masterView.invalidate();
                 }

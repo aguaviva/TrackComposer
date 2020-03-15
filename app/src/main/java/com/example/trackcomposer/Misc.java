@@ -59,14 +59,39 @@ public class Misc {
         return -1;
     }
 
+    public static String getProgression(int index)
+    {
+        String progression [] = {
+                " I- ii-  V-  I",
+                " I- ii-  V-  V",
+                " I- ii- IV-  V",
+                " I- ii-  V- IV",
+                " I-iii- IV-  V",
+                " I-iii- IV- ii",
+                " I- IV-  V- IV",
+                " I-  V- IV-  V",
+                " I-  V- vi- IV",
+                " I- vi- IV-  V",
+                " I- vi- ii-  V",
+                "IV-  I-  V-  V",
+                "vi- IV-  I-  V",
+                "vi-  I-  V- IV",
+                "vi- vi- IV-  I",
+                "vi-  V- IV-  V",
+                "vi-  V- IV-  I"
+        };
+
+        return progression[index];
+    }
+
     public static int getFifthsProgression(int root, int index)
     {
         switch(index)
         {
-            case 0: return Misc.getFifthsMajor(root, + 0);
-            case 1: return Misc.getFifthsMajor(root, + 1);
-            case 2: return Misc.getFifthsMajor(root, - 1);
-            case 3: return Misc.getFifthsMinor(root);
+            case 0: return Misc.getFifthsMajor(root, + 0); // Tonic
+            case 1: return Misc.getFifthsMajor(root, + 1); // Dominant
+            case 2: return Misc.getFifthsMajor(root, - 1); // Sibdominant
+            case 3: return Misc.getFifthsMinor(root);         // rel minor
         }
         return -1;
     }

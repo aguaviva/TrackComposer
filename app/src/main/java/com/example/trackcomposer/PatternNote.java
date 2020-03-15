@@ -7,6 +7,7 @@ class PatternNote extends PatternBase
 {
     int sampleId = -1;
     int baseNote = 40;
+
     public PatternNote(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
