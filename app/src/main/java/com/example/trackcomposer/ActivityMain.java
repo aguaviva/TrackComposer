@@ -149,7 +149,7 @@ public class ActivityMain extends AppCompatActivity {
                 public void onStartTrackingTouch(SeekBar seekBar){}
 
                 @Override
-                public void onStopTrackingTouch (SeekBar seekBar){}
+                public void onStopTrackingTouch(SeekBar seekBar){}
             });
 
             headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 59));
