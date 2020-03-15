@@ -45,11 +45,14 @@ public class ActivityMain extends AppCompatActivity {
         toolbar.setSubtitle("Test Subtitle");
         toolbar.inflateMenu(R.menu.menu_main);
 
-        ImageButton fab = (ImageButton)findViewById(R.id.play);
+        final ImageButton fab = (ImageButton)findViewById(R.id.play);
+        fab.setImageResource(android.R.drawable.ic_media_play);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mAppState.PlayPause();
+
+                boolean playing = mAppState.PlayPause();
+                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
             }
         });
 

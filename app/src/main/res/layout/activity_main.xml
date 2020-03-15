@@ -18,10 +18,10 @@
 
         <ImageButton
             android:id="@+id/play"
-            style="@style/Widget.AppCompat.ImageButton"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="left"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#FFFFFF"
             app:backgroundTint="@color/colorAccent"
             tools:src="@android:drawable/ic_media_play" />
     </androidx.appcompat.widget.Toolbar>

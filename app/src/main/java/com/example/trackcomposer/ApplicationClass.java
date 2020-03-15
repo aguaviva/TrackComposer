@@ -56,9 +56,10 @@ public class ApplicationClass extends Application {
         return time;
     }
 
-    void PlayPause()
+    boolean PlayPause()
     {
         mPlaying=!mPlaying;
+        return mPlaying;
     }
 
     public void Load(String filename)
