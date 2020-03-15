@@ -14,7 +14,7 @@ import android.view.View;
 /**
  * TODO: document your custom view class.
  */
-public class PatternView extends View {
+public class PatternBaseView extends View {
     SoundPool mSp;
 
     Paint black;
@@ -23,7 +23,7 @@ public class PatternView extends View {
     Paint blue;
     private int mCurrentBeat = 0;
 
-    private int header = 200;
+    private int header = 50;
 
     private TextPaint mTextPaint;
     private float mTextWidth;
@@ -37,12 +37,12 @@ public class PatternView extends View {
     private int mContentWidth;
     private int mContentHeight;
 
-    Pattern mPattern = null;
-    Pattern GetPattern() { return mPattern; }
-    void SetPattern(Pattern pattern)
+    PatternBase mPattern = null;
+    PatternBase GetPattern() { return mPattern; }
+    void SetPattern(PatternBase pattern)
     {
         mPattern = pattern;
-        pattern.SetBeatListener(new Pattern.BeatListener() {
+        pattern.SetBeatListener(new PatternBase.BeatListener() {
             @Override
             public void beat(int currentBeat) {
                 mCurrentBeat = currentBeat;
@@ -52,24 +52,24 @@ public class PatternView extends View {
 
     }
 
-    public PatternView(Context context) {
+    public PatternBaseView(Context context) {
         super(context);
         init(null, 0);
     }
 
-    public PatternView(Context context, AttributeSet attrs) {
+    public PatternBaseView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(attrs, 0);
     }
 
-    public PatternView(Context context, AttributeSet attrs, int defStyle) {
+    public PatternBaseView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(attrs, defStyle);
     }
 
     private void init(AttributeSet attrs, int defStyle) {
         // Load attributes
-        final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.PatternView, defStyle, 0);
+        final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.PatternBaseView, defStyle, 0);
 
         // Set up a default TextPaint object
         mTextPaint = new TextPaint();
@@ -121,7 +121,7 @@ public class PatternView extends View {
         canvas.drawLine(0, contentHeight-1, contentWidth, contentHeight-1, black);
         canvas.drawLine(0, 0, 0, contentHeight, black);
 
-        Pattern mPattern = GetPattern();
+        PatternBase mPattern = GetPattern();
         int xx,yy;
         if (mPattern!=null) {
             xx = mPattern.GetLength();
@@ -144,8 +144,8 @@ public class PatternView extends View {
                 if (str == null) str = "--";
             }
 
-            float y = getHeight() - (paddingBottom + (i*contentHeight / yy));
-            y -= ((contentHeight / yy)-mTextPaint.getTextSize())/2;
+            float y = paddingTop + (i*contentHeight / yy);
+            y += ((contentHeight / yy)+mTextPaint.getTextSize())/2;
             float x = paddingLeft + 5;
             canvas.drawText(str, x, y, mTextPaint);
         }
@@ -168,8 +168,8 @@ public class PatternView extends View {
             for(int y=0;y<yy;y++) {
                 if (mPattern.Get(y,x).hit>0) {
                     float _x = paddingLeft + header + ((x*trackWidth)/xx) + 5;
-                    float _y = getHeight() - (paddingBottom  + ((y*contentHeight)/yy) + 5);
-                    canvas.drawRect(_x,_y-((contentHeight/yy)-10),_x+(trackWidth/xx)-10,_y, box);
+                    float _y = paddingTop  + ((y*contentHeight)/yy) + 5;
+                    canvas.drawRect(_x,_y,_x+(trackWidth/xx)-10,_y+((contentHeight/yy)-10), box);
                 }
             }
         }
@@ -180,7 +180,7 @@ public class PatternView extends View {
 
         int eventAction = event.getAction();
 
-        Pattern mPattern = GetPattern();
+        PatternBase mPattern = GetPattern();
         int xx = mPattern.GetLength();
         int yy = mPattern.GetChannelCount();
 
@@ -198,7 +198,7 @@ public class PatternView extends View {
         int y = (int)event.getY() - getPaddingTop();
 
         int beat = (x-header)/trackWidth;
-        int channel = (getHeight() - paddingBottom - y)/contentHeight;
+        int channel = (y-paddingTop)/contentHeight;
 
         // put your code in here to handle the event
         switch (eventAction) {
@@ -232,7 +232,7 @@ public class PatternView extends View {
 
     public void onTouchEvent(int x, int y)
     {
-        Pattern mPattern = GetPattern();
+        PatternBase mPattern = GetPattern();
         mPattern.Get(x,y).hit = mPattern.Get(x,y).hit==1?0:1;
     }
 
@@ -255,7 +255,7 @@ public class PatternView extends View {
         void instrumentTouched(int channel);
         String getInstrumentName(int i);
     }
-    public PatternView setInstrumentListener(InstrumentListener instrumentTouched) {
+    public PatternBaseView setInstrumentListener(InstrumentListener instrumentTouched) {
         this.instrumentListener = instrumentTouched;
         return this;
     }
@@ -266,7 +266,7 @@ public class PatternView extends View {
     public interface NoteTouchedListener {
         void noteTouched(int note, int beat);
     }
-    public PatternView setNoteTouchedListener(NoteTouchedListener noteTouched) {
+    public PatternBaseView setNoteTouchedListener(NoteTouchedListener noteTouched) {
         this.noteTouchedListener = noteTouched;
         return this;
     }

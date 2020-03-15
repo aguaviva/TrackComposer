@@ -19,10 +19,10 @@ public class Generator {
         baseNoteFreq = Misc.GetFrequency(baseNote);
     }
 
-    public void Play(Mixer sp, int note) {
+    public void Play(Mixer sp, int note, float volume) {
         float freq = Misc.GetFrequency(note);
         float speed = freq / Misc.GetFrequency(baseNote);
-        sp.play(sampleId, 1, speed);
+        sp.play(sampleId, 1, speed, volume);
     }
 
     public void playSample(Mixer.Channel channel, short[] chunk, int ini, int fin) {
@@ -47,7 +47,7 @@ public class Generator {
         filesChooser.setExtension("ogg");
         filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
             @Override public void fileSelected(final String file) { load(file); }
-            @Override public void fileTouched(final File file) { load(file.getPath()); }
+            @Override public void fileTouched(final String file) { load(file); }
         });
 
         filesChooser.showDialog();

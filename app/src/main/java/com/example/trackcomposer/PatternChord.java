@@ -3,7 +3,7 @@ package com.example.trackcomposer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class PatternChord extends Pattern
+public class PatternChord extends PatternBase
 {
     int sampleId = -1;
     int baseNote = 40;
@@ -27,12 +27,12 @@ public class PatternChord extends Pattern
     }
 
     @Override
-    public void Play(Mixer sp, int note)
+    public void Play(Mixer sp, int note, float volume)
     {
         if (sampleId>=0)
         {
             float speed = Misc.GetFrequency(KeyToNote(note)) / Misc.GetFrequency(baseNote);
-            sp.play(sampleId, 0, speed);
+            sp.play(sampleId, 0, speed, volume);
         }
     }
 

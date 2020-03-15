@@ -14,12 +14,17 @@ import androidx.core.app.ActivityCompat;
 
 import android.os.Environment;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -27,8 +32,11 @@ public class ActivityMain extends AppCompatActivity {
 
     private static final String TAG = "TrackComposer";
     ApplicationClass mAppState;
-    PatternView masterView;
+    PatternBaseView masterView;
     Context mContext;
+    View[] trackControls;
+    TextView[] trackNames;
+    SeekBar[] trackVolumes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +53,13 @@ public class ActivityMain extends AppCompatActivity {
         toolbar.setSubtitle("Test Subtitle");
         toolbar.inflateMenu(R.menu.menu_main);
 
+        rigControls();
+
         final ImageButton fab = (ImageButton)findViewById(R.id.play);
         fab.setImageResource(android.R.drawable.ic_media_play);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 boolean playing = mAppState.PlayPause();
                 fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
             }
@@ -62,9 +71,9 @@ public class ActivityMain extends AppCompatActivity {
             }
         }
 
-        masterView = (PatternView) findViewById(R.id.masterView);
+        masterView = (PatternBaseView) findViewById(R.id.masterView);
         masterView.SetPattern(mAppState.mPatternMaster);
-        masterView.setInstrumentListener(new PatternView.InstrumentListener() {
+        masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
                 instrumentChooser(channel);
@@ -73,7 +82,7 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public String getInstrumentName(int n)
             {
-                Pattern pattern = mAppState.mPatternMaster.mChannels[n];
+                PatternBase pattern = mAppState.mPatternMaster.mChannels[n];
                 if (pattern==null)
                     return "--";
                 return pattern.GetName();
@@ -81,6 +90,64 @@ public class ActivityMain extends AppCompatActivity {
         });
 
         isStoragePermissionGranted();
+    }
+
+    void rigControls()
+    {
+        LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
+        headers.removeAllViews();
+        trackControls = new View[16];
+        trackNames = new TextView[16];
+        trackVolumes = new SeekBar[16];
+        for(int i=0;i<16;i++) {
+            final int finalI = i;
+
+            trackControls[i] = getLayoutInflater().inflate(R.layout.track_header, null);
+            trackNames[i] = (TextView)trackControls[i].findViewById(R.id.instrumentName);
+            trackControls[i].setOnTouchListener(new TextView.OnTouchListener()
+            {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN)
+                        Toast.makeText(mContext, "Touched", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            });
+
+            trackVolumes[i] = (SeekBar)trackControls[i].findViewById(R.id.seekBar);
+            trackVolumes[i].setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+            {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+                {
+                    mAppState.mPatternMaster.setVolume(finalI, ((float)progress)/100.0f);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar){}
+
+                @Override
+                public void onStopTrackingTouch (SeekBar seekBar){}
+            });
+
+            headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 59));
+        }
+
+        setTrackNames();
+    }
+
+    void setTrackNames()
+    {
+        for(int i=0;i<trackNames.length;i++) {
+            trackNames[i].setText(String.valueOf(i));
+            PatternBase pattern = mAppState.mPatternMaster.mChannels[i];
+            if (pattern!=null)
+                trackNames[i].setText(pattern.GetName());
+        }
+
+        for(int i=0;i<trackNames.length;i++) {
+            trackVolumes[i].setProgress((int)(100*mAppState.mPatternMaster.getVolume(i)), false);
+        }
     }
 
     @Override
@@ -109,11 +176,12 @@ public class ActivityMain extends AppCompatActivity {
                 {
                     mAppState.Load(file);
                     masterView.SetPattern(mAppState.mPatternMaster);
+                    setTrackNames();
                     masterView.invalidate();
                 }
 
                 @Override
-                public void fileTouched(File file) {}
+                public void fileTouched(String file) {}
             });
             filesChooser.setExtension("json");
             filesChooser.showDialog();
@@ -131,7 +199,7 @@ public class ActivityMain extends AppCompatActivity {
                 public void fileSelected(String file) { mAppState.Save(file); }
 
                 @Override
-                public void fileTouched(File file) {}
+                public void fileTouched(String file) {}
             });
             filesChooser.setExtension("json");
             filesChooser.showDialog();

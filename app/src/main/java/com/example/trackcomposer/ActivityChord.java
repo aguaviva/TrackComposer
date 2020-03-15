@@ -8,7 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 
 public class ActivityChord extends AppCompatActivity {
     ApplicationClass mAppState;
-    PatternView mNoteView;
+    PatternBaseView mNoteView;
     PatternChord patternChord;
     Context mContext;
 
@@ -24,9 +24,9 @@ public class ActivityChord extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternChord = (PatternChord)mAppState.mLastPatternAdded;
 
-        mNoteView = (PatternView)findViewById(R.id.noteView);
+        mNoteView = (PatternBaseView)findViewById(R.id.noteView);
         mNoteView.SetPattern(patternChord);
-        mNoteView.setInstrumentListener(new PatternView.InstrumentListener() {
+        mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
                 instrumentChooser();
@@ -40,10 +40,10 @@ public class ActivityChord extends AppCompatActivity {
             }
         });
 
-        mNoteView.setNoteTouchedListener(new PatternView.NoteTouchedListener() {
+        mNoteView.setNoteTouchedListener(new PatternBaseView.NoteTouchedListener() {
             @Override
             public void noteTouched(int note, int beat) {
-                patternChord.Play(mAppState.mixer, note);
+                patternChord.Play(mAppState.mixer, note, 1);
             }
         });
     }

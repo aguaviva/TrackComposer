@@ -1,22 +1,25 @@
 package com.example.trackcomposer;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
 
-class PatternMaster extends Pattern
+class PatternMaster extends PatternBase
 {
-    Pattern  [] mChannels;
+    PatternBase[] mChannels;
+    float[] mVolume;
 
     public PatternMaster(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
-        mChannels = new Pattern[channels];
+        mChannels = new PatternBase[channels];
+        mVolume = new float[channels];
     }
 
     @Override
-    void PlayBeat(Mixer sp, int beat)
+    void PlayBeat(Mixer sp, int beat, float volume)
     {
         int pattern = beat / length;
         pattern = pattern % length;
@@ -26,30 +29,31 @@ class PatternMaster extends Pattern
         for (int c = 0; c < channels; c++) {
             int note = hits[c][pattern].hit;
             if (note>0) {
-                Pattern p =mChannels[c];
+                PatternBase p =mChannels[c];
                 if (p!=null)
-                    p.PlayBeat(sp, beat);
+                    p.PlayBeat(sp, beat, mVolume[c]);
             }
         }
     }
 
-    public void NewPatterns(Pattern pattern, int channel)
+    public void NewPatterns(PatternBase pattern, int channel)
     {
         mChannels[channel] = pattern;
     }
+
+    public void setVolume(int channel, float volume) { mVolume[channel]=volume;}
+    public float getVolume(int channel) { return mVolume[channel];}
 
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         super.serializeToJson(jsonObj);
 
-        JSONObject jsonInstruments = new JSONObject();
-
         JSONObject jsonPatterns = new JSONObject();
         JSONObject jsonNotes = new JSONObject();
         JSONObject jsonChords = new JSONObject();
-        int i=0;
-        for (Pattern channel : mChannels) {
+        for (int i=0;i<mChannels.length;i++) {
+            PatternBase channel = mChannels[i];
             if (channel!=null) {
                 JSONObject jsonObj3 = new JSONObject();
 
@@ -65,11 +69,19 @@ class PatternMaster extends Pattern
                     jsonChords.put(String.valueOf(i), jsonObj3);
                 }
             }
-            i++;
         }
         jsonObj.put("patterns", jsonPatterns);
         jsonObj.put("notes", jsonNotes);
         jsonObj.put("chords", jsonChords);
+
+        // put volumes
+        {
+            JSONArray jsonVolumes = new JSONArray();
+            for (int i = 0; i < mVolume.length; i++) {
+                jsonVolumes.put(mVolume[i]);
+            }
+            jsonObj.put("volumes", jsonVolumes);
+        }
     }
 
     @Override
@@ -77,7 +89,7 @@ class PatternMaster extends Pattern
     {
         super.serializeFromJson(jsonObj);
 
-        mChannels = new Pattern[channels];
+        mChannels = new PatternBase[channels];
         {
             JSONObject jsonObj2 = jsonObj.getJSONObject("patterns");
             Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
@@ -113,6 +125,16 @@ class PatternMaster extends Pattern
                 mChannels[i].serializeFromJson(jsonObj3);
             }
         }
+
+        if (jsonObj.has("volumes")) {
+            JSONArray jsonVolumes = jsonObj.getJSONArray("volumes");
+            if (jsonVolumes != null) {
+                for (int i = 0; i < jsonVolumes.length(); i++) {
+                    mVolume[i] = (float)jsonVolumes.getDouble(i);
+                }
+            }
+        }
+
     }
 
 };

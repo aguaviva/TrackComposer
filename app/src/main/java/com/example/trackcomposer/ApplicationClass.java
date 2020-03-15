@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 
 public class ApplicationClass extends Application {
     public PatternMaster mPatternMaster;
-    public Pattern mLastPatternAdded;
+    public PatternBase mLastPatternAdded;
     public File extStoreDir;
     private boolean mPlaying = false;
     private int count = 0;
@@ -39,7 +39,7 @@ public class ApplicationClass extends Application {
             @Override
             public void beat() {
                 if (mPlaying) {
-                    mPatternMaster.PlayBeat(mixer, count);
+                    mPatternMaster.PlayBeat(mixer, count, 1);
                     count++;
                 }
             }
@@ -65,7 +65,7 @@ public class ApplicationClass extends Application {
     public void Load(String filename)
     {
         try {
-            FileInputStream fileInputStream = new FileInputStream (new File(extStoreDir+filename+".json"));
+            FileInputStream fileInputStream = new FileInputStream (new File(filename));
             InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             StringBuffer stringBuffer = new StringBuffer();
@@ -97,7 +97,7 @@ public class ApplicationClass extends Application {
             mPatternMaster.serializeToJson(jsonObj);
             String str = jsonObj.toString();
 
-            FileOutputStream fileOutputStream = new FileOutputStream (new File(extStoreDir+filename+".json"), false);
+            FileOutputStream fileOutputStream = new FileOutputStream (new File(filename), false);
             fileOutputStream.write(str.getBytes());
             fileOutputStream.close();
         }

@@ -36,13 +36,13 @@ public class Mixer {
         }
     }
 
-    public void play(int sampleId, int channel, float speed)
+    public void play(int sampleId, int channel, float speed, float volume)
     {
         mChannel[mCurrentChannel].sampleId = sampleId;
         mChannel[mCurrentChannel].speed = speed;
         mChannel[mCurrentChannel].timeInSamples = 0;
         mChannel[mCurrentChannel].timeDurationInSamples=11000;
-        mChannel[mCurrentChannel].volume = 0.5f;
+        mChannel[mCurrentChannel].volume = volume;
         mChannel[mCurrentChannel].volumeSpeed = -0.00005f;
         mChannel[mCurrentChannel].mPlaying = true;
 

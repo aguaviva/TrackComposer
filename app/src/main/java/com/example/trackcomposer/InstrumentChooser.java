@@ -51,9 +51,9 @@ public class InstrumentChooser
                     public void fileSelected(final String file) { }  // we are loading the instrument on touch
 
                     @Override
-                    public void fileTouched(final File file) {
+                    public void fileTouched(final String file) {
                         GeneratorSample sample = new GeneratorSample();
-                        sample.load(file.getPath());
+                        sample.load(file);
                         int sampleId = instruments.register(sample, currentId);
                         instrumentChooserListener.GetSelectedInstrumentId(sample);
                     }

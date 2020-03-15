@@ -4,13 +4,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Pattern {
+public class PatternBase {
     String type, name, fileName;
     int channels;
     int length;
     GeneratorInfo[][] hits;
 
-    public Pattern(String name, String fileName, int channels, int length)
+    public PatternBase(String name, String fileName, int channels, int length)
     {
         this.name=name;
         this.fileName = fileName;
@@ -25,7 +25,6 @@ public class Pattern {
                 Set(c, l, new GeneratorInfo());
             }
         }
-
     }
 
     String GetName() { return name;}
@@ -46,19 +45,19 @@ public class Pattern {
             mBeatListener.beat(currentBeat);
     }
 
-    void PlayBeat(Mixer sp, int beat)
+    void PlayBeat(Mixer sp, int beat, float volume)
     {
         beat = beat % length;
         CallBeatListener(beat);
         for (int c = 0; c < channels; c++) {
             GeneratorInfo note = hits[c][beat];
             if (note.hit>0) {
-                Play(sp, c);
+                Play(sp, c, volume);
             }
         }
     }
 
-    public void Play(Mixer sp, int note)
+    public void Play(Mixer sp, int note, float volume)
     {
 
     }

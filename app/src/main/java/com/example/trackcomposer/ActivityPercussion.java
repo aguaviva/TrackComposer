@@ -8,7 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 
 public class ActivityPercussion extends AppCompatActivity {
     ApplicationClass mAppState;
-    PatternView mDrumTracker;
+    PatternBaseView mDrumTracker;
     Context mContext;
     PatternPercussion patternPercussion;
 
@@ -23,9 +23,9 @@ public class ActivityPercussion extends AppCompatActivity {
 
         mAppState = ((ApplicationClass)this.getApplication());
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
-        mDrumTracker = (PatternView)findViewById(R.id.drumView);
+        mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
         mDrumTracker.SetPattern(mAppState.mLastPatternAdded);
-        mDrumTracker.setInstrumentListener(new PatternView.InstrumentListener() {
+        mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void instrumentTouched(int channel) {
                 instrumentChooser(channel);

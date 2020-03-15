@@ -4,9 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Iterator;
-
-class PatternPercussion extends Pattern
+class PatternPercussion extends PatternBase
 {
     public int[] mChannels;
 
@@ -21,10 +19,10 @@ class PatternPercussion extends Pattern
     }
 
     @Override
-    public void Play(Mixer sp, int note)
+    public void Play(Mixer sp, int note, float volume)
     {
         if (mChannels[note]>=0)
-            sp.play(mChannels[note], 0, 1.0f);
+            sp.play(mChannels[note], 0, 1.0f, volume);
     }
 
     @Override

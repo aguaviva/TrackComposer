@@ -37,7 +37,7 @@ public class FileChooser {
     //
     public interface FileSelectedListener {
         void fileSelected(String file);
-        void fileTouched(File file);
+        void fileTouched(String file);
     }
     public FileChooser setFileChooserListener(FileSelectedListener fileListener) {
         this.fileListener = fileListener;
@@ -68,7 +68,7 @@ public class FileChooser {
                 } else {
                     if (fileListener!=null)
                     {
-                        fileListener.fileTouched(chosenFile);
+                        fileListener.fileTouched(currentPath.getPath()+"/"+fileChosen);
                     }
                 }
             }
@@ -81,7 +81,7 @@ public class FileChooser {
             public void onClick(View v) {
                 dialog.dismiss();
                 if (fileListener != null) {
-                    fileListener.fileSelected(filename.getText().toString());
+                    fileListener.fileSelected(currentPath.getPath()+"/"+filename.getText().toString());
                 }
             }
         });
