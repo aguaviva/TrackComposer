@@ -21,6 +21,7 @@ public class FileChooser {
 
     private final Activity activity;
     private ListView list;
+    private EditText filename;
     private Dialog dialog;
     private File currentPath;
     private File initialDir;
@@ -35,94 +36,56 @@ public class FileChooser {
     // file selection event handling
     //
     public interface FileSelectedListener {
-        void fileSelected(File file);
+        void fileSelected(String file);
+        void fileTouched(File file);
     }
-    public FileChooser setFileListener(FileSelectedListener fileListener) {
+    public FileChooser setFileChooserListener(FileSelectedListener fileListener) {
         this.fileListener = fileListener;
         return this;
     }
     private FileSelectedListener fileListener;
 
-    // file selection event handling
-    //
-    public interface FileTouchedListener {
-        void fileTouched(File file);
-    }
-    public FileChooser setFileTouchedListener(FileTouchedListener fileTouchedListener) {
-        this.fileTouchedListener = fileTouchedListener;
-        return this;
-    }
-    private FileTouchedListener fileTouchedListener;
-
-    // file selection event handling
-    //
-    public interface NewFileTouchedListener {
-        void newFileTouched();
-    }
-    public FileChooser setNewFileTouchedListener(NewFileTouchedListener newFileTouchedListener) {
-        this.newFileTouchedListener = newFileTouchedListener;
-        return this;
-    }
-    private NewFileTouchedListener newFileTouchedListener;
-
-
     /**
      * FileChooser, constructor.
      */
-    public FileChooser(Activity activity, File initialDir) {
+    public FileChooser(Activity activity, File initialDir, String actionButtonText) {
         this.activity = activity;
         this.initialDir = initialDir;
 
         dialog = new Dialog(activity);
         dialog.setContentView(R.layout.file_chooser);
 
+        filename = (EditText)dialog.findViewById(R.id.filename);
+
         list = (ListView)dialog.findViewById(R.id.listView);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override public void onItemClick(AdapterView<?> parent, View view, int which, long id) {
                 String fileChosen = (String) list.getItemAtPosition(which);
+                filename.setText(fileChosen);
                 File chosenFile = getChosenFile(fileChosen);
                 if (chosenFile.isDirectory()) {
                     refresh(chosenFile);
                 } else {
-
-                    if (fileTouchedListener!=null)
+                    if (fileListener!=null)
                     {
-                        fileTouchedListener.fileTouched(chosenFile);
+                        fileListener.fileTouched(chosenFile);
                     }
                 }
             }
         });
 
         Button buttonOK= (Button)dialog.findViewById(R.id.btnOk);
+        buttonOK.setText(actionButtonText);
         buttonOK.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
                 if (fileListener != null) {
-                    //fileListener.fileSelected(chosenFile);
+                    fileListener.fileSelected(filename.getText().toString());
                 }
             }
         });
 
-        Button buttonNew= (Button)dialog.findViewById(R.id.btnNew);
-        buttonNew.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                if (newFileTouchedListener != null) {
-                    newFileTouchedListener.newFileTouched();
-                }
-            }
-        });
-
-        /*
-        buttonOK.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-*/
         Button button= (Button)dialog.findViewById(R.id.btnCancel);
         button.setOnClickListener(new View.OnClickListener() {
             @Override

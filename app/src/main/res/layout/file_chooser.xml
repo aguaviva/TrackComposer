@@ -1,34 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/relRingtone"
     android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-
-    <Button
-        android:id="@+id/btnNew"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="1.0"
-        android:text="New" />
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <ListView
         android:id="@+id/listView"
-        android:layout_below="@+id/btnNew"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:choiceMode="singleChoice"
         android:layout_weight="1"
         android:layout_marginLeft="3dip"
-        android:textSize="2dp" >
-    </ListView>
+        android:textSize="2dp" />
 
     <LinearLayout
-        android:id="@+id/closecalmlayout"
-        android:layout_below="@+id/listView"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="1.0" >
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Filename: " />
+
+        <EditText
+            android:id="@+id/filename"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/btnOk"
@@ -36,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dip"
             android:layout_marginTop="5dip"
-            android:layout_weight=".50"
+            android:layout_weight="1"
             android:text="OK"
             />
 
@@ -47,9 +51,9 @@
             android:layout_marginLeft="5dip"
             android:layout_marginRight="5dip"
             android:layout_marginTop="5dip"
-            android:layout_weight=".50"
+            android:layout_weight="1"
             android:text="Cancel"
             />
-
     </LinearLayout>
+
 </LinearLayout>

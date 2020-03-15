@@ -38,27 +38,16 @@ public class Generator {
 
     public void load(String path)
     {
-
     }
 
     private void instrumentChooser(Activity activity, final int channel)
     {
-        String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
-        File directory = new File(extStore);
-
-        FileChooser filesChooser = new FileChooser(activity, directory);
+        File directory = new File(Environment.getExternalStorageDirectory() + "/TrackComposer");
+        FileChooser filesChooser = new FileChooser(activity, directory, "Load");
         filesChooser.setExtension("ogg");
-
-        filesChooser.setFileListener(new FileChooser.FileSelectedListener() {
-            @Override public void fileSelected(final File file) {
-                load(file.getPath());
-            }
-        });
-
-        filesChooser.setFileTouchedListener(new FileChooser.FileTouchedListener() {
-            @Override public void fileTouched(final File file) {
-                load(file.getPath());
-            }
+        filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
+            @Override public void fileSelected(final String file) { load(file); }
+            @Override public void fileTouched(final File file) { load(file.getPath()); }
         });
 
         filesChooser.showDialog();

@@ -43,20 +43,13 @@ public class InstrumentChooser
                 String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
                 File directory = new File(extStore);
 
-                final FileChooser filesChooser = new FileChooser(activity, directory);
+                final FileChooser filesChooser = new FileChooser(activity, directory, "Load Sample");
                 filesChooser.setExtension("ogg");
 
-                filesChooser.setFileListener(new FileChooser.FileSelectedListener() {
+                filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                     @Override
-                    public void fileSelected(final File file) {
-                        GeneratorSample sample = new GeneratorSample();
-                        sample.load(file.getPath());
-                        int sampleId = instruments.register(sample, currentId);
-                        instrumentChooserListener.GetSelectedInstrumentId(sample);
-                    }
-                });
+                    public void fileSelected(final String file) { }  // we are loading the instrument on touch
 
-                filesChooser.setFileTouchedListener(new FileChooser.FileTouchedListener() {
                     @Override
                     public void fileTouched(final File file) {
                         GeneratorSample sample = new GeneratorSample();

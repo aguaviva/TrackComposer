@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -20,7 +21,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-public class MainActivity extends AppCompatActivity {
+import java.io.File;
+
+public class ActivityMain extends AppCompatActivity {
 
     private static final String TAG = "TrackComposer";
     ApplicationClass mAppState;
@@ -93,14 +96,42 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_load) {
-            mAppState.Load("mysong");
-            masterView.SetPattern(mAppState.mPatternMaster);
-            masterView.invalidate();
+            String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
+            File directory = new File(extStore);
+
+            final FileChooser filesChooser = new FileChooser(this, directory, "Load Song");
+            filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
+                @Override
+                public void fileSelected(String file)
+                {
+                    mAppState.Load(file);
+                    masterView.SetPattern(mAppState.mPatternMaster);
+                    masterView.invalidate();
+                }
+
+                @Override
+                public void fileTouched(File file) {}
+            });
+            filesChooser.setExtension("json");
+            filesChooser.showDialog();
             return true;
         }
 
         if (id == R.id.action_save) {
-            mAppState.Save("mysong");
+
+            String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
+            File directory = new File(extStore);
+
+            final FileChooser filesChooser = new FileChooser(this, directory, "Save Song");
+            filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
+                @Override
+                public void fileSelected(String file) { mAppState.Save(file); }
+
+                @Override
+                public void fileTouched(File file) {}
+            });
+            filesChooser.setExtension("json");
+            filesChooser.showDialog();
             return true;
         }
 
