@@ -6,8 +6,9 @@
  
  Tracks
  - Percussion
- - Chords
- - Notes
+ - Chords, simplified keyboard where only a chord progression can be used.
+ - Notes, for melodies.
+ 
  Instruments
  - Samples (can load ogg files)
  - Synth (just a sin for now)
