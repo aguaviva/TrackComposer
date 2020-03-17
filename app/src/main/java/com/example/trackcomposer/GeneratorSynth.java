@@ -7,8 +7,6 @@ public class GeneratorSynth extends Generator {
     float TwoPi = 2.0f*3.1415926f;
     int mSampleRate = 44100;
 
-    float mFreq = 440;
-
     float mTremoloFreq=0, mTremoloAmplitude = 0.0f;
     float mVibratoFreq=0, mVibratoAmplitude = 0.0f;
 
@@ -37,7 +35,7 @@ public class GeneratorSynth extends Generator {
     public void playSample(Mixer.Channel channel, short[] chunk, int ini, int fin)
     {
         float t = channel.timeInSamples * channel.speed;
-        float freqN = (mFreq * TwoPi)  / (float)mSampleRate;
+        float freqN = (baseNoteFreq * TwoPi)  / (float)mSampleRate;
 
         float effectsTime = channel.timeInSamples;
 

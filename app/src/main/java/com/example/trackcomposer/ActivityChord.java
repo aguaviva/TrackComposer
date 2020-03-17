@@ -1,5 +1,6 @@
 package com.example.trackcomposer;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
@@ -57,6 +58,7 @@ public class ActivityChord extends AppCompatActivity {
             @Override
             public void GetSelectedInstrumentId(Generator generator) {
                 patternChord.sampleId = generator.sampleId;
+                rigControls();
             }
         });
     }
@@ -66,44 +68,13 @@ public class ActivityChord extends AppCompatActivity {
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
         headers.removeAllViews();
 
-        Generator gen = mAppState.instrumentList.get(patternChord.sampleId);
-        if (gen instanceof GeneratorSynth)
-        {
-            GeneratorSynth genSynth = (GeneratorSynth)gen;
-
-            View synthControls = getLayoutInflater().inflate(R.layout.synth_controls, null);
-
-            SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    GeneratorSynth synth = (GeneratorSynth) mAppState.instrumentList.get(patternChord.sampleId);
-                    switch (seekBar.getId()) {
-                        case R.id.tremoloFreq:
-                            synth.setTremoloFreq(progress);
-                            break;
-                        case R.id.tremoloAmp:
-                            synth.setTremoloAmplitude(((float) progress) / 100.0f);
-                    }
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                }
-            };
-
-            SeekBar tremoloFreq = (SeekBar) synthControls.findViewById(R.id.tremoloFreq);
-            tremoloFreq.setProgress((int)genSynth.mTremoloFreq);
-            tremoloFreq.setOnSeekBarChangeListener(seekBarListener);
-
-            SeekBar tremoloAmplitude = (SeekBar) synthControls.findViewById(R.id.tremoloAmp);
-            tremoloAmplitude.setProgress((int)(genSynth.mTremoloAmplitude*100.0f));
-            tremoloAmplitude.setOnSeekBarChangeListener(seekBarListener);
-
-            headers.addView(synthControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
+        if (patternChord.sampleId>=0) {
+            Generator gen = mAppState.instrumentList.get(patternChord.sampleId);
+            if (gen instanceof GeneratorSynth) {
+                GeneratorSynth genSynth = (GeneratorSynth) gen;
+                View synthControls = Widgets.SynthEditor(this, (GeneratorSynth) gen);
+                headers.addView(synthControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
+            }
         }
     }
 }

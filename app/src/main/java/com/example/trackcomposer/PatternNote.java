@@ -18,8 +18,7 @@ class PatternNote extends PatternBase
     {
         if (sampleId>=0)
         {
-            float speed = Misc.GetFrequency(baseNote + note) / Misc.GetFrequency(baseNote);
-            sp.play(sampleId, 0, speed, volume);
+            sp.play(sampleId, 0, Misc.GetFrequency(baseNote + note), volume);
         }
     }
 

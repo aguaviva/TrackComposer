@@ -55,6 +55,9 @@ public class ActivityMain extends AppCompatActivity {
         toolbar.setSubtitle("Test Subtitle");
         toolbar.inflateMenu(R.menu.menu_main);
 
+        //View noteControls = getLayoutInflater().inflate(R.layout.note_controls, null);
+        //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
+
         rigControls();
 
         final ImageButton fab = (ImageButton)findViewById(R.id.play);

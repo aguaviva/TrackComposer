@@ -1,7 +1,15 @@
 package com.example.trackcomposer;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -44,6 +52,10 @@ public class ActivityNote extends AppCompatActivity {
                 patternNote.Play(mAppState.mixer, note, 1);
             }
         });
+
+        // set note controls up in the toolbar
+        View noteControls = Widgets.AddUpAndDownKey(this, mNoteView, patternNote);
+        toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
     }
 
     private void instrumentChooser()
@@ -55,5 +67,16 @@ public class ActivityNote extends AppCompatActivity {
                 patternNote.sampleId = generator.sampleId;
             }
         });
+    }
+
+    void rigControls(ViewGroup headers) {
+        //LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
+        //headers.removeAllViews();
+        //Toolbar headers = findViewById(R.id.toolbar);
+
+        View noteControls = Widgets.AddUpAndDownKey(this, mNoteView, patternNote);
+        headers.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
+
+        //headers.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
     }
 }

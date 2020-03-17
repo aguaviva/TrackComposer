@@ -12,17 +12,12 @@ public class Generator {
     public int sampleId = -1;
     public String instrumentName = "none";
 
-    int baseNote = 40;
-    float baseNoteFreq = 0.0f;
+    // will make this private at some point
+    public int baseNote = 40;
+    public float baseNoteFreq = 0.0f;
 
     public Generator() {
         baseNoteFreq = Misc.GetFrequency(baseNote);
-    }
-
-    public void Play(Mixer sp, int note, float volume) {
-        float freq = Misc.GetFrequency(note);
-        float speed = freq / Misc.GetFrequency(baseNote);
-        sp.play(sampleId, 1, speed, volume);
     }
 
     public void playSample(Mixer.Channel channel, short[] chunk, int ini, int fin) {

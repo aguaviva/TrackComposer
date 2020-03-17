@@ -22,7 +22,7 @@ class PatternPercussion extends PatternBase
     public void Play(Mixer sp, int note, float volume)
     {
         if (mChannels[note]>=0)
-            sp.play(mChannels[note], 0, 1.0f, volume);
+            sp.play(mChannels[note], 0, Misc.GetFrequency(40), volume);
     }
 
     @Override
