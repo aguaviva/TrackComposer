@@ -25,29 +25,29 @@ public class ApplicationClass extends Application {
     Mixer mixer;
     void Init()
     {
-        instrumentList = new InstrumentList();
-        mixer = new Mixer(instrumentList);
-        soundPool = new MySoundPool();
-        soundPool.init(44100, new MySoundPool.NextBeatListener()
-        {
-            @Override
-            public void renderChunk(short[] chunk, int ini, int fin)
-            {
-                mixer.renderChunk(chunk, ini, fin);
-            }
-
-            @Override
-            public void beat() {
-                if (mPlaying) {
-                    mPatternMaster.PlayBeat(mixer, count, 1);
-                    count++;
+        if (mPatternMaster==null) {
+            instrumentList = new InstrumentList();
+            mixer = new Mixer(instrumentList);
+            soundPool = new MySoundPool();
+            soundPool.init(44100, new MySoundPool.NextBeatListener() {
+                @Override
+                public void renderChunk(short[] chunk, int ini, int fin) {
+                    mixer.renderChunk(chunk, ini, fin);
                 }
-            }
-        });
 
-        extStoreDir = new File(Environment.getExternalStorageDirectory() + "/TrackComposer");
+                @Override
+                public void beat() {
+                    if (mPlaying) {
+                        mPatternMaster.PlayBeat(mixer, count, 1);
+                        count++;
+                    }
+                }
+            });
 
-        mPatternMaster = new PatternMaster("songy",extStoreDir+"/songy",16,16) ;
+            extStoreDir = new File(Environment.getExternalStorageDirectory() + "/TrackComposer");
+
+            mPatternMaster = new PatternMaster("songy", extStoreDir + "/songy", 8, 16);
+        }
     }
 
     int time = 0;

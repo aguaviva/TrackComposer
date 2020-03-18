@@ -2,6 +2,7 @@ package com.example.trackcomposer;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -15,7 +16,7 @@ import android.view.View;
  * TODO: document your custom view class.
  */
 public class PatternBaseView extends View {
-    SoundPool mSp;
+    int mLOD = 0;
     boolean bInvertY = false;
     Paint black;
     Paint box;
@@ -23,7 +24,7 @@ public class PatternBaseView extends View {
     Paint blue;
     private int mCurrentBeat = 0;
 
-    private int header = 50;
+    private int mHeader = 50;
 
     private TextPaint mTextPaint;
     private float mTextWidth;
@@ -101,6 +102,10 @@ public class PatternBaseView extends View {
         if (canvas==null)
             return;
 
+        int header = mHeader;
+        if (mLOD>0)
+            header = 0;
+
         // TODO: consider storing these as member variables to reduce
         // allocations per draw cycle.
         int paddingLeft = getPaddingLeft();
@@ -118,9 +123,12 @@ public class PatternBaseView extends View {
             canvas.drawRect(x, 0, x+trackWidth/4, contentHeight, gray);
         }
 
-        canvas.drawLine(contentWidth-1, 0, contentWidth-1, contentHeight, black);
-        canvas.drawLine(0, contentHeight-1, contentWidth, contentHeight-1, black);
-        canvas.drawLine(0, 0, 0, contentHeight, black);
+        if (mLOD==0)
+        {
+            canvas.drawLine(contentWidth - 1, 0, contentWidth - 1, contentHeight, black);
+            canvas.drawLine(0, contentHeight - 1, contentWidth, contentHeight - 1, black);
+            canvas.drawLine(0, 0, 0, contentHeight, black);
+        }
 
         PatternBase mPattern = GetPattern();
         int xx,yy;
@@ -133,48 +141,65 @@ public class PatternBaseView extends View {
             yy = 16;
         }
 
-        canvas.drawRect(paddingLeft + header + (mCurrentBeat *trackWidth/xx), 0,  paddingLeft + header + ((mCurrentBeat +1)*trackWidth/xx), contentHeight,blue);
+        // Draw cursor
+        //
+        if (mLOD==0)
+        {
+            canvas.drawRect(paddingLeft + header + (mCurrentBeat * trackWidth / xx), 0, paddingLeft + header + ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
+        }
 
-        for(int i=0;i<yy;i++) {
+        // Draw text
+        //
+        if (mLOD==0) {
+            for (int i = 0; i < yy; i++) {
 
-            int ii = (bInvertY)?(mPattern.GetChannelCount() -1 - i):i;
+                int ii = (bInvertY) ? (mPattern.GetChannelCount() - 1 - i) : i;
 
-            String str = "--";
-            if (mPattern!=null) {
-                if (instrumentListener!=null) {
-                    str = instrumentListener.getInstrumentName(i);
+                String str = "--";
+                if (mPattern != null) {
+                    if (instrumentListener != null) {
+                        str = instrumentListener.getInstrumentName(i);
+                    }
+                    if (str == null) str = "--";
                 }
-                if (str == null) str = "--";
+
+                float y = paddingTop + (i * contentHeight / yy);
+                y += ((contentHeight / yy) + mTextPaint.getTextSize()) / 2;
+                float x = paddingLeft + 5;
+                canvas.drawText(str, x, y, mTextPaint);
             }
 
-            float y = paddingTop + (i*contentHeight / yy);
-            y += ((contentHeight / yy)+mTextPaint.getTextSize())/2;
-            float x = paddingLeft + 5;
-            canvas.drawText(str, x, y, mTextPaint);
-        }
 
-        // horizontal lines
-        for(int i=0;i<=yy;i++) {
-            float y = paddingTop + (i*contentHeight)/yy;
-            canvas.drawLine(0, y, contentWidth, y, black);
-        }
+            // horizontal lines
+            for(int i=0;i<=yy;i++) {
+                float y = paddingTop + (i*contentHeight)/yy;
+                canvas.drawLine(0, y, contentWidth, y, black);
+            }
 
-        for(int i=0;i<=xx;i++) {
-            float x = header + paddingLeft + (i*trackWidth)/xx;
-            canvas.drawLine(x, 0, x, contentHeight, black);
+            for(int i=0;i<=xx;i++) {
+                float x = header + paddingLeft + (i*trackWidth)/xx;
+                canvas.drawLine(x, 0, x, contentHeight, black);
+            }
         }
 
         if (mPattern==null)
             return;
+
+        int padTL = 0;
+        int padBR = 1;
+        if (mLOD==0) {
+            padTL = 5;
+            padBR = 2*padTL;
+        }
 
         for(int x=0;x<xx;x++) {
             for(int y=0;y<yy;y++) {
 
                 int cy = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
                 if (mPattern.Get(cy,x).hit>0) {
-                    float _x = paddingLeft + header + ((x*trackWidth)/xx) + 5;
-                    float _y = paddingTop  + ((y*contentHeight)/yy) + 5;
-                    canvas.drawRect(_x,_y,_x+(trackWidth/xx)-10,_y+((contentHeight/yy)-10), box);
+                    float _x = paddingLeft + header + ((x*trackWidth)/xx) + padTL;
+                    float _y = paddingTop  + ((y*contentHeight)/yy) + padTL;
+                    canvas.drawRect(_x,_y,_x+(trackWidth/xx)-(padBR),_y+(contentHeight/yy)-(padBR), box);
                 }
             }
         }
@@ -196,13 +221,13 @@ public class PatternBaseView extends View {
 
         int contentWidth = (getWidth() - paddingLeft - paddingRight)/ xx;
         int contentHeight = (getHeight() - paddingTop - paddingBottom)/ yy;
-        int trackWidth = (getWidth() - paddingLeft - paddingRight - header)/ xx;
+        int trackWidth = (getWidth() - paddingLeft - paddingRight - mHeader)/ xx;
 
         // you may need the x/y location
         int x = (int)event.getX() - getPaddingLeft();
         int y = (int)event.getY() - getPaddingTop();
 
-        int beat = (x-header)/trackWidth;
+        int beat = (x-mHeader)/trackWidth;
         int channel = (y-paddingTop)/contentHeight;
 
         if (bInvertY)
@@ -212,7 +237,7 @@ public class PatternBaseView extends View {
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
 
-                if (x<header) {
+                if (x<mHeader) {
                     if (instrumentListener !=null) {
                         instrumentListener.instrumentTouched(channel);
                         invalidate();
@@ -245,11 +270,6 @@ public class PatternBaseView extends View {
         mPattern.Get(x,y).hit = mPattern.Get(x,y).hit==1?0:1;
     }
 
-    void SetSoundPool(SoundPool sp)
-    {
-        mSp = sp;
-    }
-
     public void SetCurrentBeatCursor(int currentBeat)
     {
         this.mCurrentBeat =currentBeat;
@@ -270,4 +290,17 @@ public class PatternBaseView extends View {
         return this;
     }
     private InstrumentListener instrumentListener;
+
+
+    public Bitmap getBitmapFromView(int width, int height) {
+        measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        layout(0, 0, width, height);
+        mLOD = 1;
+        draw(canvas);
+        mLOD = 0;
+        return bitmap;
+    }
+
 }

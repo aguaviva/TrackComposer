@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -22,6 +23,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -54,6 +56,8 @@ public class ActivityMain extends AppCompatActivity {
 
         toolbar.setSubtitle("Test Subtitle");
         toolbar.inflateMenu(R.menu.menu_main);
+
+
 
         //View noteControls = getLayoutInflater().inflate(R.layout.note_controls, null);
         //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
@@ -101,16 +105,23 @@ public class ActivityMain extends AppCompatActivity {
         });
 
         isStoragePermissionGranted();
+
+        Bitmap b = masterView.getBitmapFromView(5*16,3*16);
+        ImageView im = new ImageView(mContext);
+        im.setImageBitmap(b);
+        toolbar.addView(im);
     }
 
     void rigControls()
     {
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
         headers.removeAllViews();
-        trackControls = new View[16];
-        trackNames = new TextView[16];
-        trackVolumes = new SeekBar[16];
-        for(int i=0;i<16;i++) {
+        int channelCount = mAppState.mPatternMaster.GetChannelCount();
+
+        trackControls = new View[channelCount];
+        trackNames = new TextView[channelCount];
+        trackVolumes = new SeekBar[channelCount];
+        for(int i=0;i<channelCount;i++) {
             final int finalI = i;
 
             trackControls[i] = getLayoutInflater().inflate(R.layout.track_header, null);
@@ -155,7 +166,8 @@ public class ActivityMain extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar){}
             });
 
-            headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 59));
+
+            headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 0, 1.0f));
         }
 
         setTrackNames();

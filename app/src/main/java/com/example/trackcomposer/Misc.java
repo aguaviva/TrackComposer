@@ -23,40 +23,16 @@ public class Misc {
         return (oct * 12) - 8;
     }
 
-
-    public static int  getFifthsMajor(int root, int n) {
-        //               C   G   D   A   E   B  F#  Db  Ab  Eb  Bb   F
-        int[] notes = {  4, 11,  6,  1,  8,  3, 10,  5, 12,  7,  2,  9};
-        //t[] notes = {  1,  3,  4,  6,  8,  9, 11,  a,  a,  a,  a,  a};
-
-        int octave = getOctave(root);
-
-        int noteIdx = ((root + 8) % 12);
-        if (n<0)
-            n=noteIdx + 12+n;
-        else
-            n=noteIdx+n;
-
-        noteIdx =  notes[n]-4;
-
-        return noteIdx + setOctave(octave);
-    }
-
-    public static int  getFifthsMinor(int root) {
-        return getFifthsMajor(root , 3) +12;
-    }
-
     public static int  getTriadChord(int root, int index, boolean major) {
-        switch (index) {
-            case 0:
-                return root + 0;
-            case 1:
-                return root + ((major) ? 4 : 3);
-            case 2:
-                return root + 7;
-        }
 
-        return -1;
+        if (major)
+        {
+            return root + ChordTriad.getMajor(index);
+        }
+        else
+        {
+            return root + ChordTriad.getMinor(index);
+        }
     }
 
     public static String getProgression(int index)
@@ -84,16 +60,15 @@ public class Misc {
         return progression[index];
     }
 
-    public static int getFifthsProgression(int root, int index)
-    {
-        switch(index)
-        {
-            case 0: return Misc.getFifthsMajor(root, + 0); // Tonic
-            case 1: return Misc.getFifthsMajor(root, + 1); // Dominant
-            case 2: return Misc.getFifthsMajor(root, - 1); // Sibdominant
-            case 3: return Misc.getFifthsMinor(root);         // rel minor
+    // famous 4 chords songs
+    public static int  getFifthsProgression(int index) {
+        switch (index) {
+            case 0: return 0;
+            case 1: return 7;
+            case 2: return 9; // minor!
+            case 3: return 5;
         }
+
         return -1;
     }
-
 }

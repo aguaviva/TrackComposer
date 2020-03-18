@@ -1,11 +1,9 @@
 package com.example.trackcomposer;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -39,7 +37,7 @@ public class ActivityChord extends AppCompatActivity {
 
             @Override
             public String getInstrumentName(int n) {
-                return Misc.getNoteName(patternChord.KeyToNote(n));
+                return Misc.getNoteName(patternChord.TrackToNote(n));
             }
 
             @Override
@@ -47,6 +45,9 @@ public class ActivityChord extends AppCompatActivity {
                 patternChord.Play(mAppState.mixer, note, 1);
             }
         });
+
+        View noteControls = WidgetChordTransposer.AddUpAndDownKey(this, mNoteView, patternChord);
+        toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         rigControls();
     }
@@ -72,7 +73,7 @@ public class ActivityChord extends AppCompatActivity {
             Generator gen = mAppState.instrumentList.get(patternChord.sampleId);
             if (gen instanceof GeneratorSynth) {
                 GeneratorSynth genSynth = (GeneratorSynth) gen;
-                View synthControls = Widgets.SynthEditor(this, (GeneratorSynth) gen);
+                View synthControls = WidgetSynthEdit.SynthEditor(this, (GeneratorSynth) gen);
                 headers.addView(synthControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
             }
         }

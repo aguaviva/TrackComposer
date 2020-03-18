@@ -13,15 +13,15 @@ public class PatternChord extends PatternBase
         super(name, filename, channels, length);
     }
 
-    public int KeyToNote(int n)
+    public int TrackToNote(int track)
     {
-        int f = n / 3;
+        int f = track / 3;
 
         //get root of progression
-        int root = Misc.getFifthsProgression(baseNote, f);
+        int root = baseNote + Misc.getFifthsProgression(f);
 
         //get choord's note
-        int ch = Misc.getTriadChord(root, n % 3, (f!=3));
+        int ch = Misc.getTriadChord(root, track % 3, (f!=2));
 
         return ch;
     }
@@ -31,7 +31,7 @@ public class PatternChord extends PatternBase
     {
         if (sampleId>=0)
         {
-            sp.play(sampleId, 0, Misc.GetFrequency(KeyToNote(note)), volume);
+            sp.play(sampleId, 0, Misc.GetFrequency(TrackToNote(note)), volume);
         }
     }
 
