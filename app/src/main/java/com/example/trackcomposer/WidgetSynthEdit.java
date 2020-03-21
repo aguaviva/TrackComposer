@@ -20,6 +20,11 @@ public class WidgetSynthEdit {
                         break;
                     case R.id.tremoloAmp:
                         synth.setTremoloAmplitude(((float) progress) / 100.0f);
+                    case R.id.vibratoFreq:
+                        synth.setVibratoFreq(progress);
+                        break;
+                    case R.id.vibratoAmp:
+                        synth.setVibratoAmplitude(((float) progress));
                 }
             }
 
@@ -37,8 +42,16 @@ public class WidgetSynthEdit {
         tremoloFreq.setOnSeekBarChangeListener(seekBarListener);
 
         SeekBar tremoloAmplitude = (SeekBar) synthControls.findViewById(R.id.tremoloAmp);
-        tremoloAmplitude.setProgress((int)(synth.mTremoloAmplitude*100.0f));
+        tremoloAmplitude.setProgress((int)(synth.mTremoloAmplitude));
         tremoloAmplitude.setOnSeekBarChangeListener(seekBarListener);
+
+        SeekBar vibratoFreq = (SeekBar) synthControls.findViewById(R.id.vibratoFreq);
+        vibratoFreq.setProgress((int)synth.mVibratoFreq);
+        vibratoFreq.setOnSeekBarChangeListener(seekBarListener);
+
+        SeekBar vibratoAmplitude = (SeekBar) synthControls.findViewById(R.id.vibratoAmp);
+        vibratoAmplitude.setProgress((int)(synth.mVibratoAmplitude));
+        vibratoAmplitude.setOnSeekBarChangeListener(seekBarListener);
 
         return synthControls;
     }

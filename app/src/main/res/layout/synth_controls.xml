@@ -5,50 +5,79 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="Tremolo" />
 
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        >
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center|left"
         android:text="Freq" />
 
     <SeekBar
         android:id="@+id/tremoloFreq"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"
-        android:max="30"
-        android:padding="24dip"
-        android:gravity="center"/>
-    </LinearLayout>
-    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center|left"
-            android:text="Amp" />
+        android:layout_weight="7"
+        android:gravity="center"
+        android:max="30"
+        android:padding="24dip" />
 
-        <SeekBar
-            android:id="@+id/tremoloAmp"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="7"
-            android:padding="24dip"
-            android:gravity="center"/>
-    </LinearLayout>
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|left"
+        android:text="Amp" />
+
+    <SeekBar
+        android:id="@+id/tremoloAmp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:gravity="center"
+        android:padding="24dip" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Vibrato" />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|left"
+        android:text="Freq" />
+
+    <SeekBar
+        android:id="@+id/vibratoFreq"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:gravity="center"
+        android:padding="24dip" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|left"
+        android:text="Amp" />
+
+    <SeekBar
+        android:id="@+id/vibratoAmp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="7"
+        android:gravity="center"
+        android:padding="24dip" />
+
 
 </LinearLayout>

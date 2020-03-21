@@ -15,14 +15,11 @@ public class GeneratorSynth extends Generator {
         mTremoloFreq = freq;
     }
 
-    public void setTremoloAmplitude(float amplitude)
-    {
-        mTremoloAmplitude = amplitude;
-    }
+    public void setTremoloAmplitude(float amplitude)    { mTremoloAmplitude = amplitude; }
 
     public void setVibratoFreq(float freq)
     {
-        mVibratoFreq = (freq * TwoPi)  / (float)mSampleRate;
+        mVibratoFreq = freq;
     }
 
     public void setVibratoAmplitude(float amplitude)
@@ -40,14 +37,15 @@ public class GeneratorSynth extends Generator {
         float effectsTime = channel.timeInSamples;
 
         float mTremoloFreqN = (mTremoloFreq * TwoPi)  / (float)mSampleRate;
+        float mVibratoFreqN = (mVibratoFreq * TwoPi)  / (float)mSampleRate;
 
         for (int i = ini; i < fin; i += 2)
         {
             // tremolo
             float tremolo = (1.0f + mTremoloAmplitude * (float)Math.abs(Math.sin(mTremoloFreqN * effectsTime)));
-            float vibrato = (1.0f + mVibratoAmplitude * (float)Math.abs(Math.sin(mVibratoFreq * effectsTime)));
+            float vibrato = mVibratoAmplitude * (float)(Math.sin(mVibratoFreqN * effectsTime)/TwoPi);
 
-            short v = (short) (channel.volume * 6000 * (tremolo * Math.sin(freqN * t)));
+            short v = (short) (tremolo * channel.volume * 6000 * (Math.sin(freqN * t + vibrato)));
 
             channel.volume += channel.volumeSpeed;
             if (channel.volume<=0) {

@@ -30,6 +30,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.android.material.tabs.TabLayout;
+
 import java.io.File;
 
 public class ActivityMain extends AppCompatActivity {
@@ -115,6 +117,7 @@ public class ActivityMain extends AppCompatActivity {
     void rigControls()
     {
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
+        //TabLayout headers = (TabLayout) findViewById(R.id.headers);
         headers.removeAllViews();
         int channelCount = mAppState.mPatternMaster.GetChannelCount();
 
