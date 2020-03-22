@@ -27,8 +27,8 @@ class PatternMaster extends PatternBase
         CallBeatListener(pattern);
 
         for (int c = 0; c < channels; c++) {
-            int note = hits[c][pattern].hit;
-            if (note>0) {
+            GeneratorInfo genI = Get(c, pattern);
+            if (genI!=null) {
                 PatternBase p =mChannels[c];
                 if (p!=null)
                     if (mVolume[c]>0)

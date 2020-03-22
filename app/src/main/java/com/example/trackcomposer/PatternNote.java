@@ -26,12 +26,14 @@ class PatternNote extends PatternBase
     void serializeToJson(JSONObject jsonObj) throws JSONException {
         super.serializeToJson(jsonObj);
         jsonObj.put("sampleId", sampleId);
+        jsonObj.put("baseNote", baseNote);
     }
 
     @Override
     void serializeFromJson(JSONObject jsonObj) throws JSONException {
         super.serializeFromJson(jsonObj);
         sampleId = jsonObj.getInt("sampleId");
+        baseNote = jsonObj.getInt("baseNote");
     }
 
 };

@@ -74,6 +74,14 @@ public class GeneratorSynth extends Generator {
             jsonObj2.put("amplitude", mTremoloAmplitude);
             jsonObj.put("tremolo", jsonObj2);
         }
+
+        //save vibrato data
+        {
+            JSONObject jsonObj2 = new JSONObject();
+            jsonObj2.put("freq", mVibratoFreq);
+            jsonObj2.put("amplitude", mVibratoAmplitude);
+            jsonObj.put("vibrato", jsonObj2);
+        }
     }
 
     @Override
@@ -87,5 +95,13 @@ public class GeneratorSynth extends Generator {
             mTremoloFreq = (float)jsonObj2.getDouble("freq");
             mTremoloAmplitude = (float)jsonObj2.getDouble("amplitude");
         }
+
+        if (jsonObj.has("vibrato"))
+        {
+            JSONObject jsonObj2 = jsonObj.getJSONObject("vibrato");
+            mVibratoFreq = (float)jsonObj2.getDouble("freq");
+            mVibratoAmplitude = (float)jsonObj2.getDouble("amplitude");
+        }
+
     }
 }

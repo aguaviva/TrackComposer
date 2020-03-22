@@ -192,16 +192,20 @@ public class PatternBaseView extends View {
             padBR = 2*padTL;
         }
 
-        for(int x=0;x<xx;x++) {
-            for(int y=0;y<yy;y++) {
 
-                int cy = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
-                if (mPattern.Get(cy,x).hit>0) {
-                    float _x = paddingLeft + header + ((x*trackWidth)/xx) + padTL;
-                    float _y = paddingTop  + ((y*contentHeight)/yy) + padTL;
-                    canvas.drawRect(_x,_y,_x+(trackWidth/xx)-(padBR),_y+(contentHeight/yy)-(padBR), box);
-                }
-            }
+        for(int i=0;;i++)
+        {
+            SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
+            if (note==null)
+                break;
+
+            int x = note.time;
+            int y = note.channel;
+
+            y = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
+            float _x = paddingLeft + header + ((x*trackWidth)/xx) + padTL;
+            float _y = paddingTop  + ((y*contentHeight)/yy) + padTL;
+            canvas.drawRect(_x,_y,_x+(trackWidth/xx)-(padBR),_y+(contentHeight/yy)-(padBR), box);
         }
 
     }
@@ -267,7 +271,15 @@ public class PatternBaseView extends View {
     {
         PatternBase mPattern = GetPattern();
 
-        mPattern.Get(x,y).hit = mPattern.Get(x,y).hit==1?0:1;
+        GeneratorInfo gen = mPattern.Get(x,y);
+        if (gen==null)
+        {
+            mPattern.Set(x,y, new GeneratorInfo());
+        }
+        else
+        {
+            mPattern.Set(x,y, null);
+        }
     }
 
     public void SetCurrentBeatCursor(int currentBeat)

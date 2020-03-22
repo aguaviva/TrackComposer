@@ -42,7 +42,7 @@ public class WidgetSynthEdit {
         tremoloFreq.setOnSeekBarChangeListener(seekBarListener);
 
         SeekBar tremoloAmplitude = (SeekBar) synthControls.findViewById(R.id.tremoloAmp);
-        tremoloAmplitude.setProgress((int)(synth.mTremoloAmplitude));
+        tremoloAmplitude.setProgress((int)(synth.mTremoloAmplitude*100));
         tremoloAmplitude.setOnSeekBarChangeListener(seekBarListener);
 
         SeekBar vibratoFreq = (SeekBar) synthControls.findViewById(R.id.vibratoFreq);

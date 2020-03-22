@@ -27,11 +27,11 @@ public class PatternChord extends PatternBase
     }
 
     @Override
-    public void Play(Mixer sp, int note, float volume)
+    public void Play(Mixer sp, int channel, float volume)
     {
         if (sampleId>=0)
         {
-            sp.play(sampleId, 0, Misc.GetFrequency(TrackToNote(note)), volume);
+            sp.play(sampleId, 0, Misc.GetFrequency(TrackToNote(channel)), volume);
         }
     }
 
@@ -39,12 +39,14 @@ public class PatternChord extends PatternBase
     void serializeToJson(JSONObject jsonObj) throws JSONException {
         super.serializeToJson(jsonObj);
         jsonObj.put("sampleId", sampleId);
+        jsonObj.put("baseNote", baseNote);
     }
 
     @Override
     void serializeFromJson(JSONObject jsonObj) throws JSONException {
         super.serializeFromJson(jsonObj);
         sampleId = jsonObj.getInt("sampleId");
+        baseNote = jsonObj.getInt("baseNote");
     }
 
 };

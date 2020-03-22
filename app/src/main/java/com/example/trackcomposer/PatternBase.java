@@ -1,14 +1,21 @@
 package com.example.trackcomposer;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class PatternBase {
     String type, name, fileName;
     int channels;
     int length;
-    GeneratorInfo[][] hits;
+    private SortedListOfNotes mNotes = new SortedListOfNotes();
 
     public PatternBase(String name, String fileName, int channels, int length)
     {
@@ -16,24 +23,41 @@ public class PatternBase {
         this.fileName = fileName;
         this.channels = channels;
         this.length = length;
-        hits = new GeneratorInfo[channels][length];
-
-        for (int c = 0; c < GetChannelCount(); c++)
-        {
-            for (int l = 0; l < GetLength(); l++)
-            {
-                Set(c, l, new GeneratorInfo());
-            }
-        }
     }
 
     String GetName() { return name;}
     int GetLength() { return length; }
     int GetChannelCount() { return channels; }
-    GeneratorInfo Get(int channel, int pos) { return hits[channel][pos]; }
+    SortedListOfNotes.Note GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
+    GeneratorInfo Get(int channel, int pos)
+    {
+        int numNotes = mNotes.SetTime(pos);
+        for(int i=0;i<numNotes;i++)
+        {
+            SortedListOfNotes.Note note = mNotes.Get(i);
+            if (note.channel == channel)
+                return note.mGen;
+        }
+
+        return null;
+    }
+
     void Set(int channel, int pos, GeneratorInfo hit)
     {
-        hits[channel][pos] = hit;
+        mNotes.SetTime(pos);
+
+        if (hit!=null)
+        {
+            SortedListOfNotes.Note note = new SortedListOfNotes.Note();
+            note.time = pos;
+            note.channel = channel;
+            note.mGen = hit;
+            mNotes.Set(note);
+        }
+        else
+        {
+            mNotes.Clear(channel);
+        };
     }
 
     public interface BeatListener { public void beat(int currentBeat); }
@@ -48,16 +72,20 @@ public class PatternBase {
     void PlayBeat(Mixer sp, int beat, float volume)
     {
         beat = beat % length;
+
+        int noteCount = mNotes.SetTime(beat);
+
         CallBeatListener(beat);
-        for (int c = 0; c < channels; c++) {
-            GeneratorInfo note = hits[c][beat];
-            if (note.hit>0) {
-                Play(sp, c, volume);
+
+        for (int c = 0; c < noteCount; c++) {
+            SortedListOfNotes.Note note = mNotes.Get(c);
+            if (note != null) {
+                Play(sp, note.channel, volume);
             }
         }
     }
 
-    public void Play(Mixer sp, int note, float volume)
+    public void Play(Mixer sp, int channel, float volume)
     {
 
     }
@@ -68,19 +96,7 @@ public class PatternBase {
         jsonObj.put("length", length);
         jsonObj.put("channels", channels);
 
-        JSONArray jsonArrC = new JSONArray();
-        for (int c = 0; c < GetChannelCount(); c++)
-        {
-            JSONArray jsonArrL = new JSONArray();
-            for (int l = 0; l < GetLength(); l++)
-            {
-                JSONObject json = new JSONObject();
-                Get(c, l).serializeToJson(json);
-                jsonArrL.put(json);
-            }
-            jsonArrC.put(jsonArrL);
-        }
-        jsonObj.put("pattern", jsonArrC);
+        mNotes.serializeToJson(jsonObj);
     }
 
     void serializeFromJson(JSONObject jsonObj) throws JSONException
@@ -88,16 +104,11 @@ public class PatternBase {
         name = jsonObj.getString("name");
         length = jsonObj.getInt("length");
         channels = jsonObj.getInt("channels");
-        hits = new GeneratorInfo[channels][length];
-        JSONArray jArrC = jsonObj.getJSONArray("pattern");
-        for (int c = 0; c < jArrC.length(); c++)
-        {
-            JSONArray jArrL = jArrC.getJSONArray(c);
-            for (int l = 0; l < jArrL.length(); l++)
-            {
-                Set(c, l, new GeneratorInfo());
-                Get(c, l).serializeFromJson(jArrL.getJSONObject(l));
-            }
-        }
+
+        mNotes = new SortedListOfNotes();
+        mNotes.serializeFromJson(jsonObj);
+
     }
+
+
 }
