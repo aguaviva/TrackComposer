@@ -94,7 +94,4 @@ public class InstrumentList
             mSamples.add(mSampleMap.get(i));
         }
     }
-
-
-
 }

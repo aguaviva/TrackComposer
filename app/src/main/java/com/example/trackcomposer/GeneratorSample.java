@@ -15,12 +15,25 @@ import java.util.ArrayList;
 
 public class GeneratorSample extends Generator {
     private short[] sampleData = null;
+    private int mSampleRate = 0;
+    private int mTracks = 0;
+
 
     public String instrumentFilename = "none";
 
     public GeneratorSample()
     {
         super();
+    }
+
+    short GetSample(int i) { return sampleData[i]; }
+    int  GetSampleRate() { return mSampleRate; }
+
+    int GetSampleSize()
+    {
+        if (sampleData==null)
+            return -1;
+        return sampleData.length;
     }
 
     @Override
@@ -37,14 +50,20 @@ public class GeneratorSample extends Generator {
         for (int i = ini; i < fin; i += 2)
         {
             int idx = (int)(t);
-            if (idx>=sampleData.length/2)
+            if (mTracks*idx>=sampleData.length)
             {
                 channel.mPlaying = false;
                 return;
             }
 
-            chunk[i + 0] += (short) (channel.volume * sampleData[2*idx+0]);
-            chunk[i + 1] += (short) (channel.volume * sampleData[2*idx+1]);
+            if (mTracks==2) {
+                chunk[i + 0] += (short) (channel.volume * sampleData[2 * idx + 0]);
+                chunk[i + 1] += (short) (channel.volume * sampleData[2 * idx + 1]);
+            } else if (mTracks==1) {
+                chunk[i + 0] += (short) (channel.volume * sampleData[idx]);
+                chunk[i + 1] += (short) (channel.volume * sampleData[idx]);
+            }
+
             t+=channel.speed;
             channel.timeInSamples++;
         }
@@ -89,7 +108,7 @@ public class GeneratorSample extends Generator {
 
     public boolean loadAndDecode(String filename)
     {
-        Log.v("DecodeActivity", "Loading " + filename);
+        Log.d("DecodeActivity", "Loading " + filename);
 
         try
         {
@@ -107,12 +126,14 @@ public class GeneratorSample extends Generator {
             }
 
             Log.d(LOG_TAG, String.format("TRACKS #: %d", extractor.getTrackCount()));
+            mTracks = extractor.getTrackCount();
             if (extractor.getTrackCount()==0)
             {
                 extractor.release();
                 return false;
             }
-            else {
+            else
+            {
                 MediaFormat format1 = extractor.getTrackFormat(0);
                 String mime = format1.getString(MediaFormat.KEY_MIME);
                 Log.d(LOG_TAG, String.format("MIME TYPE: %s", mime));
@@ -127,13 +148,16 @@ public class GeneratorSample extends Generator {
                 extractor.selectTrack(trackIndex); // <= You must select a track. You will read samples from the media from this track!
 
                 boolean eosReceived = false;
-                while (!eosReceived) {
+                while (!eosReceived)
+                {
                     int inIndex = codec.dequeueInputBuffer(1000);
-                    if (inIndex < 0) {
+                    if (inIndex < 0)
+                    {
                         Log.d("DecodeActivity", "dequeueInputBuffer returnning " + inIndex);
                         break;
                     }
-                    if (inIndex >= 0) {
+                    else if (inIndex >= 0)
+                    {
                         ByteBuffer buffer = codecInputBuffers[inIndex];
                         int sampleSize = extractor.readSampleData(buffer, 0);
                         if (sampleSize < 0) {
@@ -157,7 +181,9 @@ public class GeneratorSample extends Generator {
 
                             case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                 MediaFormat format = codec.getOutputFormat();
-                                Log.d("DecodeActivity", "New format: " + format + "  Sample rate: " + format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
+                                mSampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+                                mTracks = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+                                Log.d("DecodeActivity", "New format: " + format + "  Sample rate: " + mSampleRate + " channels: " + mTracks);
                                 break;
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
                                 Log.d("DecodeActivity", "dequeueOutputBuffer timed out!");

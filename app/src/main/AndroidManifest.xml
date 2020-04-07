@@ -18,12 +18,16 @@
             android:label="@string/title_activity_note"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
-            android:name=".ActivityNote"
+            android:name=".ActivityPianoRoll"
             android:label="@string/title_activity_percussion"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".ActivityChord"
             android:label="ActivityChord"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".InstrumentChooser"
+            android:label="ActivityInstrument"
             android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <activity

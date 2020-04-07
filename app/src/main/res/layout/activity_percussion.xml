@@ -28,20 +28,21 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
-    </LinearLayout>
+    <com.example.trackcomposer.PatternHeaderView
+        android:id="@+id/patternHeaderView"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
 
     <com.example.trackcomposer.PatternBaseView
         android:id="@+id/drumView"
-        android:layout_width="match_parent"
+        android:layout_weight="10"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
         app:layout_anchor="@+id/include"
         app:layout_anchorGravity="center" />
+    </LinearLayout>
 </LinearLayout>

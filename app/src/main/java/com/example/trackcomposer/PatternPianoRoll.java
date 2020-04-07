@@ -3,12 +3,12 @@ package com.example.trackcomposer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class PatternNote extends PatternBase
+class PatternPianoRoll extends PatternBase
 {
     int sampleId = -1;
-    int baseNote = 40;
+    int baseNote = 40; //c4 - 261.6256
 
-    public PatternNote(String name, String filename, int channels, int length)
+    public PatternPianoRoll(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
     }

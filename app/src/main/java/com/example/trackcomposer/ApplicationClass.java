@@ -1,6 +1,7 @@
 package com.example.trackcomposer;
 
 import android.app.Application;
+import android.graphics.Bitmap;
 import android.os.Environment;
 
 import org.json.JSONException;
@@ -12,13 +13,16 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 
 public class ApplicationClass extends Application {
+    public HashMap<Integer, Bitmap> mPatternImgDataBase = new HashMap<Integer, Bitmap>();
     public PatternMaster mPatternMaster;
     public PatternBase mLastPatternAdded;
     public File extStoreDir;
     private boolean mPlaying = false;
-    private int count = 0;
+    private int mTime = 0;
+    private int mTimeIni = 0, mTimeFin = 0;
 
     MySoundPool soundPool;
     InstrumentList instrumentList;
@@ -38,8 +42,11 @@ public class ApplicationClass extends Application {
                 @Override
                 public void beat() {
                     if (mPlaying) {
-                        mPatternMaster.PlayBeat(mixer, count, 1);
-                        count++;
+                        mPatternMaster.PlayBeat(mixer, mTime, 1);
+                        mTime++;
+
+                        if (mTime==mTimeFin)
+                            mTime = mTimeIni;
                     }
                 }
             });
@@ -50,11 +57,23 @@ public class ApplicationClass extends Application {
         }
     }
 
-    int time = 0;
-    public int GetTime()
+    public int getTime()
     {
-        return time;
+        return mTime;
     }
+    public void setTime(int mTime)
+    {
+        this.mTime = mTime;
+    }
+
+    void setLoop(int timeIni, int timeFin)
+    {
+        mTimeIni = timeIni;
+        mTimeFin = timeFin;
+
+        setTime(mTimeIni);
+    }
+
 
     boolean PlayPause()
     {
@@ -79,6 +98,8 @@ public class ApplicationClass extends Application {
 
             mPatternMaster = new PatternMaster("caca", filename, 16,16);
             mPatternMaster.serializeFromJson(jsonObj);
+
+            soundPool.setBmp(mPatternMaster.mBPM);
         }
         catch (JSONException e) {
             e.printStackTrace();

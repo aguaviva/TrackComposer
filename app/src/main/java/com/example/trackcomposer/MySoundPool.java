@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-public class MySoundPool {
+class MySoundPool {
 
     int buffSizeInBytes, buffSizeInShorts, buffSizeInFrames;
     int buffcount;
@@ -30,6 +30,7 @@ public class MySoundPool {
     int index = 0;
     int queue = 0;
     int mTick = 0;
+    int mBeatsPerMinute = 0;
     int mTempoInSamples = 0;
 
 
@@ -48,12 +49,17 @@ public class MySoundPool {
     NextBeatListener mNextBeat;
 
 
-    void init(int sampleRate, final NextBeatListener nextBeatListener) {
+    public void setBmp(int beatsPerMinute)
+    {
+        float delaySecs = (60.0f/((float)beatsPerMinute)) / 2.0f;
+        mTempoInSamples = (int)(delaySecs * mSampleRate);
+    }
+
+    public void init(int sampleRate, final NextBeatListener nextBeatListener) {
         mSampleRate= sampleRate;
         mNextBeat = nextBeatListener;
 
-        float delaySecs = (160.0f*0.250f/120.0f);
-        mTempoInSamples = (int)(delaySecs * mSampleRate);
+        setBmp(120);
 
         buffSizeInBytes = AudioTrack.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
         buffSizeInShorts = buffSizeInBytes /2; //because 16bits
@@ -61,6 +67,13 @@ public class MySoundPool {
         Log.i(TAG, "AudioTrack.minBufferSize = " + buffSizeInBytes);
         buffcount = 4;
         mChunk = new short[buffcount * buffSizeInShorts];
+
+
+        /*
+        String framesPerBuffer = AudioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+        String sampleRate = AudioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+        String audioSourceUnprocessed = AudioManager.getProperty(AudioManager.PROPERTY_SUPPORT_AUDIO_SOURCE_UNPROCESSED);
+        */
 
         // create an audiotrack object
         audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT, buffSizeInBytes*buffcount, AudioTrack.MODE_STREAM);

@@ -42,17 +42,23 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/headers"
+        <com.example.trackcomposer.PatternHeaderView
+            android:id="@+id/chordNames"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical">
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <com.example.trackcomposer.PatternHeaderView
+            android:id="@+id/patternHeaderView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+
 
         <com.example.trackcomposer.PatternBaseView
             android:id="@+id/noteView"
-            android:layout_weight="3"
+            android:layout_weight="10"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             app:layout_anchor="@+id/include"

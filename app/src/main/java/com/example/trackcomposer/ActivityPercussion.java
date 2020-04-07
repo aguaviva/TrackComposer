@@ -23,15 +23,14 @@ public class ActivityPercussion extends AppCompatActivity {
 
         mAppState = ((ApplicationClass)this.getApplication());
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
-        mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
-        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, false);
-        mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
-            @Override
-            public void instrumentTouched(int channel) {
-                instrumentChooser(channel);
-                mDrumTracker.invalidate();
-            }
 
+        final PatternHeaderView patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
+        patternHeaderView.SetPattern(patternPercussion.channels, patternPercussion.length,true);
+        patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
+            @Override
+            public void noteTouched(int note) { instrumentChooser(note); }
+            @Override
+            public void actionMove(int y) {}
             @Override
             public String getInstrumentName(int channel)
             {
@@ -40,10 +39,13 @@ public class ActivityPercussion extends AppCompatActivity {
                     return mAppState.instrumentList.get(sampleId).instrumentName;
                 return "none";
             }
+        });
 
+        mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
+        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, false, false);
+        mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
-            public void noteTouched(int note, int beat) {
-            }
+            public boolean noteTouched(int note, int beat) { return true;}
         });
     }
 

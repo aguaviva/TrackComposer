@@ -6,11 +6,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.media.SoundPool;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.HashMap;
 
 /**
  * TODO: document your custom view class.
@@ -22,9 +25,8 @@ public class PatternBaseView extends View {
     Paint box;
     Paint gray;
     Paint blue;
+    Paint selectedColor;
     private int mCurrentBeat = 0;
-
-    private int mHeader = 50;
 
     private TextPaint mTextPaint;
     private float mTextWidth;
@@ -38,10 +40,19 @@ public class PatternBaseView extends View {
     private int mContentWidth;
     private int mContentHeight;
 
+    HashMap<Integer, Bitmap> mPatternImgDataBase = null;
+
+    boolean mSelectable = false;
+
+    int selectedX = -1;
+    int selectedY = -1;
+
     PatternBase mPattern = null;
     PatternBase GetPattern() { return mPattern; }
-    void SetPattern(PatternBase pattern, boolean bInvertY)
+    void SetPattern(PatternBase pattern, boolean selectable, boolean bInvertY)
     {
+        mSelectable = selectable;
+
         mPattern = pattern;
         this.bInvertY = bInvertY;
         pattern.SetBeatListener(new PatternBase.BeatListener() {
@@ -51,7 +62,11 @@ public class PatternBaseView extends View {
                 invalidate();
             }
         });
+    }
 
+    void patternImgDataBase(HashMap<Integer, Bitmap> patternImgDataBase)
+    {
+        mPatternImgDataBase = patternImgDataBase;
     }
 
     public PatternBaseView(Context context) {
@@ -86,6 +101,10 @@ public class PatternBaseView extends View {
         box.setColor(Color.BLACK);
         box.setStyle(Paint.Style.FILL);
 
+        selectedColor = new Paint();
+        selectedColor.setColor(Color.BLUE);
+        selectedColor.setStyle(Paint.Style.FILL);
+
         gray = new Paint();
         gray.setColor(Color.LTGRAY);
         gray.setStyle(Paint.Style.FILL);
@@ -102,10 +121,6 @@ public class PatternBaseView extends View {
         if (canvas==null)
             return;
 
-        int header = mHeader;
-        if (mLOD>0)
-            header = 0;
-
         // TODO: consider storing these as member variables to reduce
         // allocations per draw cycle.
         int paddingLeft = getPaddingLeft();
@@ -115,12 +130,13 @@ public class PatternBaseView extends View {
 
         int contentWidth = getWidth() - paddingLeft - paddingRight;
         int contentHeight = getHeight() - paddingTop - paddingBottom;
-        int trackWidth = getWidth() - paddingLeft - paddingRight - header;
+        int trackWidth = getWidth() - paddingLeft - paddingRight;
 
-
-        for(int i=0;i<trackWidth;i+=trackWidth/2) {
-            float x = paddingLeft + header + i;
-            canvas.drawRect(x, 0, x+trackWidth/4, contentHeight, gray);
+        if (mLOD==0) {
+            for (int i = 0; i < trackWidth; i += trackWidth / 2) {
+                float x = paddingLeft + i;
+                canvas.drawRect(x, 0, x + trackWidth / 4, contentHeight, gray);
+            }
         }
 
         if (mLOD==0)
@@ -145,31 +161,12 @@ public class PatternBaseView extends View {
         //
         if (mLOD==0)
         {
-            canvas.drawRect(paddingLeft + header + (mCurrentBeat * trackWidth / xx), 0, paddingLeft + header + ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
+            canvas.drawRect(paddingLeft + (mCurrentBeat * trackWidth / xx), 0, paddingLeft + ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
         }
 
-        // Draw text
+        // Draw grid
         //
         if (mLOD==0) {
-            for (int i = 0; i < yy; i++) {
-
-                int ii = (bInvertY) ? (mPattern.GetChannelCount() - 1 - i) : i;
-
-                String str = "--";
-                if (mPattern != null) {
-                    if (instrumentListener != null) {
-                        str = instrumentListener.getInstrumentName(i);
-                    }
-                    if (str == null) str = "--";
-                }
-
-                float y = paddingTop + (i * contentHeight / yy);
-                y += ((contentHeight / yy) + mTextPaint.getTextSize()) / 2;
-                float x = paddingLeft + 5;
-                canvas.drawText(str, x, y, mTextPaint);
-            }
-
-
             // horizontal lines
             for(int i=0;i<=yy;i++) {
                 float y = paddingTop + (i*contentHeight)/yy;
@@ -177,7 +174,7 @@ public class PatternBaseView extends View {
             }
 
             for(int i=0;i<=xx;i++) {
-                float x = header + paddingLeft + (i*trackWidth)/xx;
+                float x = paddingLeft + (i*trackWidth)/xx;
                 canvas.drawLine(x, 0, x, contentHeight, black);
             }
         }
@@ -192,7 +189,21 @@ public class PatternBaseView extends View {
             padBR = 2*padTL;
         }
 
+        //show selected block
+        if (mSelectable)
+        {
+            int x = selectedX;
+            if (x>=0) {
+                int y = selectedY;
 
+                y = (bInvertY) ? (mPattern.GetChannelCount() - 1 - y) : y;
+                float _x = paddingLeft + ((x * trackWidth) / xx);
+                float _y = paddingTop + ((y * contentHeight) / yy);
+                canvas.drawRect(_x,_y,_x+(trackWidth/xx),_y+(contentHeight/yy), selectedColor);
+            }
+        }
+
+        // show blocks
         for(int i=0;;i++)
         {
             SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
@@ -203,11 +214,27 @@ public class PatternBaseView extends View {
             int y = note.channel;
 
             y = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
-            float _x = paddingLeft + header + ((x*trackWidth)/xx) + padTL;
+            float _x = paddingLeft + ((x*trackWidth)/xx) + padTL;
             float _y = paddingTop  + ((y*contentHeight)/yy) + padTL;
-            canvas.drawRect(_x,_y,_x+(trackWidth/xx)-(padBR),_y+(contentHeight/yy)-(padBR), box);
-        }
 
+            RectF rf = new RectF();
+            rf.left = _x;
+            rf.top = _y;
+            rf.right = _x + (trackWidth / xx);
+            rf.bottom = _y + (contentHeight / yy) - (padBR);
+
+            Integer id = note.mGen.sampleId;
+            if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id))
+            {
+                Bitmap bmp = mPatternImgDataBase.get(id);
+                if (bmp!=null) {
+                    canvas.drawBitmap(bmp, null, rf, null);
+                }
+            }
+            else {
+                canvas.drawRect(_x, _y, _x + (trackWidth / xx) - (padBR), _y + (contentHeight / yy) - (padBR), box);
+            }
+        }
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -225,13 +252,13 @@ public class PatternBaseView extends View {
 
         int contentWidth = (getWidth() - paddingLeft - paddingRight)/ xx;
         int contentHeight = (getHeight() - paddingTop - paddingBottom)/ yy;
-        int trackWidth = (getWidth() - paddingLeft - paddingRight - mHeader)/ xx;
+        int trackWidth = (getWidth() - paddingLeft - paddingRight)/ xx;
 
         // you may need the x/y location
         int x = (int)event.getX() - getPaddingLeft();
         int y = (int)event.getY() - getPaddingTop();
 
-        int beat = (x-mHeader)/trackWidth;
+        int beat = (x)/trackWidth;
         int channel = (y-paddingTop)/contentHeight;
 
         if (bInvertY)
@@ -240,7 +267,7 @@ public class PatternBaseView extends View {
         // put your code in here to handle the event
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-
+/*
                 if (x<mHeader) {
                     if (instrumentListener !=null) {
                         instrumentListener.instrumentTouched(channel);
@@ -248,12 +275,23 @@ public class PatternBaseView extends View {
                     }
                     break;
                 }
-
+*/
                 if (channel< mPattern.GetChannelCount() && beat<mPattern.GetLength()) {
-                    onTouchEvent(channel, beat);
-                    if (instrumentListener!=null) {
-                        instrumentListener.noteTouched(channel, beat);
+                    boolean bProcessTouch = false;
+
+                    if (mSelectable) {
+                        selectedX = beat;
+                        selectedY = channel;
                     }
+
+
+                    if (instrumentListener!=null) {
+                        bProcessTouch = instrumentListener.noteTouched(channel, beat);
+                    }
+
+                    if (bProcessTouch)
+                        onTouchEvent(channel, beat);
+
                     invalidate();
                 }
                 break;
@@ -293,9 +331,7 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
-        void instrumentTouched(int channel);
-        String getInstrumentName(int i);
-        void noteTouched(int note, int beat);
+        boolean noteTouched(int note, int beat);
     }
     public PatternBaseView setInstrumentListener(InstrumentListener instrumentTouched) {
         this.instrumentListener = instrumentTouched;

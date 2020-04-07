@@ -17,13 +17,20 @@ public class PatternChord extends PatternBase
     {
         int f = track / 3;
 
+        int progression =  Misc.getFifthsProgression(f);
+
         //get root of progression
-        int root = baseNote + Misc.getFifthsProgression(f);
+        int root = baseNote + Misc.getFifthsProgressionRootNumber(progression);
 
         //get choord's note
-        int ch = Misc.getTriadChord(root, track % 3, (f!=2));
+        int ch = root + Misc.getTriadChord(track % 3, Math.signum(progression)>0);
 
         return ch;
+    }
+
+    public String TrackToChord(int track) {
+        int progression =  Misc.getFifthsProgression(track);
+        return Misc.getFifthsProgressionName(progression);
     }
 
     @Override

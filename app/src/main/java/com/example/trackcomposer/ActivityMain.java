@@ -23,19 +23,17 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.google.android.material.tabs.TabLayout;
-
 import java.io.File;
 
-public class ActivityMain extends AppCompatActivity {
 
+
+public class ActivityMain extends AppCompatActivity {
     private static final String TAG = "TrackComposer";
     ApplicationClass mAppState;
     PatternBaseView masterView;
@@ -43,6 +41,7 @@ public class ActivityMain extends AppCompatActivity {
     View[] trackControls;
     TextView[] trackNames;
     SeekBar[] trackVolumes;
+    int mNote=-1, mBeat=-1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,19 +52,22 @@ public class ActivityMain extends AppCompatActivity {
 
         mContext = this;
 
+        SoundNative sn = new SoundNative();
+        sn.Init(this);
+        //String str = stringFromJNI();
+
         mAppState = ((ApplicationClass)this.getApplication());
         mAppState.Init();
 
         toolbar.setSubtitle("Test Subtitle");
         toolbar.inflateMenu(R.menu.menu_main);
 
-
-
         //View noteControls = getLayoutInflater().inflate(R.layout.note_controls, null);
         //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         rigControls();
 
+        final TimeLineView timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
         final ImageButton fab = (ImageButton)findViewById(R.id.play);
         fab.setImageResource(android.R.drawable.ic_media_play);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -76,6 +78,19 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
+        final ImageButton fab2 = (ImageButton)findViewById(R.id.playPattern);
+        fab2.setImageResource(android.R.drawable.ic_media_ff);
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                float ini = timeLineView.getSelection(0);
+                float fin = timeLineView.getSelection(1);
+                mAppState.setLoop((int)((ini*16*16)/100), (int)((fin*16*16)/100));
+                boolean playing = mAppState.PlayPause();
+            }
+        });
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
@@ -83,41 +98,92 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster, false);
+        masterView.SetPattern(mAppState.mPatternMaster, true, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
-            public void instrumentTouched(int channel) {
-                instrumentChooser(channel);
+            public boolean noteTouched(int note, int beat) {
+                mNote = note;
+                mBeat = beat;
+                return false; //don't process default handler
             }
-
-            @Override
-            public String getInstrumentName(int n)
-            {
-                PatternBase pattern = mAppState.mPatternMaster.mChannels[n];
-                if (pattern==null)
-                    return "--";
-                return pattern.GetName();
-            }
-
-            @Override
-            public void noteTouched(int note, int beat) {
-
-            }
-
         });
 
         isStoragePermissionGranted();
 
-        Bitmap b = masterView.getBitmapFromView(5*16,3*16);
-        ImageView im = new ImageView(mContext);
-        im.setImageBitmap(b);
-        toolbar.addView(im);
+        View btnEditing = getLayoutInflater().inflate(R.layout.buttons_pattern_editing, null);
+        toolbar.addView(btnEditing);
+        View.OnClickListener btnEditingListent = new View.OnClickListener() {
+            int copiedId = -1;
+            @Override
+            public void onClick(View v) {
+                switch (v.getId())
+                {
+                    case R.id.btnNew:
+                        addPattern(mNote, mBeat); break;
+                    case R.id.btnEdit:
+                        editPattern(mNote, mBeat); break;
+                    case R.id.btnCopy: {
+                        GeneratorInfo genInf = mAppState.mPatternMaster.Get(mNote, mBeat);
+                        if (genInf != null)
+                            copiedId = genInf.sampleId;
+                        else
+                            copiedId = -1;
+                        break;
+                    }
+                    case R.id.btnPaste: {
+                        if (copiedId != -1) {
+                            GeneratorInfo genInf = new GeneratorInfo();
+                            genInf.sampleId = copiedId;
+                            mAppState.mPatternMaster.Set(mNote, mBeat, genInf);
+                            break;
+                        }
+                        else
+                        {
+                            Toast.makeText(mContext, "Nothing to paste", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    }
+                    case R.id.btnDelete:
+                        mAppState.mPatternMaster.Set(mNote, mBeat, null); break;
+                }
+                masterView.invalidate();
+            }
+        };
+
+        Button btnNew = btnEditing.findViewById(R.id.btnNew);
+        btnNew.setOnClickListener(btnEditingListent);
+        Button btnEdit = btnEditing.findViewById(R.id.btnEdit);
+        btnEdit.setOnClickListener(btnEditingListent);
+        Button btnCopy = btnEditing.findViewById(R.id.btnCopy);
+        btnCopy.setOnClickListener(btnEditingListent);
+        Button btnPaste = btnEditing.findViewById(R.id.btnPaste);
+        btnPaste.setOnClickListener(btnEditingListent);
+        Button btnDelete = btnEditing.findViewById(R.id.btnDelete);
+        btnDelete.setOnClickListener(btnEditingListent);
+
+        // Tempo controls
+        View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(mAppState.mPatternMaster.mBPM), new WidgetNoteTransposer.Listener() {
+            @Override
+            public String update(int inc) {
+                mAppState.mPatternMaster.mBPM+=inc;
+                mAppState.soundPool.setBmp(mAppState.mPatternMaster.mBPM);
+                return String.valueOf(mAppState.mPatternMaster.mBPM);
+            }
+        });
+        toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
+
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        generateIcons();
     }
 
     void rigControls()
     {
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
-        //TabLayout headers = (TabLayout) findViewById(R.id.headers);
         headers.removeAllViews();
         int channelCount = mAppState.mPatternMaster.GetChannelCount();
 
@@ -180,9 +246,6 @@ public class ActivityMain extends AppCompatActivity {
     {
         for(int i=0;i<trackNames.length;i++) {
             trackNames[i].setText(String.valueOf(i));
-            PatternBase pattern = mAppState.mPatternMaster.mChannels[i];
-            if (pattern!=null)
-                trackNames[i].setText(pattern.GetName());
         }
 
         for(int i=0;i<trackNames.length;i++) {
@@ -215,8 +278,10 @@ public class ActivityMain extends AppCompatActivity {
                 public void fileSelected(String file)
                 {
                     mAppState.Load(file);
-                    masterView.SetPattern(mAppState.mPatternMaster, false);
                     setTrackNames();
+                    masterView.SetPattern(mAppState.mPatternMaster, true,false);
+                    masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
+                    generateIcons();
                     masterView.invalidate();
                 }
 
@@ -249,6 +314,97 @@ public class ActivityMain extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void editPattern(final int channel, final int beat)
+    {
+        GeneratorInfo genInf = mAppState.mPatternMaster.Get(channel, beat);
+        if (genInf==null)
+        {
+            Toast.makeText(mContext, "Nothing to edit ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(genInf.sampleId);
+        mAppState.mLastPatternAdded = pattern;
+
+        Intent intent = null;
+
+        if (pattern instanceof PatternPercussion) {
+            intent = new Intent(mContext, ActivityPercussion.class);
+        }
+        else if (pattern instanceof PatternPianoRoll) {
+            intent = new Intent(mContext, ActivityPianoRoll.class);
+        }
+        else if (pattern instanceof PatternChord) {
+            intent = new Intent(mContext, ActivityChord.class);
+        }
+
+        startActivity(intent);
+    }
+
+    private void addPattern(final int channel, final int beat)
+    {
+        final Dialog dialog = new Dialog(mContext);
+        dialog.setContentView(R.layout.new_pattern);
+        dialog.setTitle("Name your pattern");
+
+        final EditText editTextKeywordToBlock = (EditText) dialog.findViewById(R.id.editTextKeywordsToBlock);
+        final String filename = editTextKeywordToBlock.getText().toString();
+
+        View.OnClickListener clickListener = new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+
+                PatternBase pattern = null;
+                Intent intent = null;
+
+                switch (v.getId())
+                {
+                    case R.id.buttonNewPercussion:
+                        pattern = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
+                        intent = new Intent(mContext, ActivityPercussion.class);
+                        break;
+                    case R.id.buttonNewChord:
+                        pattern = new PatternChord(filename, mAppState.extStoreDir+ "/"+filename, 4*3, 16);
+                        intent = new Intent(mContext, ActivityChord.class);
+                        break;
+                    case R.id.buttonNewNote:
+                        pattern = new PatternPianoRoll(filename, mAppState.extStoreDir+ "/"+filename, 24, 16);
+                        intent = new Intent(mContext, ActivityPianoRoll.class);
+                        break;
+                }
+
+                int id = mAppState.mPatternMaster.mPatternDataBase.size();
+                mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
+                mAppState.mLastPatternAdded = pattern;
+
+                GeneratorInfo genInf = new GeneratorInfo();
+                genInf.sampleId = id;
+                mAppState.mPatternMaster.Set(channel, beat, genInf);
+                dialog.dismiss();
+
+                startActivity(intent);
+                masterView.invalidate();
+            }
+        };
+
+        // Create Percussion
+        dialog.findViewById(R.id.buttonNewPercussion).setOnClickListener(clickListener);
+        dialog.findViewById(R.id.buttonNewChord).setOnClickListener(clickListener);
+        dialog.findViewById(R.id.buttonNewNote).setOnClickListener(clickListener);
+
+        // Cancel
+        Button btnCancel = (Button) dialog.findViewById(R.id.buttonCancelBlockKeyword);
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+/*
     private void instrumentChooser(final int channel) {
 
         if (mAppState.mPatternMaster.mChannels[channel]!=null)
@@ -269,77 +425,23 @@ public class ActivityMain extends AppCompatActivity {
 
             startActivity(intent);
         }
-        else
-        {
-            final Dialog dialog = new Dialog(mContext);
-            dialog.setContentView(R.layout.new_pattern);
-            dialog.setTitle("Name your pattern");
+    }
+*/
+    public void generateIcons()
+    {
+        PatternBaseView pbv = new PatternBaseView(this);
+        pbv.patternImgDataBase(null);
+        for (Integer key : mAppState.mPatternMaster.mPatternDataBase.keySet()) {
+            PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(key);
 
-            final EditText editTextKeywordToBlock = (EditText) dialog.findViewById(R.id.editTextKeywordsToBlock);
-
-            // Create Percussion
-            Button btnNewPercussion = (Button) dialog.findViewById(R.id.buttonNewPercussion);
-            btnNewPercussion.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String filename = editTextKeywordToBlock.getText().toString();
-                    mAppState.mLastPatternAdded = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
-                    mAppState.mPatternMaster.NewPatterns(mAppState.mLastPatternAdded, channel);
-                    dialog.dismiss();
-
-                    Intent intent = new Intent(mContext, ActivityPercussion.class);
-                    startActivity(intent);
-                    masterView.invalidate();
-                }
-            });
-
-            // Create Chords
-            Button btnNewChord = (Button) dialog.findViewById(R.id.buttonNewChord);
-            btnNewChord.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String filename = editTextKeywordToBlock.getText().toString();
-                    mAppState.mLastPatternAdded = new PatternChord(filename, mAppState.extStoreDir+ "/"+filename, 4*3, 16);
-                    mAppState.mPatternMaster.NewPatterns(mAppState.mLastPatternAdded, channel);
-                    dialog.dismiss();
-
-                    Intent intent = new Intent(mContext, ActivityChord.class);
-                    startActivity(intent);
-                    masterView.invalidate();
-                }
-            });
-
-
-            // Create Notes
-            Button btnNewNote = (Button) dialog.findViewById(R.id.buttonNewNote);
-            btnNewNote.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String filename = editTextKeywordToBlock.getText().toString();
-                    mAppState.mLastPatternAdded = new PatternNote(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
-                    mAppState.mPatternMaster.NewPatterns(mAppState.mLastPatternAdded, channel);
-                    dialog.dismiss();
-
-                    Intent intent = new Intent(mContext, ActivityNote.class);
-                    startActivity(intent);
-                    masterView.invalidate();
-                }
-            });
-
-            // Cancel
-            Button btnCancel = (Button) dialog.findViewById(R.id.buttonCancelBlockKeyword);
-            btnCancel.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialog.dismiss();
-                }
-            });
-            dialog.show();
+            pbv.SetPattern(pattern, false, false);
+            Bitmap b = pbv.getBitmapFromView(5 * 16, 3 * 16);
+            mAppState.mPatternImgDataBase.put(key, b);
         }
     }
 
 
-    public  boolean isStoragePermissionGranted() {
+    public boolean isStoragePermissionGranted() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)

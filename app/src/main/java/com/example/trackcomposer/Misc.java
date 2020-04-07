@@ -23,17 +23,6 @@ public class Misc {
         return (oct * 12) - 8;
     }
 
-    public static int  getTriadChord(int root, int index, boolean major) {
-
-        if (major)
-        {
-            return root + ChordTriad.getMajor(index);
-        }
-        else
-        {
-            return root + ChordTriad.getMinor(index);
-        }
-    }
 
     public static String getProgression(int index)
     {
@@ -63,12 +52,51 @@ public class Misc {
     // famous 4 chords songs
     public static int  getFifthsProgression(int index) {
         switch (index) {
-            case 0: return 0;
-            case 1: return 7;
-            case 2: return 9; // minor!
-            case 3: return 5;
+            case 0: return  1;
+            case 1: return -1;
+            case 2: return  2;
+            case 3: return 12;
         }
 
+        return 0; //this should be an error
+    }
+
+    public static String getFifthsProgressionName(int index) {
+        if (index>0)
+        {
+            return ChordTriad.getFifthsWheelMajorName(index-1);
+        }
+        else if (index<0)
+        {
+            return ChordTriad.getFifthsWheelMinorName(-index-1);
+        }
+        return "bad chord";
+    }
+
+    public static int getFifthsProgressionRootNumber(int index) {
+        if (index>0)
+        {
+            return ChordTriad.getFifthsWheelMajorNumber(index-1);
+        }
+        else if (index<0)
+        {
+            return ChordTriad.getFifthsWheelMinorNumber(-index-1);
+        }
         return -1;
     }
+
+
+    public static int getTriadChord(int index, boolean isMajorScale) {
+        if (isMajorScale)
+        {
+            return ChordTriad.getMajor(index);
+        }
+        else
+        {
+            return ChordTriad.getMinor(index);
+        }
+    }
+
+
+
 }

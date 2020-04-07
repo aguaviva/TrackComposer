@@ -4,17 +4,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 class PatternMaster extends PatternBase
 {
-    PatternBase[] mChannels;
+    int mBPM = 120;
+
+    public HashMap<Integer, PatternBase> mPatternDataBase = new HashMap<Integer, PatternBase>();
     float[] mVolume;
 
     public PatternMaster(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
-        mChannels = new PatternBase[channels];
         mVolume = new float[channels];
     }
 
@@ -29,7 +31,7 @@ class PatternMaster extends PatternBase
         for (int c = 0; c < channels; c++) {
             GeneratorInfo genI = Get(c, pattern);
             if (genI!=null) {
-                PatternBase p =mChannels[c];
+                PatternBase p =mPatternDataBase.get(genI.sampleId);
                 if (p!=null)
                     if (mVolume[c]>0)
                         p.PlayBeat(sp, beat, mVolume[c]);
@@ -37,10 +39,6 @@ class PatternMaster extends PatternBase
         }
     }
 
-    public void NewPatterns(PatternBase pattern, int channel)
-    {
-        mChannels[channel] = pattern;
-    }
 
     public void setVolume(int channel, float volume) { mVolume[channel]=volume;}
     public float getVolume(int channel) { return mVolume[channel];}
@@ -50,24 +48,30 @@ class PatternMaster extends PatternBase
     {
         super.serializeToJson(jsonObj);
 
+        JSONObject jsonInfo = new JSONObject();
+        jsonInfo.put("BPM", mBPM);
+        jsonObj.put("info", jsonInfo);
+
+
         JSONObject jsonPatterns = new JSONObject();
         JSONObject jsonNotes = new JSONObject();
         JSONObject jsonChords = new JSONObject();
-        for (int i=0;i<mChannels.length;i++) {
-            PatternBase channel = mChannels[i];
+
+        for (Integer key : mPatternDataBase.keySet()) {
+            PatternBase channel = mPatternDataBase.get(key);
             if (channel!=null) {
                 JSONObject jsonObj3 = new JSONObject();
 
                 channel.serializeToJson(jsonObj3);
 
                 if (channel instanceof PatternPercussion) {
-                    jsonPatterns.put(String.valueOf(i), jsonObj3);
+                    jsonPatterns.put(String.valueOf(key), jsonObj3);
                 }
-                else if (channel instanceof PatternNote) {
-                    jsonNotes.put(String.valueOf(i), jsonObj3);
+                else if (channel instanceof PatternPianoRoll) {
+                    jsonNotes.put(String.valueOf(key), jsonObj3);
                 }
                 else if (channel instanceof PatternChord) {
-                    jsonChords.put(String.valueOf(i), jsonObj3);
+                    jsonChords.put(String.valueOf(key), jsonObj3);
                 }
             }
         }
@@ -90,7 +94,11 @@ class PatternMaster extends PatternBase
     {
         super.serializeFromJson(jsonObj);
 
-        mChannels = new PatternBase[channels];
+        if (jsonObj.has("info")) {
+            JSONObject jsonObj2 = jsonObj.getJSONObject("info");
+            mBPM = jsonObj2.getInt("BPM");
+        }
+
         {
             JSONObject jsonObj2 = jsonObj.getJSONObject("patterns");
             Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
@@ -98,8 +106,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                mChannels[i] = new PatternPercussion("", "", 16, 16);
-                mChannels[i].serializeFromJson(jsonObj3);
+                PatternPercussion patern = new PatternPercussion("", "", 16, 16);
+                mPatternDataBase.put(i, patern);
+                patern.serializeFromJson(jsonObj3);
             }
         }
 
@@ -110,8 +119,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                mChannels[i] = new PatternNote("", "", 16, 16);
-                mChannels[i].serializeFromJson(jsonObj3);
+                PatternPianoRoll patern = new PatternPianoRoll("", "", 16, 16);
+                mPatternDataBase.put(i, patern);
+                patern.serializeFromJson(jsonObj3);
             }
         }
 
@@ -122,8 +132,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                mChannels[i] = new PatternChord("", "", 16, 16);
-                mChannels[i].serializeFromJson(jsonObj3);
+                PatternChord patern = new PatternChord("", "", 16, 16);
+                mPatternDataBase.put(i, patern);
+                patern.serializeFromJson(jsonObj3);
             }
         }
 

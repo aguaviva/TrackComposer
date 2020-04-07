@@ -42,17 +42,17 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/headers"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-        </LinearLayout>
+        <com.example.trackcomposer.PatternHeaderView
+            android:id="@+id/patternHeaderView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
         <com.example.trackcomposer.PatternBaseView
             android:id="@+id/noteView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_weight="10"
             app:layout_anchor="@+id/include"
             app:layout_anchorGravity="center" />
     </LinearLayout>

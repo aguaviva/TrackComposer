@@ -13,15 +13,30 @@
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:background="#FFFFFF"
             app:backgroundTint="@color/colorAccent"
+            android:contentDescription="play"
             tools:src="@android:drawable/ic_media_play" />
+
+        <ImageButton
+            android:id="@+id/playPattern"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            app:backgroundTint="@color/colorAccent"
+            android:contentDescription="play loop"
+            tools:src="@android:drawable/ic_media_ff" />
+        </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout
@@ -30,10 +45,17 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
+            android:id="@+id/textView3"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="TextView" />
+
+        <com.example.trackcomposer.TimeLineView
+            android:id="@+id/timeLineView"
+            android:layout_weight="3"
+            android:layout_width="0dp"
+            android:layout_height="40dp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -55,6 +77,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             app:layout_anchor="@+id/include"
+            android:contentDescription="tracks"
             app:layout_anchorGravity="center" />
     </LinearLayout>
 </LinearLayout>

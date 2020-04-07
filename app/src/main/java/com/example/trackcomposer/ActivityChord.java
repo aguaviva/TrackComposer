@@ -3,6 +3,7 @@ package com.example.trackcomposer;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,6 +11,8 @@ import androidx.appcompat.widget.Toolbar;
 
 public class ActivityChord extends AppCompatActivity {
     ApplicationClass mAppState;
+    PatternHeaderView chordNames;
+    PatternHeaderView patternHeaderView;
     PatternBaseView mNoteView;
     PatternChord patternChord;
     Context mContext;
@@ -26,30 +29,59 @@ public class ActivityChord extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternChord = (PatternChord)mAppState.mLastPatternAdded;
 
-        mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternChord, false);
-        mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+        chordNames = (PatternHeaderView)findViewById(R.id.chordNames);
+        chordNames.SetPattern(patternChord.channels/3, patternChord.length,true);
+        chordNames.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
-            public void instrumentTouched(int channel) {
-                instrumentChooser();
-                mNoteView.invalidate();
-            }
-
+            public void noteTouched(int note) {}
             @Override
-            public String getInstrumentName(int n) {
-                return Misc.getNoteName(patternChord.TrackToNote(n));
-            }
-
+            public void actionMove(int y) {}
             @Override
-            public void noteTouched(int note, int beat) {
-                patternChord.Play(mAppState.mixer, note, 1);
+            public String getInstrumentName(int n)
+            {
+                return patternChord.TrackToChord(n);
             }
         });
 
-        View noteControls = WidgetChordTransposer.AddUpAndDownKey(this, mNoteView, patternChord);
+        patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
+        patternHeaderView.SetPattern(patternChord.channels, patternChord.length,true);
+        patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
+            @Override
+            public void noteTouched(int note) {}
+            @Override
+            public void actionMove(int y) {}
+            @Override
+            public String getInstrumentName(int n)
+            {
+                return Misc.getNoteName(patternChord.TrackToNote(n));
+            }
+        });
+
+        mNoteView = (PatternBaseView)findViewById(R.id.noteView);
+        mNoteView.SetPattern(patternChord, false, false);
+        mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            @Override
+            public boolean noteTouched(int note, int beat) {
+                patternChord.Play(mAppState.mixer, note, 1);
+                return true; // keep on processing
+            }
+        });
+
+        View noteControls = WidgetChordTransposer.AddUpAndDownKey(this, patternHeaderView, patternChord);
         toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         rigControls();
+
+        // choose instrument
+        Button chooseInstrument = new Button(this);
+        chooseInstrument.setText("Instrument");
+        chooseInstrument.setOnClickListener( new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) { instrumentChooser(); }
+
+        });
+        toolbar.addView(chooseInstrument, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
+
     }
 
     private void instrumentChooser()
@@ -66,6 +98,7 @@ public class ActivityChord extends AppCompatActivity {
 
     void rigControls()
     {
+        /*
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
         headers.removeAllViews();
 
@@ -77,5 +110,7 @@ public class ActivityChord extends AppCompatActivity {
                 headers.addView(synthControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
             }
         }
+
+         */
     }
 }

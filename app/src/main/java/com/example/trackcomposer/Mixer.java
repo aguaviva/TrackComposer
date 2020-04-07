@@ -38,8 +38,10 @@ public class Mixer {
 
     public void play(int sampleId, int channel, float freq, float volume)
     {
+        float freqBase = Misc.GetFrequency(mInstrumentList.get(sampleId).baseNote);
+
         mChannel[mCurrentChannel].sampleId = sampleId;
-        mChannel[mCurrentChannel].speed = freq / Misc.GetFrequency(mInstrumentList.get(sampleId).baseNote);
+        mChannel[mCurrentChannel].speed = freq / freqBase;
         mChannel[mCurrentChannel].timeInSamples = 0;
         mChannel[mCurrentChannel].timeDurationInSamples=11000;
         mChannel[mCurrentChannel].volume = volume;
