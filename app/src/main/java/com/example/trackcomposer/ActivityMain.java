@@ -41,6 +41,7 @@ public class ActivityMain extends AppCompatActivity {
     View[] trackControls;
     TextView[] trackNames;
     SeekBar[] trackVolumes;
+    TimeLineView timeLineView;
     int mNote=-1, mBeat=-1;
 
     @Override
@@ -52,8 +53,8 @@ public class ActivityMain extends AppCompatActivity {
 
         mContext = this;
 
-        SoundNative sn = new SoundNative();
-        sn.Init(this);
+        //SoundNative sn = new SoundNative();
+        //sn.Init(this);
         //String str = stringFromJNI();
 
         mAppState = ((ApplicationClass)this.getApplication());
@@ -67,7 +68,7 @@ public class ActivityMain extends AppCompatActivity {
 
         rigControls();
 
-        final TimeLineView timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
         final ImageButton fab = (ImageButton)findViewById(R.id.play);
         fab.setImageResource(android.R.drawable.ic_media_play);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +108,18 @@ public class ActivityMain extends AppCompatActivity {
                 return false; //don't process default handler
             }
         });
+
+        //overwrite listener with our own
+        mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
+            @Override
+            public void beat(int currentBeat) {
+                masterView.setCurrentBeat(currentBeat);
+                masterView.invalidate();
+                timeLineView.setTime(mAppState.getTime()/256.0f);
+                timeLineView.invalidate();
+            }
+        });
+
 
         isStoragePermissionGranted();
 
@@ -205,6 +218,7 @@ public class ActivityMain extends AppCompatActivity {
                 }
             });
 
+
             // mute
             ToggleButton toggleMute = (ToggleButton)trackControls[i].findViewById(R.id.toggleMute);
             toggleMute.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
@@ -283,6 +297,18 @@ public class ActivityMain extends AppCompatActivity {
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
                     generateIcons();
                     masterView.invalidate();
+
+                    //overwrite listener with our own
+                    mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
+                        @Override
+                        public void beat(int currentBeat) {
+                            masterView.setCurrentBeat(currentBeat);
+                            masterView.invalidate();
+                            timeLineView.setTime(mAppState.getTime()/256.0f);
+                            timeLineView.invalidate();
+                        }
+                    });
+
                 }
 
                 @Override

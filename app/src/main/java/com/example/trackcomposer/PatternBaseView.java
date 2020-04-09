@@ -7,11 +7,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.media.SoundPool;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.core.content.ContextCompat;
 
 import java.util.HashMap;
 
@@ -23,19 +24,17 @@ public class PatternBaseView extends View {
     boolean bInvertY = false;
     Paint black;
     Paint box;
-    Paint gray;
+    Paint ltgray;
+    Paint dkgray;
+    Paint white;
     Paint blue;
+    Paint green, greenFill;
     Paint selectedColor;
     private int mCurrentBeat = 0;
 
     private TextPaint mTextPaint;
     private float mTextWidth;
     private float mTextHeight;
-
-    private int mPaddingLeft;
-    private int mPaddingTop;
-    private int mPaddingRight;
-    private int mPaddingBottom;
 
     private int mContentWidth;
     private int mContentHeight;
@@ -62,6 +61,7 @@ public class PatternBaseView extends View {
                 invalidate();
             }
         });
+
     }
 
     void patternImgDataBase(HashMap<Integer, Bitmap> patternImgDataBase)
@@ -105,14 +105,44 @@ public class PatternBaseView extends View {
         selectedColor.setColor(Color.BLUE);
         selectedColor.setStyle(Paint.Style.FILL);
 
-        gray = new Paint();
-        gray.setColor(Color.LTGRAY);
-        gray.setStyle(Paint.Style.FILL);
+        ltgray = new Paint();
+        ltgray.setColor(Color.LTGRAY);
+        ltgray.setStyle(Paint.Style.FILL);
+
+        dkgray = new Paint();
+        dkgray.setColor(Color.DKGRAY);
+        dkgray.setStyle(Paint.Style.FILL);
+
+        white = new Paint();
+        white.setColor(Color.WHITE);
+        white.setStyle(Paint.Style.FILL);
+        white.setStrokeWidth(2);
+
+        green = new Paint();
+        green.setColor(ContextCompat.getColor(getContext(), R.color.darkGreen));
+        green.setStyle(Paint.Style.STROKE);
+        green.setStrokeWidth(2);
+
+        greenFill = new Paint();
+        greenFill.setColor(ContextCompat.getColor(getContext(), R.color.darkGreen));
+        greenFill.setStyle(Paint.Style.FILL);
 
         blue = new Paint();
-        blue.setColor(Color.rgb(200, 191, 231));
+        blue.setColor(ContextCompat.getColor(getContext(), R.color.cursorVertical));
         blue.setStyle(Paint.Style.FILL);
     }
+
+    int mBaseNote = -1;
+    public void setBaseNote(int baseNote)
+    {
+        mBaseNote = baseNote;
+    }
+
+    public void setCurrentBeat(int currentBeat)
+    {
+        mCurrentBeat = currentBeat;
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -121,21 +151,14 @@ public class PatternBaseView extends View {
         if (canvas==null)
             return;
 
-        // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
-
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
-        int trackWidth = getWidth() - paddingLeft - paddingRight;
+        int contentWidth = getWidth();
+        int contentHeight = getHeight();
+        int trackWidth = getWidth();
 
         if (mLOD==0) {
             for (int i = 0; i < trackWidth; i += trackWidth / 2) {
-                float x = paddingLeft + i;
-                canvas.drawRect(x, 0, x + trackWidth / 4, contentHeight, gray);
+                float x = i;
+                canvas.drawRect(x, 0, x + trackWidth / 4, contentHeight, ltgray);
             }
         }
 
@@ -157,27 +180,44 @@ public class PatternBaseView extends View {
             yy = 16;
         }
 
+
+        // Draw background
+        //
+        if (mLOD==0) {
+            for (int i = 0; i < yy; i++) {
+                RectF rf = new RectF();
+                rf.left = 0;
+                rf.top = (i * contentHeight) / yy;
+                rf.right = getWidth();
+                rf.bottom = ((i + 1) * contentHeight) / yy;
+
+                boolean isWhite = true;
+                if (mBaseNote >=0)
+                {
+                    int ii = (bInvertY) ? (mPattern.GetChannelCount() - 1 - i) : i;
+                    isWhite = Misc.isWhiteNote(mBaseNote +ii);
+                }
+                else
+                {
+                    isWhite = ((i & 1) == 0);
+                }
+
+                canvas.drawRect(rf,  isWhite ? dkgray:black);
+            }
+
+            for (int i = 0; i < xx; i++) {
+                float x = (i * getWidth()) / xx;
+                canvas.drawLine(x, 0, x, getHeight(), ((i & 3) == 0) ? white : ltgray);
+            }
+        }
+
         // Draw cursor
         //
         if (mLOD==0)
         {
-            canvas.drawRect(paddingLeft + (mCurrentBeat * trackWidth / xx), 0, paddingLeft + ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
+            canvas.drawRect((mCurrentBeat * trackWidth / xx), 0, ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
         }
 
-        // Draw grid
-        //
-        if (mLOD==0) {
-            // horizontal lines
-            for(int i=0;i<=yy;i++) {
-                float y = paddingTop + (i*contentHeight)/yy;
-                canvas.drawLine(0, y, contentWidth, y, black);
-            }
-
-            for(int i=0;i<=xx;i++) {
-                float x = paddingLeft + (i*trackWidth)/xx;
-                canvas.drawLine(x, 0, x, contentHeight, black);
-            }
-        }
 
         if (mPattern==null)
             return;
@@ -197,8 +237,8 @@ public class PatternBaseView extends View {
                 int y = selectedY;
 
                 y = (bInvertY) ? (mPattern.GetChannelCount() - 1 - y) : y;
-                float _x = paddingLeft + ((x * trackWidth) / xx);
-                float _y = paddingTop + ((y * contentHeight) / yy);
+                float _x = ((x * trackWidth) / xx);
+                float _y = ((y * contentHeight) / yy);
                 canvas.drawRect(_x,_y,_x+(trackWidth/xx),_y+(contentHeight/yy), selectedColor);
             }
         }
@@ -214,13 +254,13 @@ public class PatternBaseView extends View {
             int y = note.channel;
 
             y = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
-            float _x = paddingLeft + ((x*trackWidth)/xx) + padTL;
-            float _y = paddingTop  + ((y*contentHeight)/yy) + padTL;
+            float _x = ((x*trackWidth)/xx) + padTL;
+            float _y = ((y*contentHeight)/yy) + padTL;
 
             RectF rf = new RectF();
             rf.left = _x;
             rf.top = _y;
-            rf.right = _x + (trackWidth / xx);
+            rf.right = _x + (trackWidth / xx)- (padBR);
             rf.bottom = _y + (contentHeight / yy) - (padBR);
 
             Integer id = note.mGen.sampleId;
@@ -228,11 +268,20 @@ public class PatternBaseView extends View {
             {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
+
                     canvas.drawBitmap(bmp, null, rf, null);
+
+                    rf.left = (x*getWidth())/xx;
+                    rf.top =  (y*getHeight())/yy;
+                    rf.right = ((x+1)*getWidth())/xx;
+                    rf.bottom = ((y+1)*getHeight())/yy;
+
+
+                    canvas.drawRoundRect( rf, 10,10, green);
                 }
             }
             else {
-                canvas.drawRect(_x, _y, _x + (trackWidth / xx) - (padBR), _y + (contentHeight / yy) - (padBR), box);
+                canvas.drawRect(_x, _y, _x + (trackWidth / xx) - (padBR), _y + (contentHeight / yy) - (padBR), greenFill);
             }
         }
     }
@@ -245,21 +294,16 @@ public class PatternBaseView extends View {
         int xx = mPattern.GetLength();
         int yy = mPattern.GetChannelCount();
 
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
-
-        int contentWidth = (getWidth() - paddingLeft - paddingRight)/ xx;
-        int contentHeight = (getHeight() - paddingTop - paddingBottom)/ yy;
-        int trackWidth = (getWidth() - paddingLeft - paddingRight)/ xx;
+        int contentWidth = getWidth() / xx;
+        int contentHeight = getHeight()/ yy;
+        int trackWidth = getWidth()/ xx;
 
         // you may need the x/y location
-        int x = (int)event.getX() - getPaddingLeft();
-        int y = (int)event.getY() - getPaddingTop();
+        int x = (int)event.getX();
+        int y = (int)event.getY();
 
-        int beat = (x)/trackWidth;
-        int channel = (y-paddingTop)/contentHeight;
+        int beat = x/trackWidth;
+        int channel = y/contentHeight;
 
         if (bInvertY)
             channel = mPattern.GetChannelCount()-1 - channel;
@@ -267,15 +311,6 @@ public class PatternBaseView extends View {
         // put your code in here to handle the event
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-/*
-                if (x<mHeader) {
-                    if (instrumentListener !=null) {
-                        instrumentListener.instrumentTouched(channel);
-                        invalidate();
-                    }
-                    break;
-                }
-*/
                 if (channel< mPattern.GetChannelCount() && beat<mPattern.GetLength()) {
                     boolean bProcessTouch = false;
 

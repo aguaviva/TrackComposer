@@ -97,6 +97,14 @@ JNIEXPORT void JNICALL Java_com_example_trackcomposer_SoundNative_createSLEngine
             engine.echoDelay_, engine.echoDecay_);
     assert(engine.delayEffect_);
 */
+    /*
+    jclass jniTestClass = env->FindClass("com/example/trackcomposer/SoundNative");
+    jmethodID getAnswerMethod = env->GetStaticMethodID(jniTestClass, "getAnswer", "(Z)I");
+
+    // Calling the method
+    env->CallStaticObjectMethod(jniTestClass, getAnswerMethod, (jboolean)true);
+    */
+
 }
 
 JNIEXPORT jboolean JNICALL

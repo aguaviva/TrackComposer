@@ -6,10 +6,10 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 
 class SoundNative {
-
     /*
      * jni function declarations
      */
+/*
     static native void createSLEngine(int rate, int framesPerBuf, long delayInMs, float decay);
     static native void deleteSLEngine();
     static native boolean configureEcho(int delayInMs, float decay);
@@ -52,4 +52,8 @@ class SoundNative {
 
     }
 
+    public static int getAnswer(boolean a) {
+        return 42;
+    }
+*/
 }

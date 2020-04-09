@@ -29,13 +29,19 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternPianoRoll = (PatternPianoRoll)mAppState.mLastPatternAdded;
 
+
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
         mPatternHeaderView.SetPattern(patternPianoRoll.channels, patternPianoRoll.length,true);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
             @Override
-            public void actionMove(int y) {patternPianoRoll.baseNote+=y; }
+            public void actionMove(int y)
+            {
+                patternPianoRoll.baseNote+=y;
+                mNoteView.setBaseNote(patternPianoRoll.baseNote);
+                mNoteView.invalidate();
+            }
             @Override
             public String getInstrumentName(int n)
             {
@@ -45,6 +51,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
         mNoteView.SetPattern(patternPianoRoll, false,true);
+        mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public boolean noteTouched(int note, int beat) {

@@ -40,7 +40,6 @@ void AudioPlayer::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
     callback_(ctx_, ENGINE_SERVICE_MSG_WANT_AUDIO, NULL);
   }
 
-
   // retrieve the finished device buf and put onto the free queue
   // so recorder could re-use it
   sample_buf *buf;

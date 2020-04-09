@@ -8,6 +8,13 @@ public class Misc {
         return notes[noteIdx] + String.valueOf(octave);
     }
 
+    public static boolean isWhiteNote(int n) {
+        boolean[] notes = {true, false, true, true, false, true, false, true, true, false, true, false};
+        int noteIdx = (n - 1 + 12) % 12;
+        return notes[noteIdx];
+    }
+
+
     public static float GetFrequency(int n) {
         float exponent = ((float) n - 49.0f) / 12.0f;
         return (float) Math.pow(2.0f, exponent) * 440.0f;

@@ -69,6 +69,12 @@ public class TimeLineView extends View {
         canvas.drawBitmap(bmp, null, rf, null);
     }
 
+    float mTime = 0;
+
+    public void setTime(float time) {
+        mTime = time;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -89,6 +95,9 @@ public class TimeLineView extends View {
         rf.left = mMarkerPos[0];
         rf.right = mMarkerPos[1];
         canvas.drawRect(rf, blue);
+
+        float x  = mTime * getWidth();
+        canvas.drawLine(x, 0, x, getHeight(), black);
     }
 
     public boolean onTouchEvent(MotionEvent event) {

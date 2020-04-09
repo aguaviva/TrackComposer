@@ -67,6 +67,7 @@ public class PatternBase {
     {
         if (mBeatListener!=null)
             mBeatListener.beat(currentBeat);
+
     }
 
     void PlayBeat(Mixer sp, int beat, float volume)
