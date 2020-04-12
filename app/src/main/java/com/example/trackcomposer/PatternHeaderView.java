@@ -82,38 +82,65 @@ public class PatternHeaderView extends View {
         this.bInvertY = bInvertY;
     }
 
+    protected float mPosX;
+    protected float mPosY;
+    protected float mScaleFactor = -1.0f;
+    protected float mRowHeight = 0;
+
+    public void setPosScale(float x, float y, float s, float trackHeight)
+    {
+        mPosX = 0;
+        mPosY = y;
+        mScaleFactor = s;
+        mRowHeight = trackHeight;
+    }
+
+    int indexToNote(int y)
+    {
+        return (bInvertY)?(88 - y):y;
+    }
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int contentWidth = getWidth();
-        int contentHeight = getHeight();
+        canvas.translate(mPosX, mPosY);
+        canvas.scale(mScaleFactor, mScaleFactor);
 
-        int xx=16,yy=16;
-        if (mLength>0 && mChannels>0) {
-            xx = mLength;
-            yy = mChannels;
-        }
+        float viewportTop = (0 - mPosY)/mScaleFactor;
+        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
+        float viewportLeft = (0 - mPosX)/mScaleFactor;
+        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
+
+        float contentWidth = getWidth();
+
+        float xx = 16;
+
+        // Draw background
+        //
+        int ini = (int)Math.floor(viewportTop / mRowHeight);
+        int fin = (int)Math.ceil(viewportBottom / mRowHeight);
+
+        if (ini<0) ini = 0;
+        if (fin>88) fin = 88;
 
         // Draw text
         //
-        for (int ii = 0; ii < yy; ii++) {
-
-            int i = (bInvertY) ? (mChannels - 1 - ii) : ii;
-
+        for (int i = ini; i < fin; i++) {
             String str = "--";
             if (instrumentListener != null) {
-                str = instrumentListener.getInstrumentName(i);
+                str = instrumentListener.getInstrumentName(indexToNote(i));
             }
             if (str == null) str = "--";
 
             boolean bIsBlack = str.indexOf("#")>=0;
 
             RectF rf = new RectF();
-            rf.top = (i * contentHeight / yy);
-            rf.bottom = ((i+1) * contentHeight / yy);
             rf.left = 0;
-            rf.right = getWidth();
+            rf.right = viewportRight;
+            rf.top = i * mRowHeight;
+            rf.bottom = (i + 1) * mRowHeight;
 
             if (bIsBlack) {
                 canvas.drawRect(rf, box);
@@ -125,9 +152,9 @@ public class PatternHeaderView extends View {
         }
 
         // horizontal lines
-        for(int i=0;i<=yy;i++) {
-            float y = (i*contentHeight)/yy;
-            canvas.drawLine(0, y, contentWidth, y, black);
+        for (int i = ini; i < fin; i++) {
+            float y = i* mRowHeight;
+            canvas.drawLine(0, y, viewportRight, y, black);
         }
     }
 
@@ -136,7 +163,7 @@ public class PatternHeaderView extends View {
 
         int eventAction = event.getAction();
 
-        int touchY = (int)(event.getY()/ (getHeight()/mChannels));
+        int touchY = (int)(event.getY()/ mRowHeight);
 
         // put your code in here to handle the event
         switch (eventAction) {

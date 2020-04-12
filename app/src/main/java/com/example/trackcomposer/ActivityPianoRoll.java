@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +30,15 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternPianoRoll = (PatternPianoRoll)mAppState.mLastPatternAdded;
 
+        final ImageButton fab = (ImageButton)findViewById(R.id.play);
+        fab.setImageResource(android.R.drawable.ic_media_play);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean playing = mAppState.PlayPause();
+                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
+            }
+        });
 
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
         mPatternHeaderView.SetPattern(patternPianoRoll.channels, patternPianoRoll.length,true);
@@ -45,14 +55,22 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public String getInstrumentName(int n)
             {
-                return Misc.getNoteName(23-n + patternPianoRoll.baseNote);
+                return Misc.getNoteName(n);
             }
         });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternPianoRoll, false,true);
+        mNoteView.SetPattern(patternPianoRoll, 12*2,16,false,true);
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+
+            @Override
+            public void scaling(float x, float y, float scale, float trackHeight)
+            {
+                mPatternHeaderView.setPosScale(x, y, scale, trackHeight);
+                mPatternHeaderView.invalidate();
+            }
+
             @Override
             public boolean noteTouched(int note, int beat) {
                 patternPianoRoll.Play(mAppState.mixer, note, 1);

@@ -9,7 +9,9 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import androidx.core.content.ContextCompat;
@@ -46,9 +48,13 @@ public class PatternBaseView extends View {
     int selectedX = -1;
     int selectedY = -1;
 
+    float mRowHeight = 0;
+    int mChannels = 0;
+    int length = 0;
+
     PatternBase mPattern = null;
     PatternBase GetPattern() { return mPattern; }
-    void SetPattern(PatternBase pattern, boolean selectable, boolean bInvertY)
+    void SetPattern(PatternBase pattern, int channels, int length, boolean selectable, boolean bInvertY)
     {
         mSelectable = selectable;
 
@@ -61,7 +67,6 @@ public class PatternBaseView extends View {
                 invalidate();
             }
         });
-
     }
 
     void patternImgDataBase(HashMap<Integer, Bitmap> patternImgDataBase)
@@ -130,6 +135,9 @@ public class PatternBaseView extends View {
         blue = new Paint();
         blue.setColor(ContextCompat.getColor(getContext(), R.color.cursorVertical));
         blue.setStyle(Paint.Style.FILL);
+
+        mScaleGestureDetector = new ScaleGestureDetector(getContext(), mScaleGestureListener);
+        mGestureDetector = new GestureDetector(getContext(), mGestureDetectorListener);
     }
 
     int mBaseNote = -1;
@@ -138,86 +146,110 @@ public class PatternBaseView extends View {
         mBaseNote = baseNote;
     }
 
+    int indexToNote(int y)
+    {
+        return (bInvertY)?(88 - y):y;
+    }
+
     public void setCurrentBeat(int currentBeat)
     {
         mCurrentBeat = currentBeat;
     }
 
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (canvas==null)
-            return;
+        float contentWidth = getWidth();
+        float contentHeight = getHeight();
 
-        int contentWidth = getWidth();
-        int contentHeight = getHeight();
-        int trackWidth = getWidth();
+        float xx = 16;
 
-        if (mLOD==0) {
-            for (int i = 0; i < trackWidth; i += trackWidth / 2) {
-                float x = i;
-                canvas.drawRect(x, 0, x + trackWidth / 4, contentHeight, ltgray);
+        // compute max/min notes so we show the part of the keyboard where there is data
+        if (mScaleFactor==-1 && mPattern!=null)
+        {
+            mScaleFactor = 1;
+
+            int min = 88;
+            int max = 0;
+            for(int i=0;;i++) {
+                SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
+                if (note==null)
+                    break;
+                if (note.channel>max)
+                    max = note.channel;
+                if (note.channel<min)
+                    min = note.channel;
+            }
+
+            mChannels = max - min +1;
+            if (mChannels <8)
+                mChannels = 8;
+
+            mRowHeight = contentHeight/ (float)mChannels;
+
+            max = indexToNote(max);
+            mPosY = (-max)* mRowHeight;
+
+
+            if (instrumentListener!=null) {
+                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
             }
         }
 
-        if (mLOD==0)
-        {
-            canvas.drawLine(contentWidth - 1, 0, contentWidth - 1, contentHeight, black);
-            canvas.drawLine(0, contentHeight - 1, contentWidth, contentHeight - 1, black);
-            canvas.drawLine(0, 0, 0, contentHeight, black);
-        }
+        // Set canvas zoom and pan
+        //
+        canvas.translate(mPosX, mPosY);
+        canvas.scale(mScaleFactor, mScaleFactor);
 
-        PatternBase mPattern = GetPattern();
-        int xx,yy;
-        if (mPattern!=null) {
-            xx = mPattern.GetLength();
-            yy = mPattern.GetChannelCount();
-        }else
-        {
-            xx = 16;
-            yy = 16;
-        }
-
+        float viewportTop = (0 - mPosY)/mScaleFactor;
+        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
+        float viewportLeft = (0 - mPosX)/mScaleFactor;
+        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
 
         // Draw background
         //
+        int ini = (int)Math.floor(viewportTop / mRowHeight);
+        int fin = (int)Math.ceil(viewportBottom / mRowHeight);
+
+        if (ini<0) ini = 0;
+        if (fin>88) fin = 88;
+
         if (mLOD==0) {
-            for (int i = 0; i < yy; i++) {
+            for (int i = ini; i < fin; i++) {
+
                 RectF rf = new RectF();
                 rf.left = 0;
-                rf.top = (i * contentHeight) / yy;
-                rf.right = getWidth();
-                rf.bottom = ((i + 1) * contentHeight) / yy;
+                rf.right = contentWidth;
+                rf.top = i * mRowHeight;
+                rf.bottom = (i + 1) * mRowHeight;
 
                 boolean isWhite = true;
                 if (mBaseNote >=0)
                 {
-                    int ii = (bInvertY) ? (mPattern.GetChannelCount() - 1 - i) : i;
-                    isWhite = Misc.isWhiteNote(mBaseNote +ii);
+                    isWhite = Misc.isWhiteNote(indexToNote(i));
                 }
                 else
                 {
                     isWhite = ((i & 1) == 0);
                 }
-
                 canvas.drawRect(rf,  isWhite ? dkgray:black);
             }
 
+            float yTop = ini * mRowHeight;
+            float yBottom = fin * mRowHeight;
             for (int i = 0; i < xx; i++) {
-                float x = (i * getWidth()) / xx;
-                canvas.drawLine(x, 0, x, getHeight(), ((i & 3) == 0) ? white : ltgray);
+                float x = i * (contentWidth / xx);
+                canvas.drawLine(x, yTop, x, yBottom, ((i & 3) == 0) ? white : ltgray);
             }
         }
 
         // Draw cursor
         //
-        if (mLOD==0)
-        {
-            canvas.drawRect((mCurrentBeat * trackWidth / xx), 0, ((mCurrentBeat + 1) * trackWidth / xx), contentHeight, blue);
+        if (mLOD==0) {
+            float yBottom = fin * mRowHeight;
+            canvas.drawRect((mCurrentBeat * contentWidth / xx), 0, ((mCurrentBeat + 1) * contentWidth / xx), yBottom, blue);
         }
-
 
         if (mPattern==null)
             return;
@@ -230,114 +262,79 @@ public class PatternBaseView extends View {
         }
 
         //show selected block
-        if (mSelectable)
-        {
+        if (mSelectable) {
             int x = selectedX;
             if (x>=0) {
                 int y = selectedY;
-
-                y = (bInvertY) ? (mPattern.GetChannelCount() - 1 - y) : y;
-                float _x = ((x * trackWidth) / xx);
-                float _y = ((y * contentHeight) / yy);
-                canvas.drawRect(_x,_y,_x+(trackWidth/xx),_y+(contentHeight/yy), selectedColor);
+                y = indexToNote(y);
+                float _x = x * (contentWidth / xx);
+                float _y = y * mRowHeight;
+                canvas.drawRect(_x,_y,_x+(contentWidth/xx),_y+ mRowHeight, selectedColor);
             }
         }
 
+        PatternBase mPattern = GetPattern();
+
         // show blocks
-        for(int i=0;;i++)
-        {
+        for(int i=0;;i++) {
             SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
 
             int x = note.time;
-            int y = note.channel;
+            int y = indexToNote(note.channel);
 
-            y = (bInvertY)?(mPattern.GetChannelCount() -1 - y):y;
-            float _x = ((x*trackWidth)/xx) + padTL;
-            float _y = ((y*contentHeight)/yy) + padTL;
+            float _x = x*(contentWidth/xx) + padTL;
+            float _y = y* mRowHeight + padTL;
 
             RectF rf = new RectF();
             rf.left = _x;
             rf.top = _y;
-            rf.right = _x + (trackWidth / xx)- (padBR);
-            rf.bottom = _y + (contentHeight / yy) - (padBR);
+            rf.right = _x + (contentWidth / xx)- (padBR);
+            rf.bottom = _y + mRowHeight - (padBR);
 
             Integer id = note.mGen.sampleId;
-            if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id))
-            {
+            if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
 
                     canvas.drawBitmap(bmp, null, rf, null);
 
-                    rf.left = (x*getWidth())/xx;
-                    rf.top =  (y*getHeight())/yy;
-                    rf.right = ((x+1)*getWidth())/xx;
-                    rf.bottom = ((y+1)*getHeight())/yy;
-
+                    rf.left = x*(contentWidth/xx);
+                    rf.top =  y* mRowHeight;
+                    rf.right = (x+1)*(contentWidth/xx);
+                    rf.bottom = (y+1)* mRowHeight;
 
                     canvas.drawRoundRect( rf, 10,10, green);
                 }
             }
             else {
-                canvas.drawRect(_x, _y, _x + (trackWidth / xx) - (padBR), _y + (contentHeight / yy) - (padBR), greenFill);
+                canvas.drawRect(_x, _y, _x + (contentWidth / xx) - (padBR), _y + mRowHeight - (padBR), greenFill);
             }
+        }
+
+        // spring to center the track
+        //
+        if (mPosX>0 ) {
+            mPosX += (0 - mPosX) * .1;
+        }
+        if (mPosY>0) {
+            mPosY += (0 - mPosY) * .1;
+        }
+
+        if (mPosX>0 || mPosY>0) {
+            if (instrumentListener!=null) {
+                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+            }
+            invalidate();
         }
     }
 
     public boolean onTouchEvent(MotionEvent event) {
 
-        int eventAction = event.getAction();
-
-        PatternBase mPattern = GetPattern();
-        int xx = mPattern.GetLength();
-        int yy = mPattern.GetChannelCount();
-
-        int contentWidth = getWidth() / xx;
-        int contentHeight = getHeight()/ yy;
-        int trackWidth = getWidth()/ xx;
-
-        // you may need the x/y location
-        int x = (int)event.getX();
-        int y = (int)event.getY();
-
-        int beat = x/trackWidth;
-        int channel = y/contentHeight;
-
-        if (bInvertY)
-            channel = mPattern.GetChannelCount()-1 - channel;
-
-        // put your code in here to handle the event
-        switch (eventAction) {
-            case MotionEvent.ACTION_DOWN:
-                if (channel< mPattern.GetChannelCount() && beat<mPattern.GetLength()) {
-                    boolean bProcessTouch = false;
-
-                    if (mSelectable) {
-                        selectedX = beat;
-                        selectedY = channel;
-                    }
-
-
-                    if (instrumentListener!=null) {
-                        bProcessTouch = instrumentListener.noteTouched(channel, beat);
-                    }
-
-                    if (bProcessTouch)
-                        onTouchEvent(channel, beat);
-
-                    invalidate();
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                break;
-            case MotionEvent.ACTION_MOVE:
-                break;
-        }
-
-        // tell the View that we handled the event
-        return true;
+        boolean b1 =  mScaleGestureDetector.onTouchEvent(event);
+        boolean b2 = mGestureDetector.onTouchEvent(event);
+        return b1 || b2;
     }
 
     public void onTouchEvent(int x, int y)
@@ -361,12 +358,117 @@ public class PatternBaseView extends View {
         postInvalidate();
     }
 
+    //  Pan & zoom gestures -----------------------------------------------------
+
+    protected float mPosX;
+    protected float mPosY;
+    protected float mScaleFactor = -1.0f;
+
+    private GestureDetector mGestureDetector;
+    private ScaleGestureDetector mScaleGestureDetector;
+
+    private final GestureDetector.SimpleOnGestureListener mGestureDetectorListener = new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onSingleTapUp (MotionEvent e)
+        {
+            PatternBase mPattern = GetPattern();
+
+            float contentWidth = getWidth() / 16.0f;
+            float contentHeight = mRowHeight;
+
+            float x = ((e.getX() - mPosX) / mScaleFactor);
+            float y = ((e.getY() - mPosY) / mScaleFactor);
+
+            if (x<0 || y<0)
+                return true;
+
+            int beat = (int)(x/contentWidth);
+            int channel = (int)(y/contentHeight);
+
+            channel = indexToNote(channel);
+
+            if (channel< 108 && beat<mPattern.GetLength()) {
+                boolean bProcessTouch = false;
+
+                if (mSelectable) {
+                    selectedX = beat;
+                    selectedY = channel;
+                }
+
+                if (instrumentListener!=null) {
+                    bProcessTouch = instrumentListener.noteTouched(channel, beat);
+                }
+
+                if (bProcessTouch)
+                    onTouchEvent(channel, beat);
+
+                invalidate();
+            }
+
+            return true;
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mPosX -= distanceX;
+            mPosY -= distanceY;
+
+            if (instrumentListener!=null) {
+                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+            }
+
+            invalidate();
+            return true;
+        }
+    };
+
+    // The scale listener, used for handling multi-finger scale gestures.
+    //
+    private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            float oldScaleFator = mScaleFactor;
+            mScaleFactor *= (detector.getScaleFactor()*detector.getScaleFactor());
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 2.0f));
+
+            float mFocusX = detector.getFocusX ();
+            float mFocusY = detector.getFocusY ();
+
+            //distance between focus and old origin
+            float dx = mFocusX-mPosX;
+            float dy = mFocusY-mPosY;
+            //distance between focus and new origin after rescale
+            float dxSc = dx * mScaleFactor / oldScaleFator;
+            float dySc = dy * mScaleFactor / oldScaleFator;
+
+            // calcul of the new origin
+            mPosX = mFocusX - dxSc;
+            mPosY = mFocusY - dySc;
+
+            if (instrumentListener!=null) {
+                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+            }
+
+            invalidate();
+            return true;
+        }
+    };
+
     //-----------------------------------------------------
 
     // instrument touched listener
     //
     public interface InstrumentListener {
         boolean noteTouched(int note, int beat);
+        void scaling(float x, float y, float scale, float mTrackHeight);
     }
     public PatternBaseView setInstrumentListener(InstrumentListener instrumentTouched) {
         this.instrumentListener = instrumentTouched;
@@ -374,6 +476,7 @@ public class PatternBaseView extends View {
     }
     private InstrumentListener instrumentListener;
 
+    //-----------------------------------------------------
 
     public Bitmap getBitmapFromView(int width, int height) {
         measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
@@ -381,9 +484,9 @@ public class PatternBaseView extends View {
         Canvas canvas = new Canvas(bitmap);
         layout(0, 0, width, height);
         mLOD = 1;
+        mScaleFactor = -1;
         draw(canvas);
         mLOD = 0;
         return bitmap;
     }
-
 }

@@ -45,7 +45,7 @@ public class ApplicationClass extends Application {
                         mPatternMaster.PlayBeat(mixer, mTime, 1);
                         mTime++;
 
-                        if (mTime==mTimeFin)
+                        if (mTime>=mTimeFin)
                             mTime = mTimeIni;
                     }
                 }

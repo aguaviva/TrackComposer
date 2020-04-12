@@ -58,8 +58,12 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternChord, false, false);
+        mNoteView.SetPattern(patternChord, 3*4,16,false, false);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            @Override
+            public void scaling(float x, float y, float scale, float mTrackHeight) {
+            }
+
             @Override
             public boolean noteTouched(int note, int beat) {
                 patternChord.Play(mAppState.mixer, note, 1);

@@ -84,7 +84,6 @@ public class ActivityMain extends AppCompatActivity {
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 float ini = timeLineView.getSelection(0);
                 float fin = timeLineView.getSelection(1);
                 mAppState.setLoop((int)((ini*16*16)/100), (int)((fin*16*16)/100));
@@ -99,13 +98,17 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster, true, false);
+        masterView.SetPattern(mAppState.mPatternMaster, 8,16,true, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            @Override
+            public void scaling(float x, float y, float scale, float trackHeight) {
+            }
+
             @Override
             public boolean noteTouched(int note, int beat) {
                 mNote = note;
                 mBeat = beat;
-                return false; //don't process default handler
+                return false;
             }
         });
 
@@ -120,7 +123,6 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-
         isStoragePermissionGranted();
 
         View btnEditing = getLayoutInflater().inflate(R.layout.buttons_pattern_editing, null);
@@ -134,6 +136,7 @@ public class ActivityMain extends AppCompatActivity {
                     case R.id.btnNew:
                         addPattern(mNote, mBeat); break;
                     case R.id.btnEdit:
+                        mAppState.setLoop((int)(mBeat*16), (int)((mBeat+1)*16));
                         editPattern(mNote, mBeat); break;
                     case R.id.btnCopy: {
                         GeneratorInfo genInf = mAppState.mPatternMaster.Get(mNote, mBeat);
@@ -184,12 +187,13 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
         toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
-
     }
 
     @Override
     public void onResume(){
         super.onResume();
+
+        mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
 
         generateIcons();
     }
@@ -217,7 +221,6 @@ public class ActivityMain extends AppCompatActivity {
                     return false;
                 }
             });
-
 
             // mute
             ToggleButton toggleMute = (ToggleButton)trackControls[i].findViewById(R.id.toggleMute);
@@ -248,7 +251,6 @@ public class ActivityMain extends AppCompatActivity {
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar){}
             });
-
 
             headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 0, 1.0f));
         }
@@ -293,7 +295,7 @@ public class ActivityMain extends AppCompatActivity {
                 {
                     mAppState.Load(file);
                     setTrackNames();
-                    masterView.SetPattern(mAppState.mPatternMaster, true,false);
+                    masterView.SetPattern(mAppState.mPatternMaster, 8,16,true,false);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
                     generateIcons();
                     masterView.invalidate();
@@ -308,7 +310,6 @@ public class ActivityMain extends AppCompatActivity {
                             timeLineView.invalidate();
                         }
                     });
-
                 }
 
                 @Override
@@ -348,7 +349,6 @@ public class ActivityMain extends AppCompatActivity {
             Toast.makeText(mContext, "Nothing to edit ", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(genInf.sampleId);
         mAppState.mLastPatternAdded = pattern;
@@ -460,7 +460,7 @@ public class ActivityMain extends AppCompatActivity {
         for (Integer key : mAppState.mPatternMaster.mPatternDataBase.keySet()) {
             PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(key);
 
-            pbv.SetPattern(pattern, false, false);
+            pbv.SetPattern(pattern, 16,16,false, true);
             Bitmap b = pbv.getBitmapFromView(5 * 16, 3 * 16);
             mAppState.mPatternImgDataBase.put(key, b);
         }

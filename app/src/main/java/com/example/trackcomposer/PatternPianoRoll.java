@@ -18,7 +18,7 @@ class PatternPianoRoll extends PatternBase
     {
         if (sampleId>=0)
         {
-            sp.play(sampleId, 0, Misc.GetFrequency(baseNote + note), volume);
+            sp.play(sampleId, 0, Misc.GetFrequency(note), volume);
         }
     }
 

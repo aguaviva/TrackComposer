@@ -19,7 +19,7 @@
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right"
+            android:layout_gravity="center"
             android:backgroundTint="#E91E63"
             android:text="Departure"
             tools:src="@android:drawable/ic_media_play" />
