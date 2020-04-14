@@ -1,6 +1,8 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -63,7 +65,8 @@ public class ActivityChord extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }
-
+            @Override
+            public void longPress(Point p, PointF pf) {}
             @Override
             public boolean noteTouched(int note, int beat) {
                 patternChord.Play(mAppState.mixer, note, 1);

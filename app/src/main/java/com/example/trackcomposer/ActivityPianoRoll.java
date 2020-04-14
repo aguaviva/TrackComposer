@@ -1,6 +1,8 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +72,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 mPatternHeaderView.setPosScale(x, y, scale, trackHeight);
                 mPatternHeaderView.invalidate();
             }
+            @Override
+            public void longPress(Point p, PointF pf) {}
 
             @Override
             public boolean noteTouched(int note, int beat) {

@@ -6,8 +6,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.RectF;
+import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,9 +21,10 @@ public class TimeLineView extends View {
     Paint box;
     Paint gray;
     Paint blue;
-    Bitmap bmp = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_next);
+    TextPaint mTextBlack, mTextWhite;
 
-    int[] mMarkerPos = new int[2];
+    Bitmap bmp = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_mylocation);
+
     int mMoving = -1;
     float mDownX;
 
@@ -40,10 +45,6 @@ public class TimeLineView extends View {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
-
-        mMarkerPos[0]=0;
-        mMarkerPos[1]=500;
-
         black = new Paint();
         black.setColor(Color.BLACK);
 
@@ -58,15 +59,22 @@ public class TimeLineView extends View {
         blue = new Paint();
         blue.setColor(Color.rgb(200, 191, 231));
         blue.setStyle(Paint.Style.FILL);
+
+        // Set up a default TextPaint object
+        mTextBlack = new TextPaint();
+        mTextBlack.setColor(Color.BLACK);
+        mTextBlack.setFlags(Paint.ANTI_ALIAS_FLAG);
+        mTextBlack.setTextAlign(Paint.Align.LEFT);
+        mTextBlack.setTextSize(20);
+
+        mTextWhite = new TextPaint();
+        mTextWhite.setColor(Color.WHITE);
+        mTextWhite.setFlags(Paint.ANTI_ALIAS_FLAG);
+        mTextWhite.setTextAlign(Paint.Align.LEFT);
+        mTextWhite.setTextSize(20);
     }
 
     protected void drawMarker(Canvas canvas,float x) {
-        RectF rf = new RectF();
-        rf.top = 0;
-        rf.bottom = getHeight();
-        rf.left = x - getHeight()/2;
-        rf.right = x + getHeight()/2;
-        canvas.drawBitmap(bmp, null, rf, null);
     }
 
     float mTime = 0;
@@ -75,63 +83,102 @@ public class TimeLineView extends View {
         mTime = time;
     }
 
+    protected float mPosX;
+    protected float mPosY;
+    protected float mScaleFactor = -1.0f;
+    protected float mRowHeight = 0;
+
+    public void setPosScale(float x, float y, float s, float trackHeight)
+    {
+        mPosX = x;
+        mPosY = 0;
+        mScaleFactor = s;
+        mRowHeight = trackHeight;
+    }
+
+    float mTickWidth = 0;
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.drawLine(0, getHeight()/2, getWidth(), getHeight()/2, black);
-        for (int i=0;i<16;i++)
-        {
-            float x = i * getWidth() / 16;
-            canvas.drawLine(x, 0, x, getHeight(), black);
+        float viewportTop = (0 - mPosY)/mScaleFactor;
+        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
+        float viewportLeft = (0 - mPosX)/mScaleFactor;
+        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
+
+        float columnWidth = getWidth()/16;
+
+        int lod = (int)Math.floor(mScaleFactor*2);
+
+        if (lod==3)
+            lod=4;
+
+        canvas.drawText(String.valueOf(lod), 5,mTextBlack.getTextSize()+5, mTextBlack);
+
+        mTickWidth = columnWidth / (4 * lod);
+        int ini = (int)Math.floor(viewportLeft / mTickWidth);
+        int fin = (int)Math.ceil(viewportRight / mTickWidth);
+
+        if (ini<0)
+            ini = 0;
+
+        for (int i=ini;i<fin;i++) {
+            float x = (i * mTickWidth) * mScaleFactor + mPosX;
+            float h = 0;
+
+            if (((i%16)==0)) {
+                h = 10;
+                canvas.drawText(String.valueOf(i/(4 * lod)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+            }
+            else if (i%4==0)
+                h = 10+10;
+            else
+                h = 10+10+10;
+
+            canvas.drawLine(x, 10+h, x, getHeight()-10, black);
         }
 
-        drawMarker(canvas, mMarkerPos[0]);
-        drawMarker(canvas, mMarkerPos[1]);
+        {
+            mTickWidth = columnWidth / 16;
+            float x = mTime *mTickWidth * mScaleFactor + mPosX;
+            RectF rf = new RectF();
+            rf.top = 0;
+            rf.bottom = getHeight();
+            rf.left = x - getHeight() / 2;
+            rf.right = x + getHeight() / 2;
+            canvas.drawBitmap(bmp, null, rf, null);
+        }
 
-        RectF rf = new RectF();
-        rf.top = 0;
-        rf.bottom = getHeight();
-        rf.left = mMarkerPos[0];
-        rf.right = mMarkerPos[1];
-        canvas.drawRect(rf, blue);
-
-        float x  = mTime * getWidth();
-        canvas.drawLine(x, 0, x, getHeight(), black);
+        //float x  = mTime * getWidth();
+        //canvas.drawLine(x, 0, x, getHeight(), black);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
-
         int eventAction = event.getAction();
-        float x = event.getX();
+        float x = ((event.getX() - mPosX) / mScaleFactor);
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-                if (x<(mMarkerPos[0]+mMarkerPos[1])/2)
-                {
-                    mMoving = 0;
-                }
-                else
-                {
-                    mMoving = 1;
-                }
-                mDownX = x;
-                break;
-            case MotionEvent.ACTION_UP:
-                break;
-            case MotionEvent.ACTION_MOVE:
-                mMarkerPos[mMoving] += x -mDownX;
-                mDownX = x;
+                mTime = x/mTickWidth;
+                mTimeLineListener.onTimeChanged(mTime);
                 invalidate();
-                break;
+                return true;
         }
-
-        // tell the View that we handled the event
-        return true;
+        return false;
     }
 
-    float getSelection(int i)
+    // instrument touched listener
+    //
+    public interface TimeLineListener {
+        void onTimeChanged(float time);
+    }
+    public void setTimeLineListener( TimeLineListener timeLineListener) {
+        mTimeLineListener = timeLineListener;
+    }
+    private TimeLineListener mTimeLineListener;
+
+    float getSelection()
     {
-        int x = mMarkerPos[i];
-        return (x*100)/getWidth();
+        return mTime;
     }
 }

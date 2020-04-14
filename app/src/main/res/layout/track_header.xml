@@ -6,6 +6,13 @@
     android:background="@drawable/border"
     android:orientation="horizontal">
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:text="Button" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
@@ -51,5 +58,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_weight="5" />
+
+
 
 </LinearLayout>

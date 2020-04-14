@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -45,8 +47,7 @@ public class PatternBaseView extends View {
 
     boolean mSelectable = false;
 
-    int selectedX = -1;
-    int selectedY = -1;
+    Point selected = null;
 
     float mRowHeight = 0;
     int mChannels = 0;
@@ -183,9 +184,19 @@ public class PatternBaseView extends View {
             }
 
             mChannels = max - min +1;
-            if (mChannels <8)
-                mChannels = 8;
 
+            if (bInvertY) {
+                if (max == 0) {
+                    max = (40 + 12) -1;
+                    mChannels = 12;
+                }
+            }
+            else {
+                if (mChannels < 8) {
+                    mChannels = 8;
+                    max = 0;
+                }
+            }
             mRowHeight = contentHeight/ (float)mChannels;
 
             max = indexToNote(max);
@@ -262,15 +273,13 @@ public class PatternBaseView extends View {
         }
 
         //show selected block
-        if (mSelectable) {
-            int x = selectedX;
-            if (x>=0) {
-                int y = selectedY;
-                y = indexToNote(y);
-                float _x = x * (contentWidth / xx);
-                float _y = y * mRowHeight;
-                canvas.drawRect(_x,_y,_x+(contentWidth/xx),_y+ mRowHeight, selectedColor);
-            }
+        if (mSelectable && selected!=null) {
+            int x = selected.x;
+            int y = selected.y;
+            y = indexToNote(y);
+            float _x = x * (contentWidth / xx);
+            float _y = y * mRowHeight;
+            canvas.drawRect(_x,_y,_x+(contentWidth/xx),_y+ mRowHeight, selectedColor);
         }
 
         PatternBase mPattern = GetPattern();
@@ -359,6 +368,32 @@ public class PatternBaseView extends View {
     }
 
     //  Pan & zoom gestures -----------------------------------------------------
+    PointF UndoScaling(MotionEvent e) {
+        float x = ((e.getX() - mPosX) / mScaleFactor);
+        float y = ((e.getY() - mPosY) / mScaleFactor);
+        return new PointF(x, y);
+    }
+
+    Point ToPattern(PointF point)
+    {
+        if (point.x<0 || point.y<0)
+            return null;
+
+        PatternBase mPattern = GetPattern();
+
+        float contentWidth = getWidth() / 16.0f;
+        float contentHeight = mRowHeight;
+
+        int beat = (int)(point.x/contentWidth);
+        int channel = (int)(point.y/contentHeight);
+
+        channel = indexToNote(channel);
+
+        if ((channel >= 108) || (beat>=mPattern.GetLength()))
+            return null;
+
+        return new Point(beat, channel);
+    }
 
     protected float mPosX;
     protected float mPosY;
@@ -371,41 +406,38 @@ public class PatternBaseView extends View {
         @Override
         public boolean onSingleTapUp (MotionEvent e)
         {
-            PatternBase mPattern = GetPattern();
+            Point p = ToPattern(UndoScaling(e));
+            if (p==null)
+                return false;
 
-            float contentWidth = getWidth() / 16.0f;
-            float contentHeight = mRowHeight;
-
-            float x = ((e.getX() - mPosX) / mScaleFactor);
-            float y = ((e.getY() - mPosY) / mScaleFactor);
-
-            if (x<0 || y<0)
-                return true;
-
-            int beat = (int)(x/contentWidth);
-            int channel = (int)(y/contentHeight);
-
-            channel = indexToNote(channel);
-
-            if (channel< 108 && beat<mPattern.GetLength()) {
-                boolean bProcessTouch = false;
-
-                if (mSelectable) {
-                    selectedX = beat;
-                    selectedY = channel;
-                }
-
-                if (instrumentListener!=null) {
-                    bProcessTouch = instrumentListener.noteTouched(channel, beat);
-                }
-
-                if (bProcessTouch)
-                    onTouchEvent(channel, beat);
-
-                invalidate();
+            if (mSelectable) {
+                selected = p;
             }
 
+            boolean bProcessTouch = false;
+
+            if (instrumentListener!=null) {
+                bProcessTouch = instrumentListener.noteTouched(p.y, p.x);
+            }
+
+            if (bProcessTouch)
+                onTouchEvent(p.y, p.x);
+
+            invalidate();
             return true;
+        }
+
+        @Override
+        public void onLongPress (MotionEvent e)
+        {
+            PointF pf = UndoScaling(e);
+            Point p = ToPattern(pf);
+            if (p==null)
+                return;
+
+            if (instrumentListener!=null) {
+                instrumentListener.longPress(p, pf);
+            }
         }
 
         @Override
@@ -439,8 +471,8 @@ public class PatternBaseView extends View {
             // Don't let the object get too small or too large.
             mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 2.0f));
 
-            float mFocusX = detector.getFocusX ();
-            float mFocusY = detector.getFocusY ();
+            float mFocusX = detector.getFocusX();
+            float mFocusY = detector.getFocusY();
 
             //distance between focus and old origin
             float dx = mFocusX-mPosX;
@@ -468,11 +500,11 @@ public class PatternBaseView extends View {
     //
     public interface InstrumentListener {
         boolean noteTouched(int note, int beat);
+        void longPress(Point p, PointF pf);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }
-    public PatternBaseView setInstrumentListener(InstrumentListener instrumentTouched) {
+    public void  setInstrumentListener(InstrumentListener instrumentTouched) {
         this.instrumentListener = instrumentTouched;
-        return this;
     }
     private InstrumentListener instrumentListener;
 

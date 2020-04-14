@@ -19,23 +19,33 @@
             android:layout_gravity="center"
             android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            app:backgroundTint="@color/colorAccent"
-            android:contentDescription="play"
-            tools:src="@android:drawable/ic_media_play" />
+            <ImageButton
+                android:id="@+id/previous"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:contentDescription="previous    "
+                app:backgroundTint="@color/colorAccent"
+                tools:src="@android:drawable/ic_media_previous" />
 
-        <ImageButton
-            android:id="@+id/playPattern"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            app:backgroundTint="@color/colorAccent"
-            android:contentDescription="play loop"
-            tools:src="@android:drawable/ic_media_ff" />
+            <ImageButton
+                android:id="@+id/play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="#FFFFFF"
+                android:contentDescription="play"
+                app:backgroundTint="@color/colorAccent"
+                tools:src="@android:drawable/ic_media_play" />
+
+            <ImageButton
+                android:id="@+id/loop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:contentDescription="play loop"
+                app:backgroundTint="@color/colorAccent"
+                tools:src="@android:drawable/ic_menu_revert" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 

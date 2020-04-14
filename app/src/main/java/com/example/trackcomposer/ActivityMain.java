@@ -6,15 +6,24 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.PointF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.os.Environment;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
@@ -24,6 +33,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,24 +79,41 @@ public class ActivityMain extends AppCompatActivity {
         rigControls();
 
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
-        final ImageButton fab = (ImageButton)findViewById(R.id.play);
-        fab.setImageResource(android.R.drawable.ic_media_play);
+        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
+            @Override
+            public void onTimeChanged(float time)
+            {
+                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+            }
+        });
+        final ImageButton fab = (ImageButton)findViewById(R.id.previous);
+        fab.setImageResource(android.R.drawable.ic_media_previous);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean playing = mAppState.PlayPause();
-                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
+                mAppState.setLoop((int) 0, (int) (1 * 16 * 16));
+                timeLineView.setTime(0);
+                timeLineView.invalidate();
             }
         });
 
-        final ImageButton fab2 = (ImageButton)findViewById(R.id.playPattern);
-        fab2.setImageResource(android.R.drawable.ic_media_ff);
+        final ImageButton fab2 = (ImageButton)findViewById(R.id.play);
+        fab2.setImageResource(android.R.drawable.ic_media_play);
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                float ini = timeLineView.getSelection(0);
-                float fin = timeLineView.getSelection(1);
-                mAppState.setLoop((int)((ini*16*16)/100), (int)((fin*16*16)/100));
+                boolean playing = mAppState.PlayPause();
+                fab2.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
+            }
+        });
+
+        final ImageButton fab3 = (ImageButton)findViewById(R.id.loop);
+        fab3.setImageResource(android.R.drawable.ic_menu_revert);
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                float ini = timeLineView.getSelection();
+                mAppState.setLoop((int)(ini), (int)(16*16));
                 boolean playing = mAppState.PlayPause();
             }
         });
@@ -98,12 +125,20 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster, 8,16,true, false);
+        masterView.SetPattern(mAppState.mPatternMaster, 8,32,true, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
+                timeLineView.setPosScale( x,  y,  scale,  trackHeight);
+                timeLineView.invalidate();
             }
-
+            @Override
+            public void longPress(Point p, PointF pf)
+            {
+                mNote = p.y;
+                mBeat = p.x;
+                createPopUpMenu(pf);
+            }
             @Override
             public boolean noteTouched(int note, int beat) {
                 mNote = note;
@@ -118,64 +153,12 @@ public class ActivityMain extends AppCompatActivity {
             public void beat(int currentBeat) {
                 masterView.setCurrentBeat(currentBeat);
                 masterView.invalidate();
-                timeLineView.setTime(mAppState.getTime()/256.0f);
+                timeLineView.setTime(mAppState.getTime());
                 timeLineView.invalidate();
             }
         });
 
         isStoragePermissionGranted();
-
-        View btnEditing = getLayoutInflater().inflate(R.layout.buttons_pattern_editing, null);
-        toolbar.addView(btnEditing);
-        View.OnClickListener btnEditingListent = new View.OnClickListener() {
-            int copiedId = -1;
-            @Override
-            public void onClick(View v) {
-                switch (v.getId())
-                {
-                    case R.id.btnNew:
-                        addPattern(mNote, mBeat); break;
-                    case R.id.btnEdit:
-                        mAppState.setLoop((int)(mBeat*16), (int)((mBeat+1)*16));
-                        editPattern(mNote, mBeat); break;
-                    case R.id.btnCopy: {
-                        GeneratorInfo genInf = mAppState.mPatternMaster.Get(mNote, mBeat);
-                        if (genInf != null)
-                            copiedId = genInf.sampleId;
-                        else
-                            copiedId = -1;
-                        break;
-                    }
-                    case R.id.btnPaste: {
-                        if (copiedId != -1) {
-                            GeneratorInfo genInf = new GeneratorInfo();
-                            genInf.sampleId = copiedId;
-                            mAppState.mPatternMaster.Set(mNote, mBeat, genInf);
-                            break;
-                        }
-                        else
-                        {
-                            Toast.makeText(mContext, "Nothing to paste", Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-                    }
-                    case R.id.btnDelete:
-                        mAppState.mPatternMaster.Set(mNote, mBeat, null); break;
-                }
-                masterView.invalidate();
-            }
-        };
-
-        Button btnNew = btnEditing.findViewById(R.id.btnNew);
-        btnNew.setOnClickListener(btnEditingListent);
-        Button btnEdit = btnEditing.findViewById(R.id.btnEdit);
-        btnEdit.setOnClickListener(btnEditingListent);
-        Button btnCopy = btnEditing.findViewById(R.id.btnCopy);
-        btnCopy.setOnClickListener(btnEditingListent);
-        Button btnPaste = btnEditing.findViewById(R.id.btnPaste);
-        btnPaste.setOnClickListener(btnEditingListent);
-        Button btnDelete = btnEditing.findViewById(R.id.btnDelete);
-        btnDelete.setOnClickListener(btnEditingListent);
 
         // Tempo controls
         View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(mAppState.mPatternMaster.mBPM), new WidgetNoteTransposer.Listener() {
@@ -258,6 +241,7 @@ public class ActivityMain extends AppCompatActivity {
         setTrackNames();
     }
 
+
     void setTrackNames()
     {
         for(int i=0;i<trackNames.length;i++) {
@@ -274,6 +258,76 @@ public class ActivityMain extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    View.OnClickListener btnEditingListent = new View.OnClickListener() {
+        int copiedId = -1;
+        @Override
+        public void onClick(View v) {
+            switch (v.getId())
+            {
+                case R.id.btnNew:
+                    addPattern(mNote, mBeat); break;
+                case R.id.btnEdit:
+                    mAppState.setLoop((int)(mBeat*16), (int)((mBeat+1)*16));
+                    editPattern(mNote, mBeat); break;
+                case R.id.btnCopy: {
+                    GeneratorInfo genInf = mAppState.mPatternMaster.Get(mNote, mBeat);
+                    if (genInf != null)
+                        copiedId = genInf.sampleId;
+                    else
+                        copiedId = -1;
+                    break;
+                }
+                case R.id.btnPaste: {
+                    if (copiedId != -1) {
+                        GeneratorInfo genInf = new GeneratorInfo();
+                        genInf.sampleId = copiedId;
+                        mAppState.mPatternMaster.Set(mNote, mBeat, genInf);
+                        break;
+                    }
+                    else
+                    {
+                        Toast.makeText(mContext, "Nothing to paste", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
+                case R.id.btnDelete:
+                    mAppState.mPatternMaster.Set(mNote, mBeat, null); break;
+            }
+            masterView.invalidate();
+        }
+    };
+
+    public void createPopUpMenu(PointF pf) {
+        LayoutInflater layoutInflater
+                = (LayoutInflater) getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        final View btnEditing = layoutInflater.inflate(R.layout.buttons_pattern_editing, null);
+        final PopupWindow popupWindow = new PopupWindow(
+                btnEditing,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, true);
+
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true);
+        popupWindow.setBackgroundDrawable(new ShapeDrawable());
+        View parent = masterView.getRootView();
+
+        Button btnNew = btnEditing.findViewById(R.id.btnNew);
+        btnNew.setOnClickListener(btnEditingListent);
+        Button btnEdit = btnEditing.findViewById(R.id.btnEdit);
+        btnEdit.setOnClickListener(btnEditingListent);
+        Button btnCopy = btnEditing.findViewById(R.id.btnCopy);
+        btnCopy.setOnClickListener(btnEditingListent);
+        Button btnPaste = btnEditing.findViewById(R.id.btnPaste);
+        btnPaste.setOnClickListener(btnEditingListent);
+        Button btnDelete = btnEditing.findViewById(R.id.btnDelete);
+        btnDelete.setOnClickListener(btnEditingListent);
+
+
+        popupWindow.showAtLocation(masterView, Gravity.NO_GRAVITY, (int)pf.x, (int)pf.y);
     }
 
     @Override
@@ -306,7 +360,7 @@ public class ActivityMain extends AppCompatActivity {
                         public void beat(int currentBeat) {
                             masterView.setCurrentBeat(currentBeat);
                             masterView.invalidate();
-                            timeLineView.setTime(mAppState.getTime()/256.0f);
+                            timeLineView.setTime(mAppState.getTime());
                             timeLineView.invalidate();
                         }
                     });

@@ -1,6 +1,8 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,7 +49,8 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
             }
-
+            @Override
+            public void longPress(Point p, PointF pf) {}
             @Override
             public boolean noteTouched(int note, int beat) { return true;}
         });
