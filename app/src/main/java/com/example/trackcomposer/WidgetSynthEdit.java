@@ -53,6 +53,9 @@ public class WidgetSynthEdit {
         vibratoAmplitude.setProgress((int)(synth.mVibratoAmplitude));
         vibratoAmplitude.setOnSeekBarChangeListener(seekBarListener);
 
+        WaveformView wave = (WaveformView) synthControls.findViewById(R.id.waveformView);
+        wave.SetGeneratorSample(synth);
+
         return synthControls;
     }
 }

@@ -297,7 +297,7 @@ public class PatternBaseView extends View {
                 break;
             //*ticksPerColumn;
             float x1 = note.time*distanceBetweenTicks;
-            float x2 = (note.time+ticksPerColumn)*distanceBetweenTicks;
+            float x2 = (note.time + note.durantion)*distanceBetweenTicks;
             int y = indexToNote(note.channel);
 
             int padTL = (mLOD==0)?2:1;
@@ -471,32 +471,32 @@ public class PatternBaseView extends View {
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            float oldScaleFator = mScaleFactor;
-            mScaleFactor *= (detector.getScaleFactor()*detector.getScaleFactor());
+        float oldScaleFator = mScaleFactor;
+        mScaleFactor *= (detector.getScaleFactor()*detector.getScaleFactor());
 
-            // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 2.0f));
+        // Don't let the object get too small or too large.
+        mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 2.0f));
 
-            float mFocusX = detector.getFocusX();
-            float mFocusY = detector.getFocusY();
+        float mFocusX = detector.getFocusX();
+        float mFocusY = detector.getFocusY();
 
-            //distance between focus and old origin
-            float dx = mFocusX-mPosX;
-            float dy = mFocusY-mPosY;
-            //distance between focus and new origin after rescale
-            float dxSc = dx * mScaleFactor / oldScaleFator;
-            float dySc = dy * mScaleFactor / oldScaleFator;
+        //distance between focus and old origin
+        float dx = mFocusX-mPosX;
+        float dy = mFocusY-mPosY;
+        //distance between focus and new origin after rescale
+        float dxSc = dx * mScaleFactor / oldScaleFator;
+        float dySc = dy * mScaleFactor / oldScaleFator;
 
-            // calcul of the new origin
-            mPosX = mFocusX - dxSc;
-            mPosY = mFocusY - dySc;
+        // calcul of the new origin
+        mPosX = mFocusX - dxSc;
+        mPosY = mFocusY - dySc;
 
-            if (instrumentListener!=null) {
-                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
-            }
+        if (instrumentListener!=null) {
+            instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+        }
 
-            invalidate();
-            return true;
+        invalidate();
+        return true;
         }
     };
 

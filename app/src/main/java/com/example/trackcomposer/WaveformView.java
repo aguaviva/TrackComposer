@@ -1,27 +1,34 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
 public class WaveformView extends View {
 
-    GeneratorSample mGeneratorSample;
+    Generator mGenerator;
 
     Paint black;
     Paint box;
     Paint gray;
     Paint blue;
 
-
     public WaveformView(Context context) {
         super(context);
         init(null, 0);
+    }
+
+    public WaveformView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(attrs, 0);
+    }
+
+    public WaveformView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(attrs, defStyle);
     }
 
     private void init(AttributeSet attrs, int defStyle) {
@@ -44,40 +51,75 @@ public class WaveformView extends View {
     short[] mWaveformMax = null;
     short[] mWaveformMin = null;
 
-    void SetGeneratorSample(GeneratorSample generatorSample)
+    void SetGeneratorSample(Generator generatorSample)
     {
-        mGeneratorSample = generatorSample;
+        mGenerator = generatorSample;
+    }
+
+    void UpdateWave()
+    {
+        int reduction = 10;
+        mWaveformMax = new short[getWidth()/reduction];
+        mWaveformMin = new short[getWidth()/reduction];
+
+        for(int i=0;i<mWaveformMax.length;i++) {
+            mWaveformMax[i]=Short.MIN_VALUE;
+            mWaveformMin[i]=Short.MAX_VALUE;
+        }
+
+        if (mGenerator==null)
+        {
+            return;
+        }
+
+
+        Mixer.Channel channel = new Mixer.Channel();
+        channel.sampleId = mGenerator.sampleId;
+        channel.mPlaying = true;
+        channel.volume = 1.0f;
+        channel.speed = 1.0f;
+
+        short[] chunk = new short[1024];
+
+        int t=0;
+        for(int c=0;;c++) {
+
+            for (int i = 0; i < chunk.length; i++)
+            {
+                chunk[i]=0;
+            }
+
+            mGenerator.playSample(channel, chunk, 0, chunk.length);
+
+            for (int i = 0; i < chunk.length; i+=2) {
+
+                int x = (t * mWaveformMax.length) / mGenerator.getLengthInFrames();
+                t++;
+
+                if (x>=mWaveformMax.length)
+                    break;
+
+                short sample = (short) chunk[i];
+                mWaveformMax[x] = (short) Math.max(mWaveformMax[x], sample);
+                mWaveformMin[x] = (short) Math.min(mWaveformMin[x], sample);
+            }
+
+            if (channel.mPlaying == false)
+                break;
+        }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mGeneratorSample.GetSampleSize()<0)
+        if (mGenerator.getLengthInFrames()<0)
         {
             canvas.drawText("cannot found", getWidth()/2, getHeight()/2, black);
             return;
         }
 
-        if (mWaveformMax==null)
-        {
-            int reduction = 10;
-            mWaveformMax = new short[getWidth()/reduction];
-            mWaveformMin = new short[getWidth()/reduction];
-
-            for(int i=0;i<mWaveformMax.length;i++) {
-                mWaveformMax[i]=Short.MIN_VALUE;
-                mWaveformMin[i]=Short.MAX_VALUE;
-            }
-
-            for(int i=0;i<mGeneratorSample.GetSampleSize();i++) {
-
-                int x = (i * mWaveformMax.length)/mGeneratorSample.GetSampleSize();
-                short sample = mGeneratorSample.GetSample(i);
-                mWaveformMax[x]=(short)Math.max(mWaveformMax[x],sample);
-                mWaveformMin[x]=(short)Math.min(mWaveformMin[x],sample);
-            }
-        }
+        UpdateWave();
 
         int yCenter = (getHeight()/2);
 

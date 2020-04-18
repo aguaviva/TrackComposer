@@ -16,8 +16,23 @@ public class Generator {
     public int baseNote = 40;
     public float baseNoteFreq = 0.0f;
 
+    private int mSampleRate = 0;
+    private float mInvSampleRate = 0;
+
+    protected int mTracks = 0;
+
+
     public Generator() {
         baseNoteFreq = Misc.GetFrequency(baseNote);
+    }
+
+    void SetSampleRate(int sampleRate) { mSampleRate = sampleRate; mInvSampleRate = 1.0f/ (float)sampleRate; }
+    int  GetSampleRate() { return mSampleRate; }
+    float GetInvSampleRate() { return mInvSampleRate; }
+    int  GetTrackCount() { return mTracks; }
+
+    public int getLengthInFrames() {
+        return -1;
     }
 
     public void playSample(Mixer.Channel channel, short[] chunk, int ini, int fin) {

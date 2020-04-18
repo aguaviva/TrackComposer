@@ -1,7 +1,7 @@
 package com.example.trackcomposer;
 
 public class Mixer {
-    class Channel {
+    static class Channel {
         int sampleId = -1;
         int timeInSamples=0;
         int timeDurationInSamples=0;

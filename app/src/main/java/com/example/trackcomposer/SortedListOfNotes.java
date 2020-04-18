@@ -16,6 +16,7 @@ public class SortedListOfNotes
     public static class Note
     {
         int time;
+        int durantion;
         int channel;
         GeneratorInfo mGen;
     };
@@ -183,6 +184,7 @@ public class SortedListOfNotes
             Note note = myList.get(c);
             json.put("time", note.time);
             json.put("channel", note.channel);
+            json.put("durantion", note.durantion);
             note.mGen.serializeToJson(json);
             jsonArr.put(json);
         }
@@ -198,7 +200,9 @@ public class SortedListOfNotes
             Note note = new Note();
             note.time = json.getInt("time");
             note.channel = json.getInt("channel");
+            note.durantion = json.getInt("durantion");
             note.mGen = new GeneratorInfo();
+
             note.mGen.serializeFromJson(json);
             myList.add(note);
         }

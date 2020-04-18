@@ -15,9 +15,6 @@ import java.util.ArrayList;
 
 public class GeneratorSample extends Generator {
     private short[] sampleData = null;
-    private int mSampleRate = 0;
-    private int mTracks = 0;
-
 
     public String instrumentFilename = "none";
 
@@ -27,13 +24,12 @@ public class GeneratorSample extends Generator {
     }
 
     short GetSample(int i) { return sampleData[i]; }
-    int  GetSampleRate() { return mSampleRate; }
 
-    int GetSampleSize()
-    {
+    @Override
+    public int getLengthInFrames() {
         if (sampleData==null)
             return -1;
-        return sampleData.length;
+        return sampleData.length/mTracks;
     }
 
     @Override
@@ -181,9 +177,9 @@ public class GeneratorSample extends Generator {
 
                             case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
                                 MediaFormat format = codec.getOutputFormat();
-                                mSampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+                                SetSampleRate(format.getInteger(MediaFormat.KEY_SAMPLE_RATE));
                                 mTracks = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
-                                Log.d("DecodeActivity", "New format: " + format + "  Sample rate: " + mSampleRate + " channels: " + mTracks);
+                                Log.d("DecodeActivity", "New format: " + format + "  Sample rate: " + GetSampleRate() + " channels: " + mTracks);
                                 break;
                             case MediaCodec.INFO_TRY_AGAIN_LATER:
                                 Log.d("DecodeActivity", "dequeueOutputBuffer timed out!");

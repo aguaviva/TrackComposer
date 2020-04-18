@@ -12,7 +12,7 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center|left"
         android:text="Freq" />
@@ -20,8 +20,8 @@
     <SeekBar
         android:id="@+id/tremoloFreq"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:layout_gravity="center"
         android:max="30"
         android:padding="24dip" />
@@ -29,7 +29,7 @@
     <TextView
         android:id="@+id/textView5"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center|left"
         android:text="Amp" />
@@ -37,21 +37,21 @@
     <SeekBar
         android:id="@+id/tremoloAmp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:layout_gravity="center"
         android:padding="24dip" />
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:gravity="center"
         android:text="Vibrato" />
 
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center|left"
         android:text="Freq" />
@@ -59,14 +59,14 @@
     <SeekBar
         android:id="@+id/vibratoFreq"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:gravity="center"
         android:padding="24dip" />
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center|left"
         android:text="Amp" />
@@ -74,10 +74,15 @@
     <SeekBar
         android:id="@+id/vibratoAmp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="7"
+        android:layout_height="0dp"
+        android:layout_weight="2"
         android:gravity="center"
         android:padding="24dip" />
 
+    <com.example.trackcomposer.WaveformView
+        android:id="@+id/waveformView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="10"/>
 
 </LinearLayout>
