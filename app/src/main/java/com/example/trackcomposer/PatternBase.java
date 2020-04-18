@@ -29,9 +29,9 @@ public class PatternBase {
     int GetLength() { return length; }
     int GetChannelCount() { return channels; }
     SortedListOfNotes.Note GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
-    GeneratorInfo Get(int channel, int pos)
+    GeneratorInfo Get(int channel, int time)
     {
-        int numNotes = mNotes.SetTime(pos);
+        int numNotes = mNotes.SetTime(time);
         for(int i=0;i<numNotes;i++)
         {
             SortedListOfNotes.Note note = mNotes.Get(i);
@@ -107,5 +107,12 @@ public class PatternBase {
 
         mNotes = new SortedListOfNotes();
         mNotes.serializeFromJson(jsonObj);
+        //ScaleTime(16);
+    }
+
+    void ScaleTime(int multiplier)
+    {
+        mNotes.ScaleTime(multiplier);
+        length *=multiplier;
     }
 }

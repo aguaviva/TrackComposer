@@ -50,6 +50,7 @@ public class PatternBaseView extends View {
     Point selected = null;
 
     float mRowHeight = 0;
+    float mColumnWidth = 0;
     int mChannels = 0;
     int length = 0;
 
@@ -161,10 +162,18 @@ public class PatternBaseView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float contentWidth = getWidth();
         float contentHeight = getHeight();
 
-        float xx = 16;
+        PatternBase mPattern = GetPattern();
+        int ticksPerTrack = mPattern.length;
+
+        float columnsPerCanvasWidth = 16; // at zoom 1
+        float ticksPerColumn = 1;
+
+        float columns = ticksPerTrack/ticksPerColumn;
+        float distanceBetweenTicks = getWidth()/(columnsPerCanvasWidth*ticksPerColumn);
+
+        mColumnWidth = getWidth() / columnsPerCanvasWidth;
 
         // compute max/min notes so we show the part of the keyboard where there is data
         if (mScaleFactor==-1 && mPattern!=null)
@@ -213,25 +222,34 @@ public class PatternBaseView extends View {
         canvas.translate(mPosX, mPosY);
         canvas.scale(mScaleFactor, mScaleFactor);
 
+        // screen to world coordinates
         float viewportTop = (0 - mPosY)/mScaleFactor;
         float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
         float viewportLeft = (0 - mPosX)/mScaleFactor;
         float viewportRight = (getWidth() - mPosX)/mScaleFactor;
 
+        // channels
+        int iniTop = (int)Math.floor(viewportTop / mRowHeight);
+        int finBottom = (int)Math.ceil(viewportBottom / mRowHeight);
+        if (iniTop<0) iniTop = 0;
+        if (finBottom>88) finBottom = 88;
+
+        // ticks
+        int columnLeft = (int)Math.floor(viewportLeft / mColumnWidth);
+        int columnRight = (int)Math.ceil(viewportRight / mColumnWidth);
+        if (columnLeft<0) columnLeft = 0;
+        if (columnRight>columns) columnRight = (int)columns;
+
         // Draw background
         //
-        int ini = (int)Math.floor(viewportTop / mRowHeight);
-        int fin = (int)Math.ceil(viewportBottom / mRowHeight);
-
-        if (ini<0) ini = 0;
-        if (fin>88) fin = 88;
-
         if (mLOD==0) {
-            for (int i = ini; i < fin; i++) {
+
+            // horizontal tracks
+            for (int i = iniTop; i < finBottom; i++) {
 
                 RectF rf = new RectF();
                 rf.left = 0;
-                rf.right = contentWidth;
+                rf.right = mColumnWidth*columnRight;
                 rf.top = i * mRowHeight;
                 rf.bottom = (i + 1) * mRowHeight;
 
@@ -247,78 +265,66 @@ public class PatternBaseView extends View {
                 canvas.drawRect(rf,  isWhite ? dkgray:black);
             }
 
-            float yTop = ini * mRowHeight;
-            float yBottom = fin * mRowHeight;
-            for (int i = 0; i < xx; i++) {
-                float x = i * (contentWidth / xx);
+            //show selected block
+            if (mSelectable && selected!=null) {
+                int x = selected.x;
+                int y = indexToNote(selected.y);
+
+                RectF rf = new RectF();
+                rf.left = x*mColumnWidth;
+                rf.right = (x+1)*mColumnWidth;
+                rf.top = y * mRowHeight;
+                rf.bottom = (y + 1) * mRowHeight;
+                canvas.drawRect(rf, selectedColor);
+            }
+
+            //vertical lines
+            float yTop = iniTop * mRowHeight;
+            float yBottom = finBottom * mRowHeight;
+            for (int i = columnLeft; i < columnRight; i++) {
+                float x = i * mColumnWidth;
                 canvas.drawLine(x, yTop, x, yBottom, ((i & 3) == 0) ? white : ltgray);
             }
+
+            // Draw cursor
+            canvas.drawRect((mCurrentBeat * mColumnWidth), 0, ((mCurrentBeat + 1) * mColumnWidth), yBottom, blue);
         }
-
-        // Draw cursor
-        //
-        if (mLOD==0) {
-            float yBottom = fin * mRowHeight;
-            canvas.drawRect((mCurrentBeat * contentWidth / xx), 0, ((mCurrentBeat + 1) * contentWidth / xx), yBottom, blue);
-        }
-
-        if (mPattern==null)
-            return;
-
-        int padTL = 0;
-        int padBR = 1;
-        if (mLOD==0) {
-            padTL = 5;
-            padBR = 2*padTL;
-        }
-
-        //show selected block
-        if (mSelectable && selected!=null) {
-            int x = selected.x;
-            int y = selected.y;
-            y = indexToNote(y);
-            float _x = x * (contentWidth / xx);
-            float _y = y * mRowHeight;
-            canvas.drawRect(_x,_y,_x+(contentWidth/xx),_y+ mRowHeight, selectedColor);
-        }
-
-        PatternBase mPattern = GetPattern();
 
         // show blocks
         for(int i=0;;i++) {
             SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
-
-            int x = note.time;
+            //*ticksPerColumn;
+            float x1 = note.time*distanceBetweenTicks;
+            float x2 = (note.time+ticksPerColumn)*distanceBetweenTicks;
             int y = indexToNote(note.channel);
 
-            float _x = x*(contentWidth/xx) + padTL;
-            float _y = y* mRowHeight + padTL;
+            int padTL = (mLOD==0)?2:1;
+            int padDR = (mLOD==0)?2:0;
 
             RectF rf = new RectF();
-            rf.left = _x;
-            rf.top = _y;
-            rf.right = _x + (contentWidth / xx)- (padBR);
-            rf.bottom = _y + mRowHeight - (padBR);
+            rf.left = x1 + padTL;
+            rf.top = y* mRowHeight + padTL;
+            rf.right = x2 - padDR;
+            rf.bottom = (y+1)* mRowHeight - padDR;
 
             Integer id = note.mGen.sampleId;
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
-
                     canvas.drawBitmap(bmp, null, rf, null);
 
-                    rf.left = x*(contentWidth/xx);
+                    rf.left = x1;
                     rf.top =  y* mRowHeight;
-                    rf.right = (x+1)*(contentWidth/xx);
+                    rf.right = x2;
                     rf.bottom = (y+1)* mRowHeight;
 
                     canvas.drawRoundRect( rf, 10,10, green);
                 }
             }
             else {
-                canvas.drawRect(_x, _y, _x + (contentWidth / xx) - (padBR), _y + mRowHeight - (padBR), greenFill);
+                canvas.drawRect(rf, greenFill);
             }
         }
 

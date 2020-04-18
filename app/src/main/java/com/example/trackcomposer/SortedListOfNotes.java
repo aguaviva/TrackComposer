@@ -111,6 +111,14 @@ public class SortedListOfNotes
         }
     }
 
+    public void ScaleTime(int multiplier)
+    {
+        for(int i=0;i<myList.size();i++)
+        {
+            myList.get(i).time*=multiplier;
+        }
+    }
+
     public int SetTime(int time)
     {
         return SetTimeRandom(time);

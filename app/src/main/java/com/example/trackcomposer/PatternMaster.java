@@ -12,36 +12,62 @@ class PatternMaster extends PatternBase
     int mBPM = 120;
 
     public HashMap<Integer, PatternBase> mPatternDataBase = new HashMap<Integer, PatternBase>();
-    float[] mVolume;
+
+    class Channel
+    {
+        int id=-1;
+        int time;
+        float mVolume;
+    };
+
+    Channel[] mChannel;
+
 
     public PatternMaster(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
-        mVolume = new float[channels];
+        mChannel = new Channel[channels];
+        for (int c = 0; c < mChannel.length; c++)
+            mChannel[c] = new Channel();
     }
 
     @Override
-    void PlayBeat(Mixer sp, int beat, float volume)
+    void PlayBeat(Mixer sp, int time, float volume)
     {
-        int pattern = beat / length;
-        pattern = pattern % length;
-
-        CallBeatListener(pattern);
-
-        for (int c = 0; c < channels; c++) {
-            GeneratorInfo genI = Get(c, pattern);
-            if (genI!=null) {
-                PatternBase p =mPatternDataBase.get(genI.sampleId);
-                if (p!=null)
-                    if (mVolume[c]>0)
-                        p.PlayBeat(sp, beat, mVolume[c]);
+        for (int c = 0; c < GetChannelCount(); c++) {
+            Channel ch = mChannel[c];
+            if (ch.id==-1) {
+                GeneratorInfo gi =  Get(c, time/16);
+                if (gi!=null) {
+                    ch.id = gi.sampleId;
+                    ch.time = 0;
+                }
             }
         }
+
+        CallBeatListener(time/256);
+
+        // play channels
+        for (int c = 0; c < mChannel.length; c++) {
+            Channel ch = mChannel[c];
+            if (ch.id>=0) {
+                PatternBase p = mPatternDataBase.get(ch.id);
+                if (p != null) {
+                    if (ch.mVolume > 0) {
+                        p.PlayBeat(sp, ch.time, ch.mVolume);
+                    }
+                }
+
+                ch.time++;
+                if (ch.time >= p.length)
+                    ch.id = -1;
+            }
+        }
+
     }
 
-
-    public void setVolume(int channel, float volume) { mVolume[channel]=volume;}
-    public float getVolume(int channel) { return mVolume[channel];}
+    public void setVolume(int channel, float volume) { mChannel[channel].mVolume=volume;}
+    public float getVolume(int channel) { return mChannel[channel].mVolume;}
 
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -82,8 +108,8 @@ class PatternMaster extends PatternBase
         // put volumes
         {
             JSONArray jsonVolumes = new JSONArray();
-            for (int i = 0; i < mVolume.length; i++) {
-                jsonVolumes.put(mVolume[i]);
+            for (int i = 0; i < mChannel.length; i++) {
+                jsonVolumes.put(mChannel[i].mVolume);
             }
             jsonObj.put("volumes", jsonVolumes);
         }
@@ -93,6 +119,8 @@ class PatternMaster extends PatternBase
     void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
         super.serializeFromJson(jsonObj);
+
+        //ScaleTime(16);
 
         if (jsonObj.has("info")) {
             JSONObject jsonObj2 = jsonObj.getJSONObject("info");
@@ -141,8 +169,11 @@ class PatternMaster extends PatternBase
         if (jsonObj.has("volumes")) {
             JSONArray jsonVolumes = jsonObj.getJSONArray("volumes");
             if (jsonVolumes != null) {
+                mChannel = new Channel[jsonVolumes.length()];
+                for (int c = 0; c < mChannel.length; c++)
+                    mChannel[c] = new Channel();
                 for (int i = 0; i < jsonVolumes.length(); i++) {
-                    mVolume[i] = (float)jsonVolumes.getDouble(i);
+                    mChannel[i].mVolume = (float)jsonVolumes.getDouble(i);
                 }
             }
         }

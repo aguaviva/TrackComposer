@@ -24,9 +24,13 @@ public class TimeLineView extends View {
     TextPaint mTextBlack, mTextWhite;
 
     Bitmap bmp = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_mylocation);
+    Bitmap end = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
 
-    int mMoving = -1;
+    boolean mMovingEnd = false;
     float mDownX;
+    float mEnd = 256;
+
+    int mIni, mFin, mLod;
 
     public TimeLineView(Context context) {
         super(context);
@@ -74,9 +78,6 @@ public class TimeLineView extends View {
         mTextWhite.setTextSize(20);
     }
 
-    protected void drawMarker(Canvas canvas,float x) {
-    }
-
     float mTime = 0;
 
     public void setTime(float time) {
@@ -109,27 +110,24 @@ public class TimeLineView extends View {
 
         float columnWidth = getWidth()/16;
 
-        int lod = (int)Math.floor(mScaleFactor*2);
+        mLod = (int)Math.floor(mScaleFactor*2) ;
+        if (mLod==3)
+            mLod=4;
 
-        if (lod==3)
-            lod=4;
+        mTickWidth = columnWidth / (4 * mLod);
+        mIni = (int)Math.floor(viewportLeft / mTickWidth); // 0 ticks
+        mFin = (int)Math.ceil(viewportRight / mTickWidth); // 256 ticks
 
-        canvas.drawText(String.valueOf(lod), 5,mTextBlack.getTextSize()+5, mTextBlack);
+        if (mIni<0)
+            mIni = 0;
 
-        mTickWidth = columnWidth / (4 * lod);
-        int ini = (int)Math.floor(viewportLeft / mTickWidth);
-        int fin = (int)Math.ceil(viewportRight / mTickWidth);
-
-        if (ini<0)
-            ini = 0;
-
-        for (int i=ini;i<fin;i++) {
+        for (int i=mIni;i<mFin;i++) {
             float x = (i * mTickWidth) * mScaleFactor + mPosX;
             float h = 0;
 
             if (((i%16)==0)) {
                 h = 10;
-                canvas.drawText(String.valueOf(i/(4 * lod)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+                canvas.drawText(String.valueOf(i/(4 * mLod)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
                 h = 10+10;
@@ -140,8 +138,9 @@ public class TimeLineView extends View {
         }
 
         {
-            mTickWidth = columnWidth / 16;
-            float x = mTime *mTickWidth * mScaleFactor + mPosX;
+            float time =  (mTime*getWidth()/256);
+            //time = (float)Math.floor(time / mTickWidth) * mTickWidth; //quant time
+            float x = time * mScaleFactor + mPosX;
             RectF rf = new RectF();
             rf.top = 0;
             rf.bottom = getHeight();
@@ -150,18 +149,48 @@ public class TimeLineView extends View {
             canvas.drawBitmap(bmp, null, rf, null);
         }
 
-        //float x  = mTime * getWidth();
-        //canvas.drawLine(x, 0, x, getHeight(), black);
+        {
+            float endTime =  (mEnd*getWidth()/256);
+            endTime = (float)Math.floor(endTime / mTickWidth) * mTickWidth; //quant time
+            float x = endTime * mScaleFactor + mPosX;
+            RectF rf = new RectF();
+            rf.top = 0;
+            rf.bottom = getHeight();
+            rf.left = x;
+            rf.right = x + getHeight();
+            canvas.drawBitmap(end, null, rf, null);
+        }
     }
 
     public boolean onTouchEvent(MotionEvent event) {
         int eventAction = event.getAction();
         float x = ((event.getX() - mPosX) / mScaleFactor);
+        float quantX = (float)Math.floor(x / mTickWidth) * mTickWidth;
+        float time =  (quantX*256/getWidth());
+
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-                mTime = x/mTickWidth;
-                mTimeLineListener.onTimeChanged(mTime);
+                if (time<mEnd) {
+                    mTime = time;
+                    mTimeLineListener.onTimeChanged(mTime);
+                }
+                else
+                {
+                    mMovingEnd = true;
+                    mDownX = time;
+                }
                 invalidate();
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                if (mMovingEnd == true) {
+                    mEnd += time - mDownX;
+                    mDownX = time;
+                    mTimeLineListener.onPatternEnd(mEnd);
+                    invalidate();
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                mMovingEnd = false;
                 return true;
         }
         return false;
@@ -171,6 +200,7 @@ public class TimeLineView extends View {
     //
     public interface TimeLineListener {
         void onTimeChanged(float time);
+        void onPatternEnd(float time);
     }
     public void setTimeLineListener( TimeLineListener timeLineListener) {
         mTimeLineListener = timeLineListener;

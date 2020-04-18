@@ -85,6 +85,12 @@ public class ActivityMain extends AppCompatActivity {
             {
                 mAppState.setLoop((int) time, (int) (1 * 16 * 16));
             }
+            @Override
+            public void onPatternEnd(float time)
+            {
+                masterView.GetPattern().length = (int)time;
+                masterView.invalidate();
+            }
         });
         final ImageButton fab = (ImageButton)findViewById(R.id.previous);
         fab.setImageResource(android.R.drawable.ic_media_previous);
