@@ -19,6 +19,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
     PatternHeaderView mPatternHeaderView;
     PatternPianoRoll patternPianoRoll;
     Context mContext;
+    TimeLine mTimeLine = new TimeLine();
+    TimeLineView timeLineView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +63,24 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
+        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView.init(patternPianoRoll, mTimeLine);
+        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
+            @Override
+            public void onTimeChanged(float time)
+            {
+                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+            }
+            @Override
+            public void onPatternEnd(float time)
+            {
+                mNoteView.GetPattern().length = (int)time;
+                mNoteView.invalidate();
+            }
+        });
+
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
+        mNoteView.init(patternPianoRoll, mTimeLine);
         mNoteView.SetPattern(patternPianoRoll, 12*2,16,false,true);
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
@@ -69,6 +88,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight)
             {
+                timeLineView.invalidate();
+
                 mPatternHeaderView.setPosScale(x, y, scale, trackHeight);
                 mPatternHeaderView.invalidate();
             }

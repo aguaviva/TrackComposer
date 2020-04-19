@@ -51,6 +51,7 @@ public class ActivityMain extends AppCompatActivity {
     View[] trackControls;
     TextView[] trackNames;
     SeekBar[] trackVolumes;
+    TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
     int mNote=-1, mBeat=-1;
 
@@ -78,27 +79,13 @@ public class ActivityMain extends AppCompatActivity {
 
         rigControls();
 
-        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
-        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
-            @Override
-            public void onTimeChanged(float time)
-            {
-                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
-            }
-            @Override
-            public void onPatternEnd(float time)
-            {
-                masterView.GetPattern().length = (int)time;
-                masterView.invalidate();
-            }
-        });
         final ImageButton fab = (ImageButton)findViewById(R.id.previous);
         fab.setImageResource(android.R.drawable.ic_media_previous);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mAppState.setLoop((int) 0, (int) (1 * 16 * 16));
-                timeLineView.setTime(0);
+                mTimeLine.setTime(0);
                 timeLineView.invalidate();
             }
         });
@@ -130,12 +117,33 @@ public class ActivityMain extends AppCompatActivity {
             }
         }
 
+        mTimeLine.init(mAppState.mPatternMaster, 1);
+
+        //
+        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView.init(mAppState.mPatternMaster, mTimeLine);
+        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
+            @Override
+            public void onTimeChanged(float time)
+            {
+                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+            }
+            @Override
+            public void onPatternEnd(float time)
+            {
+                masterView.GetPattern().length = (int)time;
+                masterView.invalidate();
+            }
+        });
+
+        //
         masterView = (PatternBaseView) findViewById(R.id.masterView);
+        masterView.init(mAppState.mPatternMaster, mTimeLine);
         masterView.SetPattern(mAppState.mPatternMaster, 8,32,true, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
-                timeLineView.setPosScale( x,  y,  scale,  trackHeight);
+                timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                 timeLineView.invalidate();
             }
             @Override
@@ -159,7 +167,7 @@ public class ActivityMain extends AppCompatActivity {
             public void beat(int currentBeat) {
                 masterView.setCurrentBeat(currentBeat);
                 masterView.invalidate();
-                timeLineView.setTime(mAppState.getTime());
+                mTimeLine.setTime(mAppState.getTime());
                 timeLineView.invalidate();
             }
         });
@@ -366,7 +374,7 @@ public class ActivityMain extends AppCompatActivity {
                         public void beat(int currentBeat) {
                             masterView.setCurrentBeat(currentBeat);
                             masterView.invalidate();
-                            timeLineView.setTime(mAppState.getTime());
+                            mTimeLine.setTime(mAppState.getTime());
                             timeLineView.invalidate();
                         }
                     });

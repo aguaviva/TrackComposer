@@ -18,17 +18,13 @@ import android.view.View;
 public class TimeLineView extends View {
 
     Paint black;
-    Paint box;
-    Paint gray;
-    Paint blue;
-    TextPaint mTextBlack, mTextWhite;
+    TextPaint mTextBlack;
 
     Bitmap bmp = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_menu_mylocation);
     Bitmap end = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_media_play);
 
     boolean mMovingEnd = false;
     float mDownX;
-    float mEnd = 256;
 
     int mIni, mFin, mLod;
 
@@ -52,82 +48,38 @@ public class TimeLineView extends View {
         black = new Paint();
         black.setColor(Color.BLACK);
 
-        box = new Paint();
-        box.setColor(Color.BLACK);
-        box.setStyle(Paint.Style.FILL);
-
-        gray = new Paint();
-        gray.setColor(Color.LTGRAY);
-        gray.setStyle(Paint.Style.FILL);
-
-        blue = new Paint();
-        blue.setColor(Color.rgb(200, 191, 231));
-        blue.setStyle(Paint.Style.FILL);
-
         // Set up a default TextPaint object
         mTextBlack = new TextPaint();
         mTextBlack.setColor(Color.BLACK);
         mTextBlack.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextBlack.setTextAlign(Paint.Align.LEFT);
         mTextBlack.setTextSize(20);
-
-        mTextWhite = new TextPaint();
-        mTextWhite.setColor(Color.WHITE);
-        mTextWhite.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mTextWhite.setTextAlign(Paint.Align.LEFT);
-        mTextWhite.setTextSize(20);
     }
 
-    float mTime = 0;
-
-    public void setTime(float time) {
-        mTime = time;
-    }
-
-    protected float mPosX;
-    protected float mPosY;
-    protected float mScaleFactor = -1.0f;
-    protected float mRowHeight = 0;
-
-    public void setPosScale(float x, float y, float s, float trackHeight)
+    TimeLine mTimeLine;
+    public void init(PatternBase pattern, TimeLine timeLine)
     {
-        mPosX = x;
-        mPosY = 0;
-        mScaleFactor = s;
-        mRowHeight = trackHeight;
+        mTimeLine = timeLine;
     }
-
-    float mTickWidth = 0;
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float viewportTop = (0 - mPosY)/mScaleFactor;
-        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
-        float viewportLeft = (0 - mPosX)/mScaleFactor;
-        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
+        float z = (float)(Math.log(mTimeLine.mScaleFactor)/Math.log(2));
+        z = (float)Math.pow(2, Math.floor(z));
 
-        float columnWidth = getWidth()/16;
-
-        mLod = (int)Math.floor(mScaleFactor*2) ;
-        if (mLod==3)
-            mLod=4;
-
-        mTickWidth = columnWidth / (4 * mLod);
-        mIni = (int)Math.floor(viewportLeft / mTickWidth); // 0 ticks
-        mFin = (int)Math.ceil(viewportRight / mTickWidth); // 256 ticks
-
-        if (mIni<0)
-            mIni = 0;
+        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/z);
+        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/z);
 
         for (int i=mIni;i<mFin;i++) {
-            float x = (i * mTickWidth) * mScaleFactor + mPosX;
-            float h = 0;
 
+            float x = mTimeLine.applyPosScale(i* mTimeLine.getTickWidth()/z);
+
+            float h = 0;
             if (((i%16)==0)) {
                 h = 10;
-                canvas.drawText(String.valueOf(i/(4 * mLod)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+                canvas.drawText(String.valueOf((int)(i/z)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
                 h = 10+10;
@@ -137,10 +89,10 @@ public class TimeLineView extends View {
             canvas.drawLine(x, 10+h, x, getHeight()-10, black);
         }
 
+        // draw time pos marker
         {
-            float time =  (mTime*getWidth()/256);
-            //time = (float)Math.floor(time / mTickWidth) * mTickWidth; //quant time
-            float x = time * mScaleFactor + mPosX;
+            float time =  (mTimeLine.getTime() * mTimeLine.getTickWidth());
+            float x = mTimeLine.applyPosScale(time);
             RectF rf = new RectF();
             rf.top = 0;
             rf.bottom = getHeight();
@@ -149,10 +101,11 @@ public class TimeLineView extends View {
             canvas.drawBitmap(bmp, null, rf, null);
         }
 
+        // draw track length marker
         {
-            float endTime =  (mEnd*getWidth()/256);
-            endTime = (float)Math.floor(endTime / mTickWidth) * mTickWidth; //quant time
-            float x = endTime * mScaleFactor + mPosX;
+            float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
+            endTime = (float)Math.floor(endTime / mTimeLine.getTickWidth()) * mTimeLine.getTickWidth(); //quant time
+            float x = mTimeLine.applyPosScale(endTime);
             RectF rf = new RectF();
             rf.top = 0;
             rf.bottom = getHeight();
@@ -164,28 +117,32 @@ public class TimeLineView extends View {
 
     public boolean onTouchEvent(MotionEvent event) {
         int eventAction = event.getAction();
-        float x = ((event.getX() - mPosX) / mScaleFactor);
-        float quantX = (float)Math.floor(x / mTickWidth) * mTickWidth;
-        float time =  (quantX*256/getWidth());
+
+        float x = ((event.getX() - mTimeLine.mPosX) / mTimeLine.mScaleFactor);
+        float quantX = (float)Math.floor(x / mTimeLine.mTickWidth) * mTimeLine.mTickWidth;
+        float thumbTime =  quantX/mTimeLine.mTickWidth;// * mTimeLine.mTickWidth;//(quantX*mTimeLine.columnsPerCanvasWidth/getWidth());
 
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
-                if (time<mEnd) {
-                    mTime = time;
-                    mTimeLineListener.onTimeChanged(mTime);
+                if (thumbTime<mTimeLine.getLength() ) {
+                    mTimeLine.setTime(thumbTime);
+                    if (mTimeLineListener!=null) {
+                        mTimeLineListener.onTimeChanged(mTimeLine.getTime());
+                    }
                 }
-                else
-                {
+                else {
                     mMovingEnd = true;
-                    mDownX = time;
+                    mDownX = thumbTime;
                 }
                 invalidate();
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (mMovingEnd == true) {
-                    mEnd += time - mDownX;
-                    mDownX = time;
-                    mTimeLineListener.onPatternEnd(mEnd);
+                    float delta = thumbTime - mDownX;
+                    mDownX = thumbTime;
+                    if (mTimeLineListener!=null) {
+                        mTimeLineListener.onPatternEnd(mTimeLine.getLength()  + delta);
+                    }
                     invalidate();
                 }
                 return true;
@@ -209,6 +166,6 @@ public class TimeLineView extends View {
 
     float getSelection()
     {
-        return mTime;
+        return mTimeLine.getTime();
     }
 }

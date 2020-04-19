@@ -53,7 +53,7 @@ public class ApplicationClass extends Application {
 
             extStoreDir = new File(Environment.getExternalStorageDirectory() + "/TrackComposer");
 
-            mPatternMaster = new PatternMaster("songy", extStoreDir + "/songy", 8, 16);
+            mPatternMaster = new PatternMaster("songy", extStoreDir + "/songy", 8, 64);
         }
     }
 

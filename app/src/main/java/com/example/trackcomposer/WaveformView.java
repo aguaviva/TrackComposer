@@ -72,7 +72,6 @@ public class WaveformView extends View {
             return;
         }
 
-
         Mixer.Channel channel = new Mixer.Channel();
         channel.sampleId = mGenerator.sampleId;
         channel.mPlaying = true;

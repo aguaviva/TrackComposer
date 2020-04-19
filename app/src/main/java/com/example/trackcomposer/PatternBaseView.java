@@ -158,9 +158,18 @@ public class PatternBaseView extends View {
         mCurrentBeat = currentBeat;
     }
 
+    TimeLine mTimeLine;
+    public void init(PatternBase pattern, TimeLine timeLine)
+    {
+        mTimeLine = timeLine;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        mTimeLine.setViewSize(getWidth(), getHeight());
+        mTimeLine.updateViewport();
 
         float contentHeight = getHeight();
 
@@ -173,8 +182,8 @@ public class PatternBaseView extends View {
         float columns = ticksPerTrack/ticksPerColumn;
         float distanceBetweenTicks = getWidth()/(columnsPerCanvasWidth*ticksPerColumn);
 
-        mColumnWidth = getWidth() / columnsPerCanvasWidth;
-
+        mColumnWidth = mTimeLine.getTickWidth();//getWidth() / columnsPerCanvasWidth;
+/*
         // compute max/min notes so we show the part of the keyboard where there is data
         if (mScaleFactor==-1 && mPattern!=null)
         {
@@ -216,27 +225,25 @@ public class PatternBaseView extends View {
                 instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
             }
         }
+*/
+        mChannels = 8;
+        mRowHeight = contentHeight/ (float)mChannels;
+
 
         // Set canvas zoom and pan
         //
-        canvas.translate(mPosX, mPosY);
-        canvas.scale(mScaleFactor, mScaleFactor);
-
-        // screen to world coordinates
-        float viewportTop = (0 - mPosY)/mScaleFactor;
-        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
-        float viewportLeft = (0 - mPosX)/mScaleFactor;
-        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
+        canvas.translate(mTimeLine.mPosX, mTimeLine.mPosY);
+        canvas.scale(mTimeLine.mScaleFactor, mTimeLine.mScaleFactor);
 
         // channels
-        int iniTop = (int)Math.floor(viewportTop / mRowHeight);
-        int finBottom = (int)Math.ceil(viewportBottom / mRowHeight);
+        int iniTop = (int)Math.floor(mTimeLine.mViewport.top / mRowHeight);
+        int finBottom = (int)Math.ceil(mTimeLine.mViewport.bottom / mRowHeight);
         if (iniTop<0) iniTop = 0;
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = (int)Math.floor(viewportLeft / mColumnWidth);
-        int columnRight = (int)Math.ceil(viewportRight / mColumnWidth);
+        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth());
+        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth());
         if (columnLeft<0) columnLeft = 0;
         if (columnRight>columns) columnRight = (int)columns;
 
@@ -330,30 +337,28 @@ public class PatternBaseView extends View {
 
         // spring to center the track
         //
-        if (mPosX>0 ) {
-            mPosX += (0 - mPosX) * .1;
+        if (mTimeLine.mPosX>0 ) {
+            mTimeLine.mPosX += (0 - mTimeLine.mPosX) * .1;
         }
-        if (mPosY>0) {
-            mPosY += (0 - mPosY) * .1;
+        if (mTimeLine.mPosY>0) {
+            mTimeLine.mPosY += (0 - mTimeLine.mPosY) * .1;
         }
 
-        if (mPosX>0 || mPosY>0) {
+        if (mTimeLine.mPosX>0 || mTimeLine.mPosY>0) {
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
             }
             invalidate();
         }
     }
 
     public boolean onTouchEvent(MotionEvent event) {
-
         boolean b1 =  mScaleGestureDetector.onTouchEvent(event);
         boolean b2 = mGestureDetector.onTouchEvent(event);
         return b1 || b2;
     }
 
-    public void onTouchEvent(int x, int y)
-    {
+    public void onTouchEvent(int x, int y) {
         PatternBase mPattern = GetPattern();
 
         GeneratorInfo gen = mPattern.Get(x,y);
@@ -367,21 +372,13 @@ public class PatternBaseView extends View {
         }
     }
 
-    public void SetCurrentBeatCursor(int currentBeat)
-    {
+    public void SetCurrentBeatCursor(int currentBeat) {
         this.mCurrentBeat =currentBeat;
         postInvalidate();
     }
 
     //  Pan & zoom gestures -----------------------------------------------------
-    PointF UndoScaling(MotionEvent e) {
-        float x = ((e.getX() - mPosX) / mScaleFactor);
-        float y = ((e.getY() - mPosY) / mScaleFactor);
-        return new PointF(x, y);
-    }
-
-    Point ToPattern(PointF point)
-    {
+    Point ToPattern(PointF point) {
         if (point.x<0 || point.y<0)
             return null;
 
@@ -401,20 +398,25 @@ public class PatternBaseView extends View {
         return new Point(beat, channel);
     }
 
-    protected float mPosX;
-    protected float mPosY;
-    protected float mScaleFactor = -1.0f;
-
     private GestureDetector mGestureDetector;
     private ScaleGestureDetector mScaleGestureDetector;
 
     private final GestureDetector.SimpleOnGestureListener mGestureDetectorListener = new GestureDetector.SimpleOnGestureListener() {
+
+        PointF point = new PointF();
+
+        protected float mPosX;
+        protected float mPosY;
+        protected float mScaleFactor = -1.0f;
+
         @Override
         public boolean onSingleTapUp (MotionEvent e)
         {
-            Point p = ToPattern(UndoScaling(e));
-            if (p==null)
+            mTimeLine.removePosScale(e.getX(), e.getY(), point);
+            if (point==null)
                 return false;
+
+            Point p = ToPattern(point);
 
             if (mSelectable) {
                 selected = p;
@@ -436,13 +438,13 @@ public class PatternBaseView extends View {
         @Override
         public void onLongPress (MotionEvent e)
         {
-            PointF pf = UndoScaling(e);
-            Point p = ToPattern(pf);
+            mTimeLine.removePosScale(e.getX(), e.getY(), point);
+            Point p = ToPattern(point);
             if (p==null)
                 return;
 
             if (instrumentListener!=null) {
-                instrumentListener.longPress(p, pf);
+                instrumentListener.longPress(p, point);
             }
         }
 
@@ -453,8 +455,8 @@ public class PatternBaseView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            mPosX -= distanceX;
-            mPosY -= distanceY;
+
+            mTimeLine.onDrag(distanceX, distanceY);
 
             if (instrumentListener!=null) {
                 instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
@@ -471,28 +473,11 @@ public class PatternBaseView extends View {
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-        float oldScaleFator = mScaleFactor;
-        mScaleFactor *= (detector.getScaleFactor()*detector.getScaleFactor());
 
-        // Don't let the object get too small or too large.
-        mScaleFactor = Math.max(0.5f, Math.min(mScaleFactor, 2.0f));
-
-        float mFocusX = detector.getFocusX();
-        float mFocusY = detector.getFocusY();
-
-        //distance between focus and old origin
-        float dx = mFocusX-mPosX;
-        float dy = mFocusY-mPosY;
-        //distance between focus and new origin after rescale
-        float dxSc = dx * mScaleFactor / oldScaleFator;
-        float dySc = dy * mScaleFactor / oldScaleFator;
-
-        // calcul of the new origin
-        mPosX = mFocusX - dxSc;
-        mPosY = mFocusY - dySc;
+        mTimeLine.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
 
         if (instrumentListener!=null) {
-            instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+            instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
         }
 
         invalidate();
@@ -522,7 +507,7 @@ public class PatternBaseView extends View {
         Canvas canvas = new Canvas(bitmap);
         layout(0, 0, width, height);
         mLOD = 1;
-        mScaleFactor = -1;
+        mTimeLine.mScaleFactor = -1;
         draw(canvas);
         mLOD = 0;
         return bitmap;
