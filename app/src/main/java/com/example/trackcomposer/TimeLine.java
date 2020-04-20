@@ -90,7 +90,7 @@ public class TimeLine {
         mScaleFactor *= (scale*scale);
 
         // Don't let the object get too small or too large.
-        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 10.0f));
+        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 20.0f));
 
         //distance between focus and old origin
         float dx = focusX-mPosX;

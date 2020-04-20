@@ -123,7 +123,6 @@ public class PatternBaseView extends View {
         white = new Paint();
         white.setColor(Color.WHITE);
         white.setStyle(Paint.Style.FILL);
-        white.setStrokeWidth(2);
 
         green = new Paint();
         green.setColor(ContextCompat.getColor(getContext(), R.color.darkGreen));
@@ -235,6 +234,9 @@ public class PatternBaseView extends View {
         canvas.translate(mTimeLine.mPosX, mTimeLine.mPosY);
         canvas.scale(mTimeLine.mScaleFactor, mTimeLine.mScaleFactor);
 
+        float z = (float)(Math.log(mTimeLine.mScaleFactor)/Math.log(2));
+        z = (float)Math.pow(2, Math.floor(z));
+
         // channels
         int iniTop = (int)Math.floor(mTimeLine.mViewport.top / mRowHeight);
         int finBottom = (int)Math.ceil(mTimeLine.mViewport.bottom / mRowHeight);
@@ -242,10 +244,10 @@ public class PatternBaseView extends View {
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth());
-        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth());
+        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/z);
+        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/z);
         if (columnLeft<0) columnLeft = 0;
-        if (columnRight>columns) columnRight = (int)columns;
+        if (columnRight>columns*z) columnRight = (int)(columns*z);
 
         // Draw background
         //
@@ -256,7 +258,7 @@ public class PatternBaseView extends View {
 
                 RectF rf = new RectF();
                 rf.left = 0;
-                rf.right = mColumnWidth*columnRight;
+                rf.right = columnRight* mTimeLine.getTickWidth()/z;
                 rf.top = i * mRowHeight;
                 rf.bottom = (i + 1) * mRowHeight;
 
@@ -272,6 +274,7 @@ public class PatternBaseView extends View {
                 canvas.drawRect(rf,  isWhite ? dkgray:black);
             }
 
+
             //show selected block
             if (mSelectable && selected!=null) {
                 int x = selected.x;
@@ -285,13 +288,25 @@ public class PatternBaseView extends View {
                 canvas.drawRect(rf, selectedColor);
             }
 
+
             //vertical lines
             float yTop = iniTop * mRowHeight;
             float yBottom = finBottom * mRowHeight;
-            for (int i = columnLeft; i < columnRight; i++) {
-                float x = i * mColumnWidth;
-                canvas.drawLine(x, yTop, x, yBottom, ((i & 3) == 0) ? white : ltgray);
+
+            for (int i=columnLeft;i<columnRight;i++) {
+
+                float x = i* mTimeLine.getTickWidth()/z;
+
+                if (((i%16)==0)) {
+                    canvas.drawLine(x, yTop, x, yBottom, white);
+                }
+                else if (i%4==0) {
+                    canvas.drawLine(x, yTop, x, yBottom, ltgray);
+                }
+
             }
+
+
 
             // Draw cursor
             canvas.drawRect((mCurrentBeat * mColumnWidth), 0, ((mCurrentBeat + 1) * mColumnWidth), yBottom, blue);
