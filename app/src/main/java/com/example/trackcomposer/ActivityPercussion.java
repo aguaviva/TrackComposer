@@ -13,6 +13,7 @@ public class ActivityPercussion extends AppCompatActivity {
     PatternBaseView mDrumTracker;
     Context mContext;
     PatternPercussion patternPercussion;
+    TimeLine mTimeLine = new TimeLine();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +45,7 @@ public class ActivityPercussion extends AppCompatActivity {
         });
 
         mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
-        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, 8,16,false, false);
+        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, false);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {

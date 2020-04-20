@@ -138,8 +138,7 @@ public class ActivityMain extends AppCompatActivity {
 
         //
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.init(mAppState.mPatternMaster, mTimeLine);
-        masterView.SetPattern(mAppState.mPatternMaster, 8,32,true, false);
+        masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true, false);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
@@ -363,7 +362,7 @@ public class ActivityMain extends AppCompatActivity {
                 {
                     mAppState.Load(file);
                     setTrackNames();
-                    masterView.SetPattern(mAppState.mPatternMaster, 8,16,true,false);
+                    masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true,false);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
                     generateIcons();
                     masterView.invalidate();
@@ -524,12 +523,14 @@ public class ActivityMain extends AppCompatActivity {
     public void generateIcons()
     {
         PatternBaseView pbv = new PatternBaseView(this);
+        TimeLine timeLine = new TimeLine();
         pbv.patternImgDataBase(null);
         for (Integer key : mAppState.mPatternMaster.mPatternDataBase.keySet()) {
             PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(key);
 
-            pbv.SetPattern(pattern, 16,16,false, true);
-            Bitmap b = pbv.getBitmapFromView(5 * 16, 3 * 16);
+            timeLine.init(pattern, 1);
+            pbv.SetPattern(pattern, timeLine,false, true);
+            Bitmap b = pbv.getBitmapFromView((int)(5 * pattern.length), 3 * pattern.channels);
             mAppState.mPatternImgDataBase.put(key, b);
         }
     }

@@ -18,6 +18,7 @@ public class ActivityChord extends AppCompatActivity {
     PatternBaseView mNoteView;
     PatternChord patternChord;
     Context mContext;
+    TimeLine mTimeLine = new TimeLine();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternChord, 3*4,16,false, false);
+        mNoteView.SetPattern(patternChord, mTimeLine,false, false);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {

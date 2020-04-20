@@ -44,6 +44,26 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
+        mTimeLine.init(patternPianoRoll, 1);
+
+        //
+        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView.init(patternPianoRoll, mTimeLine);
+        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
+            @Override
+            public void onTimeChanged(float time)
+            {
+                mAppState.setLoop(time, (1 * 16 * 16));
+            }
+            @Override
+            public void onPatternEnd(float time)
+            {
+                mNoteView.GetPattern().length = (int)time;
+                mNoteView.invalidate();
+            }
+        });
+
+        //
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
         mPatternHeaderView.SetPattern(patternPianoRoll.channels, patternPianoRoll.length,true);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
@@ -63,31 +83,16 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
-        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
-        timeLineView.init(patternPianoRoll, mTimeLine);
-        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
-            @Override
-            public void onTimeChanged(float time)
-            {
-                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
-            }
-            @Override
-            public void onPatternEnd(float time)
-            {
-                mNoteView.GetPattern().length = (int)time;
-                mNoteView.invalidate();
-            }
-        });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.init(patternPianoRoll, mTimeLine);
-        mNoteView.SetPattern(patternPianoRoll, 12*2,16,false,true);
+        mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,true);
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
 
             @Override
             public void scaling(float x, float y, float scale, float trackHeight)
             {
+                timeLineView.init(patternPianoRoll, mTimeLine);
                 timeLineView.invalidate();
 
                 mPatternHeaderView.setPosScale(x, y, scale, trackHeight);

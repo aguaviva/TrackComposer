@@ -60,7 +60,9 @@ public class PatternBaseView extends View {
         return mPattern;
     }
 
-    void SetPattern(PatternBase pattern, int channels, float length, boolean selectable, boolean bInvertY) {
+    TimeLine mTimeLine;
+    void SetPattern(PatternBase pattern, TimeLine timeLine, boolean selectable, boolean bInvertY) {
+        mTimeLine = timeLine;
         mSelectable = selectable;
 
         mPattern = pattern;
@@ -157,17 +159,52 @@ public class PatternBaseView extends View {
         mCurrentBeat = currentBeat;
     }
 
-    TimeLine mTimeLine;
-
-    public void init(PatternBase pattern, TimeLine timeLine) {
-        mTimeLine = timeLine;
-    }
-
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh)
     {
         mTimeLine.setViewSize(getWidth(), getHeight());
+
+        centerViewInNotes();
+
         mTimeLine.updateViewport();
+    }
+
+    void centerViewInNotes()
+    {
+        int min = 88;
+        int max = 0;
+        for(int i=0;;i++) {
+            SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
+            if (note==null)
+                break;
+            if (note.channel>max)
+                max = note.channel;
+            if (note.channel<min)
+                min = note.channel;
+        }
+
+        mChannels = max - min +1;
+
+        if (bInvertY) {
+            if (max == 0) {
+                max = (40 + 12) -1;
+                mChannels = 12;
+            }
+        }
+        else {
+            if (mChannels < 8) {
+                mChannels = 8;
+                max = 0;
+            }
+        }
+        mRowHeight = getHeight()/ (float)mChannels;
+
+        max = indexToNote(max);
+        mTimeLine.mPosY = (-max)* mRowHeight;
+
+        if (instrumentListener!=null) {
+            instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
+        }
     }
 
     @Override
@@ -185,53 +222,9 @@ public class PatternBaseView extends View {
         float columns = ticksPerTrack/ticksPerColumn;
         float distanceBetweenTicks = getWidth()/(columnsPerCanvasWidth*ticksPerColumn);
 
-        mColumnWidth = mTimeLine.getTickWidth();//getWidth() / columnsPerCanvasWidth;
-/*
-        // compute max/min notes so we show the part of the keyboard where there is data
-        if (mScaleFactor==-1 && mPattern!=null)
-        {
-            mScaleFactor = 1;
-
-            int min = 88;
-            int max = 0;
-            for(int i=0;;i++) {
-                SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
-                if (note==null)
-                    break;
-                if (note.channel>max)
-                    max = note.channel;
-                if (note.channel<min)
-                    min = note.channel;
-            }
-
-            mChannels = max - min +1;
-
-            if (bInvertY) {
-                if (max == 0) {
-                    max = (40 + 12) -1;
-                    mChannels = 12;
-                }
-            }
-            else {
-                if (mChannels < 8) {
-                    mChannels = 8;
-                    max = 0;
-                }
-            }
-            mRowHeight = contentHeight/ (float)mChannels;
-
-            max = indexToNote(max);
-            mPosY = (-max)* mRowHeight;
-
-
-            if (instrumentListener!=null) {
-                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
-            }
-        }
-*/
+        mColumnWidth = mTimeLine.getTickWidth();
         mChannels = mPattern.GetChannelCount();
         mRowHeight = contentHeight/ (float)mChannels;
-
 
         // Set canvas zoom and pan
         //
@@ -277,7 +270,6 @@ public class PatternBaseView extends View {
                 canvas.drawRect(rf,  isWhite ? dkgray:black);
             }
 
-
             //show selected block
             if (mSelectable && selected!=null) {
                 int x = selected.x;
@@ -290,7 +282,6 @@ public class PatternBaseView extends View {
                 rf.bottom = (y + 1) * mRowHeight;
                 canvas.drawRect(rf, selectedColor);
             }
-
 
             //vertical lines
             float yTop = iniTop * mRowHeight;
@@ -352,15 +343,15 @@ public class PatternBaseView extends View {
 
         // spring to center the track
         //
-        if (mTimeLine.mPosX>0 ) {
+        if (mTimeLine.mPosX > 0) {
             mTimeLine.mPosX += (0 - mTimeLine.mPosX) * .1;
         }
-        if (mTimeLine.mPosY>0) {
+        if (mTimeLine.mPosY > 0) {
             mTimeLine.mPosY += (0 - mTimeLine.mPosY) * .1;
         }
 
-        if (mTimeLine.mPosX>0 || mTimeLine.mPosY>0) {
-            if (instrumentListener!=null) {
+        if (mTimeLine.mPosX > 0 || mTimeLine.mPosY > 0) {
+            if (instrumentListener != null) {
                 instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
             }
             invalidate();
@@ -420,10 +411,6 @@ public class PatternBaseView extends View {
 
         PointF point = new PointF();
 
-        protected float mPosX;
-        protected float mPosY;
-        protected float mScaleFactor = -1.0f;
-
         @Override
         public boolean onSingleTapUp (MotionEvent e)
         {
@@ -474,7 +461,7 @@ public class PatternBaseView extends View {
             mTimeLine.onDrag(distanceX, distanceY);
 
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mPosX, mPosY, mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
             }
 
             invalidate();
@@ -522,7 +509,6 @@ public class PatternBaseView extends View {
         Canvas canvas = new Canvas(bitmap);
         layout(0, 0, width, height);
         mLOD = 1;
-        mTimeLine.mScaleFactor = -1;
         draw(canvas);
         mLOD = 0;
         return bitmap;
