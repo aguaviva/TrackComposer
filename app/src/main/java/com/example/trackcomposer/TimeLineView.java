@@ -66,20 +66,17 @@ public class TimeLineView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float z = (float)(Math.log(mTimeLine.mScaleFactor)/Math.log(2));
-        z = (float)Math.pow(2, Math.floor(z));
-
-        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/z);
-        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/z);
+        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
+        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
 
         for (int i=mIni;i<mFin;i++) {
 
-            float x = mTimeLine.applyPosScale(i* mTimeLine.getTickWidth()/z);
+            float x = mTimeLine.applyPosScale(i* mTimeLine.getTickWidth()/mTimeLine.mLOD);
 
             float h = 0;
             if (((i%16)==0)) {
                 h = 10;
-                canvas.drawText(String.valueOf((int)(i/z)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+                canvas.drawText(String.valueOf((int)(i/mTimeLine.mLOD)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
                 h = 10+10;
@@ -119,8 +116,7 @@ public class TimeLineView extends View {
         int eventAction = event.getAction();
 
         float x = ((event.getX() - mTimeLine.mPosX) / mTimeLine.mScaleFactor);
-        float quantX = (float)Math.floor(x / mTimeLine.mTickWidth) * mTimeLine.mTickWidth;
-        float thumbTime =  quantX/mTimeLine.mTickWidth;// * mTimeLine.mTickWidth;//(quantX*mTimeLine.columnsPerCanvasWidth/getWidth());
+        float thumbTime = (float)Math.floor(x / ((mTimeLine.getTickWidth()/mTimeLine.mLOD)))/mTimeLine.mLOD;
 
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:

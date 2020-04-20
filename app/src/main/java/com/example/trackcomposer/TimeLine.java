@@ -13,6 +13,8 @@ public class TimeLine {
     float mDistanceBetweenTicks;
     float mColumnWidth;
 
+    float mLOD = 1; // for ticks
+
     public void init(PatternBase pattern, float ticksPerColumn) {
         mPattern = pattern;
         mTicksPerTrack = pattern.length;
@@ -103,6 +105,8 @@ public class TimeLine {
         // calcul of the new origin
         mPosX = focusX - dxSc;
         mPosY = focusY - dySc;
+
+        mLOD = (float)Math.pow(2, Math.floor(Math.log(mScaleFactor)/Math.log(2)));
 
         updateViewport();
     }

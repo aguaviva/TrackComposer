@@ -225,7 +225,7 @@ public class PatternBaseView extends View {
             }
         }
 */
-        mChannels = 8;
+        mChannels = mPattern.GetLength();
         mRowHeight = contentHeight/ (float)mChannels;
 
 
@@ -244,8 +244,8 @@ public class PatternBaseView extends View {
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/z);
-        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/z);
+        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
+        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
         if (columnLeft<0) columnLeft = 0;
         if (columnRight>columns*z) columnRight = (int)(columns*z);
 
