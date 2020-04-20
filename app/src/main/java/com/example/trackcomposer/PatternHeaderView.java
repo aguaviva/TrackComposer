@@ -74,8 +74,8 @@ public class PatternHeaderView extends View {
     }
 
     int mChannels = -1;
-    int mLength = -1;
-    void SetPattern(int channels, int length,  boolean bInvertY)
+    float mLength = -1;
+    void SetPattern(int channels, float length,  boolean bInvertY)
     {
         mLength = length;
         mChannels = channels;

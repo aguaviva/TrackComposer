@@ -131,7 +131,7 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void onPatternEnd(float time)
             {
-                masterView.GetPattern().length = (int)time;
+                masterView.GetPattern().length = time;
                 masterView.invalidate();
             }
         });

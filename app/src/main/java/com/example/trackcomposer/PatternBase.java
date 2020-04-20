@@ -14,10 +14,10 @@ import java.util.List;
 public class PatternBase {
     String type, name, fileName;
     int channels;
-    int length;
+    float length;
     private SortedListOfNotes mNotes = new SortedListOfNotes();
 
-    public PatternBase(String name, String fileName, int channels, int length)
+    public PatternBase(String name, String fileName, int channels, float length)
     {
         this.name=name;
         this.fileName = fileName;
@@ -26,7 +26,7 @@ public class PatternBase {
     }
 
     String GetName() { return name;}
-    int GetLength() { return length; }
+    float GetLength() { return length; }
     int GetChannelCount() { return channels; }
     SortedListOfNotes.Note GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
     GeneratorInfo Get(int channel, int time)
@@ -71,7 +71,7 @@ public class PatternBase {
 
     void PlayBeat(Mixer sp, int beat, float volume)
     {
-        beat = beat % length;
+        beat = beat;// % length;
 
         int noteCount = mNotes.SetTime(beat);
 

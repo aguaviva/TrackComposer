@@ -101,7 +101,6 @@ public class TimeLineView extends View {
         // draw track length marker
         {
             float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
-            endTime = (float)Math.floor(endTime / mTimeLine.getTickWidth()) * mTimeLine.getTickWidth(); //quant time
             float x = mTimeLine.applyPosScale(endTime);
             RectF rf = new RectF();
             rf.top = 0;

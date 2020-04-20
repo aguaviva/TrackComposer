@@ -52,12 +52,15 @@ public class PatternBaseView extends View {
     float mRowHeight = 0;
     float mColumnWidth = 0;
     int mChannels = 0;
-    int length = 0;
+    float length = 0;
 
     PatternBase mPattern = null;
-    PatternBase GetPattern() { return mPattern; }
-    void SetPattern(PatternBase pattern, int channels, int length, boolean selectable, boolean bInvertY)
-    {
+
+    PatternBase GetPattern() {
+        return mPattern;
+    }
+
+    void SetPattern(PatternBase pattern, int channels, float length, boolean selectable, boolean bInvertY) {
         mSelectable = selectable;
 
         mPattern = pattern;
@@ -71,8 +74,7 @@ public class PatternBaseView extends View {
         });
     }
 
-    void patternImgDataBase(HashMap<Integer, Bitmap> patternImgDataBase)
-    {
+    void patternImgDataBase(HashMap<Integer, Bitmap> patternImgDataBase) {
         mPatternImgDataBase = patternImgDataBase;
     }
 
@@ -142,38 +144,40 @@ public class PatternBaseView extends View {
     }
 
     int mBaseNote = -1;
-    public void setBaseNote(int baseNote)
-    {
+
+    public void setBaseNote(int baseNote) {
         mBaseNote = baseNote;
     }
 
-    int indexToNote(int y)
-    {
-        return (bInvertY)?(88 - y):y;
+    int indexToNote(int y) {
+        return (bInvertY) ? (88 - y) : y;
     }
 
-    public void setCurrentBeat(int currentBeat)
-    {
+    public void setCurrentBeat(int currentBeat) {
         mCurrentBeat = currentBeat;
     }
 
     TimeLine mTimeLine;
-    public void init(PatternBase pattern, TimeLine timeLine)
-    {
+
+    public void init(PatternBase pattern, TimeLine timeLine) {
         mTimeLine = timeLine;
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh)
+    {
+        mTimeLine.setViewSize(getWidth(), getHeight());
+        mTimeLine.updateViewport();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        mTimeLine.setViewSize(getWidth(), getHeight());
-        mTimeLine.updateViewport();
-
         float contentHeight = getHeight();
 
         PatternBase mPattern = GetPattern();
-        int ticksPerTrack = mPattern.length;
+        float ticksPerTrack = mPattern.length;
 
         float columnsPerCanvasWidth = 16; // at zoom 1
         float ticksPerColumn = 1;
@@ -225,7 +229,7 @@ public class PatternBaseView extends View {
             }
         }
 */
-        mChannels = mPattern.GetLength();
+        mChannels = mPattern.GetChannelCount();
         mRowHeight = contentHeight/ (float)mChannels;
 
 
@@ -233,9 +237,6 @@ public class PatternBaseView extends View {
         //
         canvas.translate(mTimeLine.mPosX, mTimeLine.mPosY);
         canvas.scale(mTimeLine.mScaleFactor, mTimeLine.mScaleFactor);
-
-        float z = (float)(Math.log(mTimeLine.mScaleFactor)/Math.log(2));
-        z = (float)Math.pow(2, Math.floor(z));
 
         // channels
         int iniTop = (int)Math.floor(mTimeLine.mViewport.top / mRowHeight);
@@ -247,18 +248,20 @@ public class PatternBaseView extends View {
         int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
         int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
         if (columnLeft<0) columnLeft = 0;
-        if (columnRight>columns*z) columnRight = (int)(columns*z);
+        if (columnRight>columns*mTimeLine.mLOD) columnRight = (int)(columns*mTimeLine.mLOD);
 
         // Draw background
         //
         if (mLOD==0) {
+
+            float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
 
             // horizontal tracks
             for (int i = iniTop; i < finBottom; i++) {
 
                 RectF rf = new RectF();
                 rf.left = 0;
-                rf.right = columnRight* mTimeLine.getTickWidth()/z;
+                rf.right = endTime;
                 rf.top = i * mRowHeight;
                 rf.bottom = (i + 1) * mRowHeight;
 
@@ -295,7 +298,7 @@ public class PatternBaseView extends View {
 
             for (int i=columnLeft;i<columnRight;i++) {
 
-                float x = i* mTimeLine.getTickWidth()/z;
+                float x = i* mTimeLine.getTickWidth()/mTimeLine.mLOD;
 
                 if (((i%16)==0)) {
                     canvas.drawLine(x, yTop, x, yBottom, white);
