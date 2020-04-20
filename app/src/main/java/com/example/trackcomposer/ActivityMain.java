@@ -164,7 +164,7 @@ public class ActivityMain extends AppCompatActivity {
         //overwrite listener with our own
         mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
             @Override
-            public void beat(int currentBeat) {
+            public void beat(float currentBeat) {
                 masterView.setCurrentBeat(currentBeat);
                 masterView.invalidate();
                 mTimeLine.setTime(mAppState.getTime());
@@ -371,7 +371,7 @@ public class ActivityMain extends AppCompatActivity {
                     //overwrite listener with our own
                     mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
                         @Override
-                        public void beat(int currentBeat) {
+                        public void beat(float currentBeat) {
                             masterView.setCurrentBeat(currentBeat);
                             masterView.invalidate();
                             mTimeLine.setTime(mAppState.getTime());

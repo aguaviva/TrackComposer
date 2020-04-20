@@ -21,8 +21,8 @@ public class ApplicationClass extends Application {
     public PatternBase mLastPatternAdded;
     public File extStoreDir;
     private boolean mPlaying = false;
-    private int mTime = 0;
-    private int mTimeIni = 0, mTimeFin = 0;
+    private float mTime = 0;
+    private float mTimeIni = 0, mTimeFin = 0;
 
     MySoundPool soundPool;
     InstrumentList instrumentList;
@@ -57,16 +57,16 @@ public class ApplicationClass extends Application {
         }
     }
 
-    public int getTime()
+    public float getTime()
     {
         return mTime;
     }
-    public void setTime(int mTime)
+    public void setTime(float mTime)
     {
         this.mTime = mTime;
     }
 
-    void setLoop(int timeIni, int timeFin)
+    void setLoop(float timeIni, float timeFin)
     {
         mTimeIni = timeIni;
         mTimeFin = timeFin;

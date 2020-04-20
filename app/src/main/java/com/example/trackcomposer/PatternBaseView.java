@@ -34,7 +34,7 @@ public class PatternBaseView extends View {
     Paint blue;
     Paint green, greenFill;
     Paint selectedColor;
-    private int mCurrentBeat = 0;
+    private float mCurrentBeat = 0;
 
     private TextPaint mTextPaint;
     private float mTextWidth;
@@ -67,7 +67,7 @@ public class PatternBaseView extends View {
         this.bInvertY = bInvertY;
         pattern.SetBeatListener(new PatternBase.BeatListener() {
             @Override
-            public void beat(int currentBeat) {
+            public void beat(float currentBeat) {
                 mCurrentBeat = currentBeat;
                 invalidate();
             }
@@ -153,7 +153,7 @@ public class PatternBaseView extends View {
         return (bInvertY) ? (88 - y) : y;
     }
 
-    public void setCurrentBeat(int currentBeat) {
+    public void setCurrentBeat(float currentBeat) {
         mCurrentBeat = currentBeat;
     }
 
@@ -306,10 +306,7 @@ public class PatternBaseView extends View {
                 else if (i%4==0) {
                     canvas.drawLine(x, yTop, x, yBottom, ltgray);
                 }
-
             }
-
-
 
             // Draw cursor
             canvas.drawRect((mCurrentBeat * mColumnWidth), 0, ((mCurrentBeat + 1) * mColumnWidth), yBottom, blue);

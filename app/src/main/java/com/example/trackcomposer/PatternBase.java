@@ -60,16 +60,16 @@ public class PatternBase {
         };
     }
 
-    public interface BeatListener { public void beat(int currentBeat); }
+    public interface BeatListener { public void beat(float currentBeat); }
     BeatListener mBeatListener;
     public void SetBeatListener(BeatListener beatListener) { mBeatListener = beatListener;}
-    public void CallBeatListener(int currentBeat)
+    public void CallBeatListener(float currentBeat)
     {
         if (mBeatListener!=null)
             mBeatListener.beat(currentBeat);
     }
 
-    void PlayBeat(Mixer sp, int beat, float volume)
+    void PlayBeat(Mixer sp, float beat, float volume)
     {
         beat = beat;// % length;
 

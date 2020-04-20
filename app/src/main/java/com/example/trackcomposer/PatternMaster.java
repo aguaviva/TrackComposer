@@ -32,12 +32,12 @@ class PatternMaster extends PatternBase
     }
 
     @Override
-    void PlayBeat(Mixer sp, int time, float volume)
+    void PlayBeat(Mixer sp, float time, float volume)
     {
         for (int c = 0; c < GetChannelCount(); c++) {
             Channel ch = mChannel[c];
             if (ch.id==-1) {
-                GeneratorInfo gi =  Get(c, time/16);
+                GeneratorInfo gi =  Get(c, (int)time);
                 if (gi!=null) {
                     ch.id = gi.sampleId;
                     ch.time = 0;

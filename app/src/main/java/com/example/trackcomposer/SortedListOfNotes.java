@@ -15,13 +15,13 @@ public class SortedListOfNotes
 {
     public static class Note
     {
-        int time;
+        float time;
         int durantion;
         int channel;
         GeneratorInfo mGen;
     };
 
-    int mTime = -1;
+    float mTime = -1;
     int mIndex = 0;
     int mNotesCount = 0;
 
@@ -35,7 +35,7 @@ public class SortedListOfNotes
     }
 
 
-    private static int findFirstOccurrence(List<Note> a, int start, int end, int key){
+    private static int findFirstOccurrence(List<Note> a, int start, int end, float key){
 
         if (a.size()==0)
             return -1;
@@ -51,8 +51,6 @@ public class SortedListOfNotes
             }
         }
         return (a.get(start).time == key) ? start : -1;
-
-
     }
 
     private void sortNotes()
@@ -97,7 +95,7 @@ public class SortedListOfNotes
         }
     }
 
-    private int SetTimeRandom(int time)
+    private int SetTimeRandom(float time)
     {
         mTime = time;
 
@@ -120,7 +118,7 @@ public class SortedListOfNotes
         }
     }
 
-    public int SetTime(int time)
+    public int SetTime(float time)
     {
         return SetTimeRandom(time);
         /*
