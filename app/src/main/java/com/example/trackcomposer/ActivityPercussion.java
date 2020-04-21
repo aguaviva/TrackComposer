@@ -28,7 +28,7 @@ public class ActivityPercussion extends AppCompatActivity {
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
 
         final PatternHeaderView patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(patternPercussion.channels, patternPercussion.length,true);
+        patternHeaderView.SetPattern(mTimeLine, patternPercussion.channels, patternPercussion.length,true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) { instrumentChooser(note); }
@@ -45,7 +45,7 @@ public class ActivityPercussion extends AppCompatActivity {
         });
 
         mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
-        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, false);
+        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {

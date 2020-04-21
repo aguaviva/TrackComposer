@@ -65,7 +65,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         //
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        mPatternHeaderView.SetPattern(patternPianoRoll.channels, patternPianoRoll.length,true);
+        mPatternHeaderView.SetPattern(mTimeLine, patternPianoRoll.channels, patternPianoRoll.length,true);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -85,10 +85,9 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,true);
+        mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
-
             @Override
             public void scaling(float x, float y, float scale, float trackHeight)
             {

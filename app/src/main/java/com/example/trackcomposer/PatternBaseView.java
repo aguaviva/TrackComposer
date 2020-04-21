@@ -52,21 +52,39 @@ public class PatternBaseView extends View {
     float mRowHeight = 0;
     float mColumnWidth = 0;
     int mChannels = 0;
-    float length = 0;
+    float mLength = 0;
 
     PatternBase mPattern = null;
+
+    enum ViewMode
+    {
+        MAIN,
+        PIANO,
+        CHORDS,
+        DRUMS
+    };
+
+    ViewMode mViewMode;
 
     PatternBase GetPattern() {
         return mPattern;
     }
 
+    Viewport mViewport;
     TimeLine mTimeLine;
-    void SetPattern(PatternBase pattern, TimeLine timeLine, boolean selectable, boolean bInvertY) {
+    void SetPattern(PatternBase pattern, TimeLine timeLine, boolean selectable, ViewMode viewMode) {
+        mViewMode = viewMode;
         mTimeLine = timeLine;
+        mViewport = mTimeLine.mViewport;
         mSelectable = selectable;
 
         mPattern = pattern;
-        this.bInvertY = bInvertY;
+
+        if (mViewMode == ViewMode.PIANO)
+        {
+            bInvertY = true;
+        }
+
         pattern.SetBeatListener(new PatternBase.BeatListener() {
             @Override
             public void beat(float currentBeat) {
@@ -166,7 +184,7 @@ public class PatternBaseView extends View {
 
         centerViewInNotes();
 
-        mTimeLine.updateViewport();
+        mTimeLine.mViewport.updateViewport();
     }
 
     void centerViewInNotes()
@@ -183,27 +201,35 @@ public class PatternBaseView extends View {
                 min = note.channel;
         }
 
-        mChannels = max - min +1;
 
-        if (bInvertY) {
+
+        if (mViewMode == ViewMode.PIANO) {
+
+            mChannels = max - min +1;
             if (max == 0) {
                 max = (40 + 12) -1;
                 mChannels = 12;
             }
         }
-        else {
+        else if (mViewMode == ViewMode.MAIN) {
             if (mChannels < 8) {
                 mChannels = 8;
                 max = 0;
             }
         }
+        else if (mViewMode == ViewMode.CHORDS)
+        {
+            mChannels = 3*4;
+            max = 0;
+        }
+
         mRowHeight = getHeight()/ (float)mChannels;
 
         max = indexToNote(max);
-        mTimeLine.mPosY = (-max)* mRowHeight;
+        mViewport.mPosY = (-max)* mRowHeight;
 
         if (instrumentListener!=null) {
-            instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
+            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
         }
     }
 
@@ -213,35 +239,26 @@ public class PatternBaseView extends View {
 
         float contentHeight = getHeight();
 
-        PatternBase mPattern = GetPattern();
-        float ticksPerTrack = mPattern.length;
-
-        float columnsPerCanvasWidth = 16; // at zoom 1
-        float ticksPerColumn = 1;
-
-        float columns = ticksPerTrack/ticksPerColumn;
-        float distanceBetweenTicks = getWidth()/(columnsPerCanvasWidth*ticksPerColumn);
-
         mColumnWidth = mTimeLine.getTickWidth();
-        mChannels = mPattern.GetChannelCount();
+        mLength = mPattern.GetLength();
         mRowHeight = contentHeight/ (float)mChannels;
 
         // Set canvas zoom and pan
         //
-        canvas.translate(mTimeLine.mPosX, mTimeLine.mPosY);
-        canvas.scale(mTimeLine.mScaleFactor, mTimeLine.mScaleFactor);
+        canvas.translate(mViewport.mPosX, mViewport.mPosY);
+        canvas.scale(mViewport.mScaleFactor, mViewport.mScaleFactor);
 
         // channels
-        int iniTop = (int)Math.floor(mTimeLine.mViewport.top / mRowHeight);
-        int finBottom = (int)Math.ceil(mTimeLine.mViewport.bottom / mRowHeight);
+        int iniTop = (int)Math.floor(mViewport.mRect.top / mRowHeight);
+        int finBottom = (int)Math.ceil(mViewport.mRect.bottom / mRowHeight);
         if (iniTop<0) iniTop = 0;
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
-        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
+        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.mLOD);
+        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.mLOD);
         if (columnLeft<0) columnLeft = 0;
-        if (columnRight>columns*mTimeLine.mLOD) columnRight = (int)(columns*mTimeLine.mLOD);
+        if (columnRight>mLength*mViewport.mLOD) columnRight = (int)(mLength*mViewport.mLOD);
 
         // Draw background
         //
@@ -289,7 +306,7 @@ public class PatternBaseView extends View {
 
             for (int i=columnLeft;i<columnRight;i++) {
 
-                float x = i* mTimeLine.getTickWidth()/mTimeLine.mLOD;
+                float x = i* mTimeLine.getTickWidth()/mViewport.mLOD;
 
                 if (((i%16)==0)) {
                     canvas.drawLine(x, yTop, x, yBottom, white);
@@ -309,8 +326,8 @@ public class PatternBaseView extends View {
             if (note==null)
                 break;
             //*ticksPerColumn;
-            float x1 = note.time*distanceBetweenTicks;
-            float x2 = (note.time + note.durantion)*distanceBetweenTicks;
+            float x1 = note.time*(mTimeLine.getTickWidth());
+            float x2 = (note.time + note.durantion)*(mTimeLine.getTickWidth());
             int y = indexToNote(note.channel);
 
             int padTL = (mLOD==0)?2:1;
@@ -343,16 +360,10 @@ public class PatternBaseView extends View {
 
         // spring to center the track
         //
-        if (mTimeLine.mPosX > 0) {
-            mTimeLine.mPosX += (0 - mTimeLine.mPosX) * .1;
-        }
-        if (mTimeLine.mPosY > 0) {
-            mTimeLine.mPosY += (0 - mTimeLine.mPosY) * .1;
-        }
-
-        if (mTimeLine.mPosX > 0 || mTimeLine.mPosY > 0) {
+        if (mViewport.springToScreen())
+        {
             if (instrumentListener != null) {
-                instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
             }
             invalidate();
         }
@@ -414,7 +425,7 @@ public class PatternBaseView extends View {
         @Override
         public boolean onSingleTapUp (MotionEvent e)
         {
-            mTimeLine.removePosScale(e.getX(), e.getY(), point);
+            mViewport.removePosScale(e.getX(), e.getY(), point);
             if (point==null)
                 return false;
 
@@ -440,7 +451,7 @@ public class PatternBaseView extends View {
         @Override
         public void onLongPress (MotionEvent e)
         {
-            mTimeLine.removePosScale(e.getX(), e.getY(), point);
+            mViewport.removePosScale(e.getX(), e.getY(), point);
             Point p = ToPattern(point);
             if (p==null)
                 return;
@@ -458,10 +469,10 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 
-            mTimeLine.onDrag(distanceX, distanceY);
+            mViewport.onDrag(distanceX, distanceY);
 
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
             }
 
             invalidate();
@@ -476,10 +487,10 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
 
-        mTimeLine.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
+            mViewport.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
 
         if (instrumentListener!=null) {
-            instrumentListener.scaling(mTimeLine.mPosX, mTimeLine.mPosY, mTimeLine.mScaleFactor, mRowHeight);
+            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
         }
 
         invalidate();

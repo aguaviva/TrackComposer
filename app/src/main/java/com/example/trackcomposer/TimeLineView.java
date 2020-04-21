@@ -57,26 +57,29 @@ public class TimeLineView extends View {
     }
 
     TimeLine mTimeLine;
+    Viewport mViewport;
+
     public void init(PatternBase pattern, TimeLine timeLine)
     {
         mTimeLine = timeLine;
+        mViewport = timeLine.mViewport;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
-        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mTimeLine.mLOD);
+        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.mLOD);
+        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.mLOD);
 
         for (int i=mIni;i<mFin;i++) {
 
-            float x = mTimeLine.applyPosScale(i* mTimeLine.getTickWidth()/mTimeLine.mLOD);
+            float x = mViewport.applyPosScale(i* mTimeLine.getTickWidth()/mViewport.mLOD);
 
             float h = 0;
             if (((i%16)==0)) {
                 h = 10;
-                canvas.drawText(String.valueOf((int)(i/mTimeLine.mLOD)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+                canvas.drawText(String.valueOf((int)(i/mViewport.mLOD)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
                 h = 10+10;
@@ -89,7 +92,7 @@ public class TimeLineView extends View {
         // draw time pos marker
         {
             float time =  (mTimeLine.getTime() * mTimeLine.getTickWidth());
-            float x = mTimeLine.applyPosScale(time);
+            float x = mViewport.applyPosScale(time);
             RectF rf = new RectF();
             rf.top = 0;
             rf.bottom = getHeight();
@@ -101,7 +104,7 @@ public class TimeLineView extends View {
         // draw track length marker
         {
             float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
-            float x = mTimeLine.applyPosScale(endTime);
+            float x = mViewport.applyPosScale(endTime);
             RectF rf = new RectF();
             rf.top = 0;
             rf.bottom = getHeight();
@@ -114,8 +117,8 @@ public class TimeLineView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         int eventAction = event.getAction();
 
-        float x = ((event.getX() - mTimeLine.mPosX) / mTimeLine.mScaleFactor);
-        float thumbTime = (float)Math.floor(x / ((mTimeLine.getTickWidth()/mTimeLine.mLOD)))/mTimeLine.mLOD;
+        float x = ((event.getX() - mViewport.mPosX) / mViewport.mScaleFactor);
+        float thumbTime = (float)Math.floor(x / ((mTimeLine.getTickWidth()/mViewport.mLOD)))/mViewport.mLOD;
 
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:

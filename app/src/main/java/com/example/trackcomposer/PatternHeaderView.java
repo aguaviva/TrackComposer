@@ -45,13 +45,13 @@ public class PatternHeaderView extends View {
         mTextBlack.setColor(Color.BLACK);
         mTextBlack.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextBlack.setTextAlign(Paint.Align.LEFT);
-        mTextBlack.setTextSize(20);
+        mTextBlack.setTextSize(40);
 
         mTextWhite = new TextPaint();
         mTextWhite.setColor(Color.WHITE);
         mTextWhite.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextWhite.setTextAlign(Paint.Align.LEFT);
-        mTextWhite.setTextSize(20);
+        mTextWhite.setTextSize(40);
 
         black = new Paint();
         black.setColor(Color.BLACK);
@@ -75,10 +75,12 @@ public class PatternHeaderView extends View {
 
     int mChannels = -1;
     float mLength = -1;
-    void SetPattern(int channels, float length,  boolean bInvertY)
+    TimeLine mTimeLine;
+    void SetPattern(TimeLine timeLine, int channels, float length,  boolean bInvertY)
     {
         mLength = length;
         mChannels = channels;
+        mTimeLine = timeLine;
         this.bInvertY = bInvertY;
     }
 
@@ -105,25 +107,20 @@ public class PatternHeaderView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.translate(mPosX, mPosY);
+        canvas.translate(0, mPosY);
         canvas.scale(mScaleFactor, mScaleFactor);
-
-        float viewportTop = (0 - mPosY)/mScaleFactor;
-        float viewportBottom = (getHeight() - mPosY)/mScaleFactor;
-        float viewportLeft = (0 - mPosX)/mScaleFactor;
-        float viewportRight = (getWidth() - mPosX)/mScaleFactor;
-
-        float contentWidth = getWidth();
-
-        float xx = 16;
 
         // Draw background
         //
-        int ini = (int)Math.floor(viewportTop / mRowHeight);
-        int fin = (int)Math.ceil(viewportBottom / mRowHeight);
+        int ini = (int)Math.floor(mTimeLine.mViewport.mRect.top / mRowHeight);
+        int fin = (int)Math.ceil(mTimeLine.mViewport.mRect.bottom / mRowHeight);
 
         if (ini<0) ini = 0;
         if (fin>88) fin = 88;
+
+
+        float left = 0;
+        float right = getWidth()/mScaleFactor;
 
         // Draw text
         //
@@ -137,8 +134,8 @@ public class PatternHeaderView extends View {
             boolean bIsBlack = str.indexOf("#")>=0;
 
             RectF rf = new RectF();
-            rf.left = 0;
-            rf.right = viewportRight;
+            rf.left = left;
+            rf.right = right;
             rf.top = i * mRowHeight;
             rf.bottom = (i + 1) * mRowHeight;
 
@@ -154,7 +151,7 @@ public class PatternHeaderView extends View {
         // horizontal lines
         for (int i = ini; i < fin; i++) {
             float y = i* mRowHeight;
-            canvas.drawLine(0, y, viewportRight, y, black);
+            canvas.drawLine(0, y, mTimeLine.mViewport.mRect.right, y, black);
         }
     }
 

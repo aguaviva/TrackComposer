@@ -32,8 +32,10 @@ public class ActivityChord extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternChord = (PatternChord)mAppState.mLastPatternAdded;
 
+        mTimeLine.init(patternChord, 1);
+
         chordNames = (PatternHeaderView)findViewById(R.id.chordNames);
-        chordNames.SetPattern(patternChord.channels/3, patternChord.length,true);
+        chordNames.SetPattern(mTimeLine, patternChord.channels/3, patternChord.length,true);
         chordNames.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -47,7 +49,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(patternChord.channels, patternChord.length,true);
+        patternHeaderView.SetPattern(mTimeLine, patternChord.channels, patternChord.length,true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -61,7 +63,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternChord, mTimeLine,false, false);
+        mNoteView.SetPattern(patternChord, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {
