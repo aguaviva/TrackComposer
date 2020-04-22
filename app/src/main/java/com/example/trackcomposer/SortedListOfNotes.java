@@ -30,7 +30,7 @@ public class SortedListOfNotes
         for(int i=0;i<myList.size();i++)
         {
             Event n = myList.get(i);
-            if (time>n.time && time<(n.time + n.durantion) && row == n.channel)
+            if (time>=n.time && time<(n.time + n.durantion) && row == n.channel)
                 return n;
         }
         return null;

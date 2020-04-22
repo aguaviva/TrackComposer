@@ -84,16 +84,11 @@ public class PatternHeaderView extends View {
         this.bInvertY = bInvertY;
     }
 
-    protected float mPosX;
-    protected float mPosY;
-    protected float mScaleFactor = -1.0f;
+
     protected float mRowHeight = 0;
 
-    public void setPosScale(float x, float y, float s, float trackHeight)
+    public void setPosScale(float trackHeight)
     {
-        mPosX = 0;
-        mPosY = y;
-        mScaleFactor = s;
         mRowHeight = trackHeight;
     }
 
@@ -102,13 +97,12 @@ public class PatternHeaderView extends View {
         return (bInvertY)?(88 - y):y;
     }
 
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        canvas.translate(0, mPosY);
-        canvas.scale(mScaleFactor, mScaleFactor);
+        canvas.translate(0, mTimeLine.mViewport.mPosY);
+        canvas.scale(1, mTimeLine.mViewport.mScaleY);
 
         // Draw background
         //
@@ -120,7 +114,7 @@ public class PatternHeaderView extends View {
 
 
         float left = 0;
-        float right = getWidth()/mScaleFactor;
+        float right = getWidth();
 
         // Draw text
         //

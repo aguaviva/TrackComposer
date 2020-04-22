@@ -94,7 +94,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 timeLineView.init(patternPianoRoll, mTimeLine);
                 timeLineView.invalidate();
 
-                mPatternHeaderView.setPosScale(x, y, scale, trackHeight);
+                mPatternHeaderView.setPosScale(trackHeight);
                 mPatternHeaderView.invalidate();
             }
             @Override

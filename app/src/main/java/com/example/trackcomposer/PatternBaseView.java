@@ -6,8 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -229,7 +227,7 @@ public class PatternBaseView extends View {
         mViewport.mPosY = (-max)* mRowHeight;
 
         if (instrumentListener!=null) {
-            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
+            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
         }
     }
 
@@ -246,7 +244,7 @@ public class PatternBaseView extends View {
         // Set canvas zoom and pan
         //
         canvas.translate(mViewport.mPosX, mViewport.mPosY);
-        canvas.scale(mViewport.mScaleFactor, mViewport.mScaleFactor);
+        canvas.scale(mViewport.mScaleX, mViewport.mScaleY);
 
         // channels
         int iniTop = (int)Math.floor(mViewport.mRect.top / mRowHeight);
@@ -364,7 +362,7 @@ public class PatternBaseView extends View {
         if (mViewport.springToScreen())
         {
             if (instrumentListener != null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
             }
             invalidate();
         }
@@ -424,7 +422,7 @@ public class PatternBaseView extends View {
             mViewport.onDrag(distanceX, distanceY);
 
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
             }
 
             invalidate();
@@ -439,10 +437,23 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
 
-            mViewport.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
+            float scale = detector.getScaleFactor();
+            float currSpanX = detector.getCurrentSpanX();
+            float currSpanY = detector.getCurrentSpanY();
+
+            float scaleX = scale;
+            float scaleY = scale;
+
+            if (currSpanY>currSpanX*2)
+                scaleX=1;
+
+            if (currSpanX>currSpanY*2)
+                scaleY=1;
+
+            mViewport.onScale(detector.getFocusX(), detector.getFocusY(), scaleX, scaleY);
 
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
             }
 
             invalidate();
