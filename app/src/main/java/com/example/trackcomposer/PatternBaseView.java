@@ -376,21 +376,6 @@ public class PatternBaseView extends View {
         return b1 || b2;
     }
 
-/*
-    public void onTouchEvent(int x, int y) {
-        PatternBase mPattern = GetPattern();
-
-        GeneratorInfo gen = mPattern.Get(x,y);
-        if (gen==null)
-        {
-            mPattern.Set(x,y, new GeneratorInfo());
-        }
-        else
-        {
-            mPattern.Set(x,y, null);
-        }
-    }
-*/
     public void SetCurrentBeatCursor(int currentBeat) {
         this.mCurrentBeat =currentBeat;
         postInvalidate();
