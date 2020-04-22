@@ -69,10 +69,10 @@ public class ActivityChord extends AppCompatActivity {
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }
             @Override
-            public void longPress(Event noteTouched) {}
+            public void longPress(int rowSelected, float time) {}
             @Override
-            public boolean noteTouched(int rowSelected, Event noteTouched) {
-                patternChord.Play(mAppState.mixer, noteTouched.channel, 1);
+            public boolean noteTouched(int rowSelected, float time) {
+                //patternChord.Play(mAppState.mixer, noteTouched.channel, 1);
                 return true; // keep on processing
             }
         });

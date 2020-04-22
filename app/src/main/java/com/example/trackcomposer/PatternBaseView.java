@@ -47,7 +47,7 @@ public class PatternBaseView extends View {
 
     boolean mSelectable = false;
 
-    Event selectedNote = null;
+    public Event selectedNote = null;
 
     float mRowHeight = 0;
     float mColumnWidth = 0;
@@ -409,48 +409,11 @@ public class PatternBaseView extends View {
             int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
             row = indexToNote(row);
 
-            Event noteTouched = mPattern.get(row, thumbTime);
-
-
-
-            if (mViewMode == ViewMode.PIANO) {
-                if (noteTouched==null) {
-                    Event note = new Event();
-                    note.time = thumbTime;
-                    note.channel = row;
-                    note.durantion = 1;
-                    note.mGen = new GeneratorInfo();
-                    note.mGen.sampleId = 0;
-                    mPattern.Set(note);
-
-                    if (instrumentListener!=null) {
-                        instrumentListener.noteTouched(row, note);
-                    }
-
-                }
-                else {
-                    mPattern.Set(row,thumbTime, null);
-
-                    if (instrumentListener!=null) {
-                        instrumentListener.noteTouched(row, null);
-                    }
-
-                }
-
-
-            } else if (mViewMode == ViewMode.MAIN) {
-                if (mSelectable) {
-                    selectedNote = noteTouched;
-                }
-
-                if (instrumentListener!=null) {
-                    instrumentListener.noteTouched(row, noteTouched);
-                }
-
+            if (instrumentListener!=null) {
+                return instrumentListener.noteTouched(row, thumbTime);
             }
 
-            invalidate();
-            return true;
+            return false;
         }
 
         @Override
@@ -458,13 +421,10 @@ public class PatternBaseView extends View {
         {
             float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
             int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-
-            Event noteTouched = mPattern.get(row, thumbTime);
-            if (noteTouched==null)
-                return;
+            row = indexToNote(row);
 
             if (instrumentListener!=null) {
-                instrumentListener.longPress(noteTouched);
+                instrumentListener.longPress(row, thumbTime);
             }
         }
 
@@ -496,12 +456,12 @@ public class PatternBaseView extends View {
 
             mViewport.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
 
-        if (instrumentListener!=null) {
-            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
-        }
+            if (instrumentListener!=null) {
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleFactor, mRowHeight);
+            }
 
-        invalidate();
-        return true;
+            invalidate();
+            return true;
         }
     };
 
@@ -510,8 +470,8 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
-        boolean noteTouched(int rowSelected, Event noteTouched);
-        void longPress(Event noteTouched);
+        boolean noteTouched(int rowSelected, float time);
+        void longPress(int rowSelected, float time);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }
     public void  setInstrumentListener(InstrumentListener instrumentTouched) {

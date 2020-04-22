@@ -98,11 +98,27 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 mPatternHeaderView.invalidate();
             }
             @Override
-            public void longPress(Event noteTouched) {}
+            public void longPress(int rowSelected, float time) {}
 
             @Override
-            public boolean noteTouched(int rowSelected, Event noteTouched) {
+            public boolean noteTouched(int rowSelected, float time) {
+
+                Event noteTouched = patternPianoRoll.get(rowSelected, time);
+                if (noteTouched==null) {
+                    Event note = new Event();
+                    note.time = time;
+                    note.channel = rowSelected;
+                    note.durantion = 1;
+                    note.mGen = new GeneratorInfo();
+                    note.mGen.sampleId = 0;
+                    patternPianoRoll.Set(note);
+                }
+                else {
+                    patternPianoRoll.Set(rowSelected, time,null);
+                }
+
                 patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);
+                mNoteView.invalidate();
                 return true;
             }
         });

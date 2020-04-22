@@ -142,16 +142,23 @@ public class ActivityMain extends AppCompatActivity {
                 timeLineView.invalidate();
             }
             @Override
-            public void longPress(Event noteTouched)
+            public void longPress(int rowSelected, float time)
             {
-                eventSelected = noteTouched;
-                createPopUpMenu(new PointF());
+                Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
+                if (noteTouched!=null) {
+                    eventSelected = noteTouched;
+                    mRowSelected = rowSelected;
+                    createPopUpMenu(new PointF());
+                }
             }
             @Override
-            public boolean noteTouched(int rowSelected, Event noteTouched) {
-                mRowSelected = rowSelected;
+            public boolean noteTouched(int rowSelected, float time) {
+                Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
+                masterView.selectedNote = noteTouched;
                 eventSelected = noteTouched;
-                return false;
+                mRowSelected = rowSelected;
+                masterView.invalidate();
+                return true;
             }
         });
 
@@ -185,6 +192,11 @@ public class ActivityMain extends AppCompatActivity {
         super.onResume();
 
         mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
+
+        if (eventSelected!=null)
+        {
+            eventSelected.durantion = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.mGen.sampleId).GetLength();
+        }
 
         generateIcons();
     }
@@ -478,6 +490,8 @@ public class ActivityMain extends AppCompatActivity {
                 note.mGen = new GeneratorInfo();
                 note.mGen.sampleId = id;
                 mAppState.mPatternMaster.Set(note);
+                eventSelected = note;
+
                 dialog.dismiss();
 
                 startActivity(intent);

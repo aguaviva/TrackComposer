@@ -51,9 +51,9 @@ public class ActivityPercussion extends AppCompatActivity {
             public void scaling(float x, float y, float scale, float trackHeight) {
             }
             @Override
-            public void longPress(Event noteTouched) {}
+            public void longPress(int rowSelected, float time) {}
             @Override
-            public boolean noteTouched(int rowSelected, Event noteTouched) { return true;}
+            public boolean noteTouched(int rowSelected, float time) { return false;}
         });
     }
 

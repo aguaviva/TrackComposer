@@ -2,7 +2,7 @@ package com.example.trackcomposer;
 
 public class Event {
     float time;
-    int durantion;
+    float durantion;
     int channel;
     GeneratorInfo mGen;
 }
