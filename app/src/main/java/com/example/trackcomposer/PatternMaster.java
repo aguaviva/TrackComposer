@@ -37,11 +37,13 @@ class PatternMaster extends PatternBase
         for (int c = 0; c < GetChannelCount(); c++) {
             Channel ch = mChannel[c];
             if (ch.id==-1) {
-                GeneratorInfo gi =  Get(c, (int)time);
-                if (gi!=null) {
-                    ch.id = gi.sampleId;
+                /*
+                Event event =  GetNoteBy(c, time);
+                if (event!=null) {
+                    ch.id = event.mGen.sampleId;
                     ch.time = 0;
                 }
+                */
             }
         }
 
@@ -177,7 +179,5 @@ class PatternMaster extends PatternBase
                 }
             }
         }
-
     }
-
 };

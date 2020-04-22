@@ -98,11 +98,11 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 mPatternHeaderView.invalidate();
             }
             @Override
-            public void longPress(Point p, PointF pf) {}
+            public void longPress(Event noteTouched) {}
 
             @Override
-            public boolean noteTouched(int note, int beat) {
-                patternPianoRoll.Play(mAppState.mixer, note, 1);
+            public boolean noteTouched(int rowSelected, Event noteTouched) {
+                patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);
                 return true;
             }
         });

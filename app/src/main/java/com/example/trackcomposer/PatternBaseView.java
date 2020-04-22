@@ -47,7 +47,7 @@ public class PatternBaseView extends View {
 
     boolean mSelectable = false;
 
-    Point selected = null;
+    Event selectedNote = null;
 
     float mRowHeight = 0;
     float mColumnWidth = 0;
@@ -192,7 +192,7 @@ public class PatternBaseView extends View {
         int min = 88;
         int max = 0;
         for(int i=0;;i++) {
-            SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
+            Event note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
             if (note.channel>max)
@@ -288,13 +288,13 @@ public class PatternBaseView extends View {
             }
 
             //show selected block
-            if (mSelectable && selected!=null) {
-                int x = selected.x;
-                int y = indexToNote(selected.y);
+            if (mSelectable && selectedNote!=null) {
+                float x = selectedNote.time;
+                float y = indexToNote(selectedNote.channel);
 
                 RectF rf = new RectF();
-                rf.left = x*mColumnWidth;
-                rf.right = (x+1)*mColumnWidth;
+                rf.left = selectedNote.time*mColumnWidth;
+                rf.right = (selectedNote.time + selectedNote.durantion)*mColumnWidth;
                 rf.top = y * mRowHeight;
                 rf.bottom = (y + 1) * mRowHeight;
                 canvas.drawRect(rf, selectedColor);
@@ -322,12 +322,13 @@ public class PatternBaseView extends View {
 
         // show blocks
         for(int i=0;;i++) {
-            SortedListOfNotes.Note note = mPattern.GetNoteByIndex(i);
+            Event note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
             //*ticksPerColumn;
             float x1 = note.time*(mTimeLine.getTickWidth());
             float x2 = (note.time + note.durantion)*(mTimeLine.getTickWidth());
+
             int y = indexToNote(note.channel);
 
             int padTL = (mLOD==0)?2:1;
@@ -375,6 +376,7 @@ public class PatternBaseView extends View {
         return b1 || b2;
     }
 
+/*
     public void onTouchEvent(int x, int y) {
         PatternBase mPattern = GetPattern();
 
@@ -388,76 +390,81 @@ public class PatternBaseView extends View {
             mPattern.Set(x,y, null);
         }
     }
-
+*/
     public void SetCurrentBeatCursor(int currentBeat) {
         this.mCurrentBeat =currentBeat;
         postInvalidate();
     }
 
     //  Pan & zoom gestures -----------------------------------------------------
-    Point ToPattern(PointF point) {
-        if (point.x<0 || point.y<0)
-            return null;
-
-        PatternBase mPattern = GetPattern();
-
-        float contentWidth = getWidth() / 16.0f;
-        float contentHeight = mRowHeight;
-
-        int beat = (int)(point.x/contentWidth);
-        int channel = (int)(point.y/contentHeight);
-
-        channel = indexToNote(channel);
-
-        if ((channel >= 108) || (beat>=mPattern.GetLength()))
-            return null;
-
-        return new Point(beat, channel);
-    }
-
     private GestureDetector mGestureDetector;
     private ScaleGestureDetector mScaleGestureDetector;
 
     private final GestureDetector.SimpleOnGestureListener mGestureDetectorListener = new GestureDetector.SimpleOnGestureListener() {
 
-        PointF point = new PointF();
-
         @Override
-        public boolean onSingleTapUp (MotionEvent e)
+        public boolean onSingleTapUp (MotionEvent event)
         {
-            mViewport.removePosScale(e.getX(), e.getY(), point);
-            if (point==null)
-                return false;
+            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
+            row = indexToNote(row);
 
-            Point p = ToPattern(point);
+            Event noteTouched = mPattern.get(row, thumbTime);
 
-            if (mSelectable) {
-                selected = p;
+
+
+            if (mViewMode == ViewMode.PIANO) {
+                if (noteTouched==null) {
+                    Event note = new Event();
+                    note.time = thumbTime;
+                    note.channel = row;
+                    note.durantion = 1;
+                    note.mGen = new GeneratorInfo();
+                    note.mGen.sampleId = 0;
+                    mPattern.Set(note);
+
+                    if (instrumentListener!=null) {
+                        instrumentListener.noteTouched(row, note);
+                    }
+
+                }
+                else {
+                    mPattern.Set(row,thumbTime, null);
+
+                    if (instrumentListener!=null) {
+                        instrumentListener.noteTouched(row, null);
+                    }
+
+                }
+
+
+            } else if (mViewMode == ViewMode.MAIN) {
+                if (mSelectable) {
+                    selectedNote = noteTouched;
+                }
+
+                if (instrumentListener!=null) {
+                    instrumentListener.noteTouched(row, noteTouched);
+                }
+
             }
-
-            boolean bProcessTouch = false;
-
-            if (instrumentListener!=null) {
-                bProcessTouch = instrumentListener.noteTouched(p.y, p.x);
-            }
-
-            if (bProcessTouch)
-                onTouchEvent(p.y, p.x);
 
             invalidate();
             return true;
         }
 
         @Override
-        public void onLongPress (MotionEvent e)
+        public void onLongPress (MotionEvent event)
         {
-            mViewport.removePosScale(e.getX(), e.getY(), point);
-            Point p = ToPattern(point);
-            if (p==null)
+            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
+
+            Event noteTouched = mPattern.get(row, thumbTime);
+            if (noteTouched==null)
                 return;
 
             if (instrumentListener!=null) {
-                instrumentListener.longPress(p, point);
+                instrumentListener.longPress(noteTouched);
             }
         }
 
@@ -503,8 +510,8 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
-        boolean noteTouched(int note, int beat);
-        void longPress(Point p, PointF pf);
+        boolean noteTouched(int rowSelected, Event noteTouched);
+        void longPress(Event noteTouched);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }
     public void  setInstrumentListener(InstrumentListener instrumentTouched) {

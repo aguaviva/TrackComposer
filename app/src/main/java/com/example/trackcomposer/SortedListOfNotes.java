@@ -1,7 +1,5 @@
 package com.example.trackcomposer;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,29 +11,33 @@ import java.util.List;
 
 public class SortedListOfNotes
 {
-    public static class Note
-    {
-        float time;
-        int durantion;
-        int channel;
-        GeneratorInfo mGen;
-    };
+    private float mTime = -1;
+    private int mIndex = 0;
+    private int mNotesCount = 0;
 
-    float mTime = -1;
-    int mIndex = 0;
-    int mNotesCount = 0;
+    private List<Event> myList = new ArrayList<>();
 
-    List<Note> myList = new ArrayList<>();
-
-    Note GetNoteByIndex(int index)
+    Event GetNoteByIndex(int index)
     {
         if (index<myList.size())
             return myList.get(index);
         return null;
     }
 
+    public Event GetNoteBy(int row, float time)
+    {
+        int index = SetTimeRandom(time);
+        for(int i=0;i<myList.size();i++)
+        {
+            Event n = myList.get(i);
+            if (time>n.time && time<(n.time + n.durantion) && row == n.channel)
+                return n;
+        }
+        return null;
+    }
 
-    private static int findFirstOccurrence(List<Note> a, int start, int end, float key){
+
+    private static int findFirstOccurrence(List<Event> a, int start, int end, float key){
 
         if (a.size()==0)
             return -1;
@@ -55,9 +57,9 @@ public class SortedListOfNotes
 
     private void sortNotes()
     {
-        Collections.sort(myList, new Comparator<Note>() {
+        Collections.sort(myList, new Comparator<Event>() {
             @Override
-            public int compare(Note lhs, Note rhs) {
+            public int compare(Event lhs, Event rhs) {
                 // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
                 return lhs.time < rhs.time ? -1 : (lhs.time > rhs.time) ? 1 : 0;
             }
@@ -114,30 +116,17 @@ public class SortedListOfNotes
     {
         for(int i=0;i<myList.size();i++)
         {
-            myList.get(i).time*=multiplier;
+            //myList.get(i).time*=multiplier;
+            //myList.get(i).durantion*=multiplier;
         }
     }
 
     public int SetTime(float time)
     {
         return SetTimeRandom(time);
-        /*
-        if (time == mTime)
-        {
-            return mNotesCount;
-        }
-        else if (time == mTime+1)
-        {
-            return SetTimeNext();
-        }
-        else
-        {
-            return SetTimeRandom(time);
-        }
-         */
     }
 
-    public Note Get(int index)
+    public Event Get(int index)
     {
         if (index>=mNotesCount)
             return null;
@@ -145,14 +134,11 @@ public class SortedListOfNotes
         return myList.get(mIndex+index);
     }
 
-    public void Set(Note gen)
+    public void Set(Event gen)
     {
-        gen.time = mTime;
         Clear(gen.channel);
         myList.add(gen);
         sortNotes();
-
-        SetTimeRandom(mTime);
     }
 
     public boolean Clear(int channel)
@@ -179,7 +165,7 @@ public class SortedListOfNotes
         for (int c = 0; c < myList.size(); c++)
         {
             JSONObject json = new JSONObject();
-            Note note = myList.get(c);
+            Event note = myList.get(c);
             json.put("time", note.time);
             json.put("channel", note.channel);
             json.put("durantion", note.durantion);
@@ -195,7 +181,7 @@ public class SortedListOfNotes
         for (int c = 0; c < jArr.length(); c++)
         {
             JSONObject json = jArr.getJSONObject(c);
-            Note note = new Note();
+            Event note = new Event();
             note.time = json.getInt("time");
             note.channel = json.getInt("channel");
             note.durantion = json.getInt("durantion");

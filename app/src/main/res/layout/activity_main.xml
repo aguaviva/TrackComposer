@@ -39,13 +39,13 @@
                 tools:src="@android:drawable/ic_media_play" />
 
             <ImageButton
-                android:id="@+id/loop"
+                android:id="@+id/add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="#FFFFFF"
                 android:contentDescription="play loop"
                 app:backgroundTint="@color/colorAccent"
-                tools:src="@android:drawable/ic_menu_revert" />
+                tools:src="@android:drawable/ic_menu_add" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 

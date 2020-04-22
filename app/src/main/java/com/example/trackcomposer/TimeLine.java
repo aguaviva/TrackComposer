@@ -55,4 +55,11 @@ public class TimeLine {
     public int getRightTick(float tickWidth) {
         return (int)Math.ceil(mViewport.mRect.right / tickWidth); // 256 ticks
     }
+
+    public float getTimeFromScreen(float x)
+    {
+        x = mViewport.removePosScaleX(x);
+        return (float)Math.floor(x / ((getTickWidth()/mViewport.mLOD)))/mViewport.mLOD;
+    }
+
 }

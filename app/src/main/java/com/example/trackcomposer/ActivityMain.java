@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PointF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,14 +15,11 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import android.os.Environment;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
@@ -38,10 +34,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-
 import java.io.File;
-
-
 
 public class ActivityMain extends AppCompatActivity {
     private static final String TAG = "TrackComposer";
@@ -54,6 +47,9 @@ public class ActivityMain extends AppCompatActivity {
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
     int mNote=-1, mBeat=-1;
+
+    int mRowSelected;
+    Event eventSelected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,14 +96,13 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        final ImageButton fab3 = (ImageButton)findViewById(R.id.loop);
+        final ImageButton fab3 = (ImageButton)findViewById(R.id.add);
         fab3.setImageResource(android.R.drawable.ic_menu_revert);
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 float ini = timeLineView.getSelection();
-                mAppState.setLoop((int)(ini), (int)(16*16));
-                boolean playing = mAppState.PlayPause();
+                addPattern(mRowSelected, mTimeLine.getTime());
             }
         });
 
@@ -139,6 +134,7 @@ public class ActivityMain extends AppCompatActivity {
         //
         masterView = (PatternBaseView) findViewById(R.id.masterView);
         masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true, PatternBaseView.ViewMode.MAIN);
+        masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
@@ -146,16 +142,15 @@ public class ActivityMain extends AppCompatActivity {
                 timeLineView.invalidate();
             }
             @Override
-            public void longPress(Point p, PointF pf)
+            public void longPress(Event noteTouched)
             {
-                mNote = p.y;
-                mBeat = p.x;
-                createPopUpMenu(pf);
+                eventSelected = noteTouched;
+                createPopUpMenu(new PointF());
             }
             @Override
-            public boolean noteTouched(int note, int beat) {
-                mNote = note;
-                mBeat = beat;
+            public boolean noteTouched(int rowSelected, Event noteTouched) {
+                mRowSelected = rowSelected;
+                eventSelected = noteTouched;
                 return false;
             }
         });
@@ -280,14 +275,16 @@ public class ActivityMain extends AppCompatActivity {
             switch (v.getId())
             {
                 case R.id.btnNew:
-                    addPattern(mNote, mBeat); break;
+                    break;
                 case R.id.btnEdit:
-                    mAppState.setLoop((int)(mBeat*16), (int)((mBeat+1)*16));
-                    editPattern(mNote, mBeat); break;
+                    if (eventSelected!=null) {
+                        mAppState.setLoop(eventSelected.time, eventSelected.time + eventSelected.durantion);
+                        editPattern(eventSelected);
+                    }
+                    break;
                 case R.id.btnCopy: {
-                    GeneratorInfo genInf = mAppState.mPatternMaster.Get(mNote, mBeat);
-                    if (genInf != null)
-                        copiedId = genInf.sampleId;
+                    if (eventSelected != null)
+                        copiedId = eventSelected.mGen.sampleId;
                     else
                         copiedId = -1;
                     break;
@@ -296,7 +293,7 @@ public class ActivityMain extends AppCompatActivity {
                     if (copiedId != -1) {
                         GeneratorInfo genInf = new GeneratorInfo();
                         genInf.sampleId = copiedId;
-                        mAppState.mPatternMaster.Set(mNote, mBeat, genInf);
+                        mAppState.mPatternMaster.Set(eventSelected.channel, mTimeLine.getTime(), genInf);
                         break;
                     }
                     else
@@ -408,16 +405,15 @@ public class ActivityMain extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void editPattern(final int channel, final int beat)
+    private void editPattern(Event event)
     {
-        GeneratorInfo genInf = mAppState.mPatternMaster.Get(channel, beat);
-        if (genInf==null)
+        if (event==null)
         {
             Toast.makeText(mContext, "Nothing to edit ", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(genInf.sampleId);
+        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.mGen.sampleId);
         mAppState.mLastPatternAdded = pattern;
 
         Intent intent = null;
@@ -435,7 +431,7 @@ public class ActivityMain extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void addPattern(final int channel, final int beat)
+    private void addPattern(final int channel, final float time)
     {
         final Dialog dialog = new Dialog(mContext);
         dialog.setContentView(R.layout.new_pattern);
@@ -466,15 +462,22 @@ public class ActivityMain extends AppCompatActivity {
                         pattern = new PatternPianoRoll(filename, mAppState.extStoreDir+ "/"+filename, 24, 16);
                         intent = new Intent(mContext, ActivityPianoRoll.class);
                         break;
+                    default:
+                        dialog.dismiss();
+                        return;
                 }
 
                 int id = mAppState.mPatternMaster.mPatternDataBase.size();
                 mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
                 mAppState.mLastPatternAdded = pattern;
 
-                GeneratorInfo genInf = new GeneratorInfo();
-                genInf.sampleId = id;
-                mAppState.mPatternMaster.Set(channel, beat, genInf);
+                Event note = new Event();
+                note.time = time;
+                note.channel = channel;
+                note.durantion = 16;
+                note.mGen = new GeneratorInfo();
+                note.mGen.sampleId = id;
+                mAppState.mPatternMaster.Set(note);
                 dialog.dismiss();
 
                 startActivity(intent);

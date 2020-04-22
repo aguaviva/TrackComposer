@@ -1,15 +1,7 @@
 package com.example.trackcomposer;
 
-import android.util.Log;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 public class PatternBase {
     String type, name, fileName;
@@ -28,34 +20,34 @@ public class PatternBase {
     String GetName() { return name;}
     float GetLength() { return length; }
     int GetChannelCount() { return channels; }
-    SortedListOfNotes.Note GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
-    GeneratorInfo Get(int channel, int time)
+    Event GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
+    Event Get(int channel, float time)
     {
-        int numNotes = mNotes.SetTime(time);
-        for(int i=0;i<numNotes;i++)
-        {
-            SortedListOfNotes.Note note = mNotes.Get(i);
-            if (note.channel == channel)
-                return note.mGen;
-        }
-
-        return null;
+        return mNotes.GetNoteBy(channel, time);
     }
 
-    void Set(int channel, int pos, GeneratorInfo hit)
-    {
-        mNotes.SetTime(pos);
+    void Set(Event note) {
+        mNotes.Set(note);
+    }
 
+    public Event get(int row, float time) {
+        return mNotes.GetNoteBy(row, time);
+    }
+
+
+    void Set(int channel, float time, GeneratorInfo hit)
+    {
         if (hit!=null)
         {
-            SortedListOfNotes.Note note = new SortedListOfNotes.Note();
-            note.time = pos;
+            Event note = new Event();
+            note.time = time;
             note.channel = channel;
             note.mGen = hit;
             mNotes.Set(note);
         }
         else
         {
+            mNotes.SetTime(time);
             mNotes.Clear(channel);
         };
     }
@@ -69,16 +61,14 @@ public class PatternBase {
             mBeatListener.beat(currentBeat);
     }
 
-    void PlayBeat(Mixer sp, float beat, float volume)
+    void PlayBeat(Mixer sp, float time, float volume)
     {
-        beat = beat;// % length;
+        int noteCount = mNotes.SetTime(time);
 
-        int noteCount = mNotes.SetTime(beat);
-
-        CallBeatListener(beat);
+        CallBeatListener(time);
 
         for (int c = 0; c < noteCount; c++) {
-            SortedListOfNotes.Note note = mNotes.Get(c);
+            Event note = mNotes.Get(c);
             if (note != null) {
                 Play(sp, note.channel, volume);
             }
@@ -113,6 +103,6 @@ public class PatternBase {
     void ScaleTime(int multiplier)
     {
         mNotes.ScaleTime(multiplier);
-        length *=multiplier;
+        //length *=multiplier;
     }
 }
