@@ -413,6 +413,14 @@ public class PatternBaseView extends View {
 
         @Override
         public boolean onDown(MotionEvent e) {
+            mViewport.onDown(e);
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
+        {
+            mViewport.onFling(velocityX/100.0f, velocityY/100.0f);
             return true;
         }
 

@@ -2,12 +2,12 @@ package com.example.trackcomposer;
 
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.view.MotionEvent;
 
 public class Viewport {
-    protected float mPosX = 0.0f;
-    protected float mPosY = 0.0f;
-    protected float mScaleX = 1.0f;
-    protected float mScaleY = 1.0f;
+    protected float mPosX = 0.0f, mPosY = 0.0f;
+    protected float mScaleX = 1.0f, mScaleY = 1.0f;
+    protected float mVelX = 0.0f, mVelY = 0.0f;
 
     float mLOD = 1; // for ticks
 
@@ -35,7 +35,6 @@ public class Viewport {
         return (y * mScaleY) + mPosY;
     }
 
-
     public float removePosScaleX(float x) {
         return (x - mPosX) / mScaleX;
     }
@@ -45,12 +44,18 @@ public class Viewport {
     }
 
     public void onDrag(float distanceX, float distanceY) {
+
+        mVelX = 0; mVelY = 0;
+
         mPosX -= distanceX;
         mPosY -= distanceY;
         updateViewport();
     }
 
     public void onScale(float focusX, float focusY, float scaleX, float scaleY) {
+
+        mVelX = 0; mVelY = 0;
+
         float oldScaleFactorX = mScaleX;
         mScaleX *= (scaleX*scaleX);
 
@@ -78,22 +83,49 @@ public class Viewport {
         updateViewport();
     }
 
+    public void onFling(float velX, float velY)
+    {
+        mVelX = velX; mVelY = velY;
+    }
+
+    public boolean onDown(MotionEvent e) {
+        mVelX = 0; mVelY = 0;
+        return true;
+    }
+
     public boolean springToScreen()
     {
+        boolean bDoInvalidate = false;
+
+        if (Math.abs(mVelX) > 0.001f || Math.abs(mVelY) > 0.001f) {
+            mPosX += mVelX ;
+            mPosY += mVelY;
+
+            mVelX *= 0.99f;
+            mVelY *= 0.99f;
+
+            bDoInvalidate = true;
+        }
+
         // spring to center the track
         //
-        if (mPosX > 0.001 || mPosY > 0.001) {
+        if (mPosX > 0.001) {
+            mVelX = 0;
+            mPosX += (0 - mPosX) * .1;
+            bDoInvalidate = true;
+        }
 
-            if (mPosX > 0) {
-                mPosX += (0 - mPosX) * .1;
-            }
-            if (mPosY > 0) {
-                mPosY += (0 - mPosY) * .1;
-            }
+        if (mPosY > 0.001) {
+            mVelY = 0;
+            mPosY += (0 - mPosY) * .1;
+            bDoInvalidate = true;
+        }
 
+        if (bDoInvalidate) {
             updateViewport();
             return true;
         }
+
         return false;
     }
 }
