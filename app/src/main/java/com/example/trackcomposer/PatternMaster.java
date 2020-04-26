@@ -1,5 +1,7 @@
 package com.example.trackcomposer;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,13 +17,13 @@ class PatternMaster extends PatternBase
 
     class Channel
     {
-        int id=-1;
-        int time;
+        Event mEvent = null;
+        int mTimeSamples;
         float mVolume;
     };
 
     Channel[] mChannel;
-
+    SortedListOfNotes.State iter;
 
     public PatternMaster(String name, String filename, int channels, int length)
     {
@@ -29,43 +31,73 @@ class PatternMaster extends PatternBase
         mChannel = new Channel[channels];
         for (int c = 0; c < mChannel.length; c++)
             mChannel[c] = new Channel();
+
+        iter = getIter();
+        iter.setTime(0);
+        iter.mTime = 0;
+        iter.mNextTime = 0;
+    }
+
+    public float getTime() {
+        return (float)iter.mTime/(44100.0f/4.0f);
     }
 
     @Override
-    void PlayBeat(Mixer sp, float time, float volume)
+    void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
-        for (int c = 0; c < GetChannelCount(); c++) {
-            Channel ch = mChannel[c];
-            if (ch.id==-1) {
-                /*
-                Event event =  GetNoteBy(c, time);
-                if (event!=null) {
-                    ch.id = event.mGen.sampleId;
-                    ch.time = 0;
+        CallBeatListener(iter.mTime);
+
+        while(ini<fin) {
+
+            // hit notes
+            if (iter.mNextTime <= iter.mTime) {
+
+                int notes = iter.getNotesCount();
+                if (notes<=0) {
+                    return;
                 }
-                */
+
+                for (int i = 0; i < notes; i++) {
+                    Event event = iter.GetNote();
+                    Channel ch = mChannel[event.channel];
+                    ch.mEvent = event;
+                    ch.mTimeSamples = (int)(event.durantion * (44100/4));
+
+                    PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
+                    p.iter.reset();
+
+
+                    iter.nextNote();
+                }
+
+                Event event = iter.GetNote();
+                iter.mNextTime = (int)(event.time * (44100/4));
             }
-        }
 
-        CallBeatListener(time/256);
+            int deltaTime = (iter.mNextTime - iter.mTime);
+            int mid = Math.min(ini + 2*deltaTime, fin);
 
-        // play channels
-        for (int c = 0; c < mChannel.length; c++) {
-            Channel ch = mChannel[c];
-            if (ch.id>=0) {
-                PatternBase p = mPatternDataBase.get(ch.id);
-                if (p != null) {
-                    if (ch.mVolume > 0) {
-                        p.PlayBeat(sp, ch.time, ch.mVolume);
+            // play channels
+            for (int c = 0; c < mChannel.length; c++) {
+                Channel ch = mChannel[c];
+                if (ch.mEvent != null) {
+                    PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
+                    if (p != null) {
+                        if (ch.mVolume > 0) {
+                            p.PlayBeat(chunk, ini, mid, ch.mVolume);
+                        }
+
+                        ch.mTimeSamples -= (mid - ini)/2;
+                        if (ch.mTimeSamples <= 0) {
+                            ch.mEvent = null;
+                        }
                     }
                 }
-
-                ch.time++;
-                if (ch.time >= p.length)
-                    ch.id = -1;
             }
-        }
 
+            iter.mTime += (mid-ini)/2;
+            ini = mid;
+        }
     }
 
     public void setVolume(int channel, float volume) { mChannel[channel].mVolume=volume;}
@@ -179,5 +211,8 @@ class PatternMaster extends PatternBase
                 }
             }
         }
+
+        iter = getIter();
+        iter.reset();
     }
 };

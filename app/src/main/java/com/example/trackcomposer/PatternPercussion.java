@@ -17,14 +17,14 @@ class PatternPercussion extends PatternBase
             mChannels[i] = -1;
         }
     }
-
+/*
     @Override
     public void Play(Mixer sp, int note, float volume)
     {
         if (mChannels[note]>=0)
             sp.play(mChannels[note], 0, Misc.GetFrequency(40), volume);
     }
-
+*/
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {

@@ -11,22 +11,91 @@ import java.util.List;
 
 public class SortedListOfNotes
 {
-    private float mTime = -1;
+    public class State {
+        private int mIndex = 0;
+        public int  mTime = 0, mNextTime = 0;
+        private SortedListOfNotes iter;
+
+        public State(SortedListOfNotes sln)
+        {
+            iter=sln;
+        }
+
+        public void reset()
+        {
+            mTime = 0;
+            mNextTime = 0;
+            setTime(0);
+        }
+
+        public boolean setTime(float time) {
+            mIndex = iter.GetNextNoteIndexByTime(time);
+            if (mIndex<0) {
+                mIndex = 0;
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        public int getNotesCount() {
+            return iter.getNotesCount(mIndex);
+        }
+
+        public Event GetNote()
+        {
+            return iter.GetNoteByIndex(mIndex);
+        }
+
+        public float GetTimeOfNextNote()
+        {
+            Event event = GetNote();
+            if (event!=null)
+                return event.time;
+            else
+                return iter.GetNoteByIndex(mIndex-1).time+iter.GetNoteByIndex(mIndex-1).durantion;
+        }
+
+        public void nextNote()
+        {
+            mIndex++;
+        }
+    };
+
+
     private int mIndex = 0;
     private int mNotesCount = 0;
 
     private List<Event> myList = new ArrayList<>();
 
-    Event GetNoteByIndex(int index)
+    public SortedListOfNotes.State getIter() {
+        return new SortedListOfNotes.State(this);
+    }
+
+
+    public Event GetNoteByIndex(int index)
     {
         if (index<myList.size())
             return myList.get(index);
         return null;
     }
 
+
+    int GetNextNoteIndexByTime(float time)
+    {
+        for(int i=0;i<myList.size();i++)
+        {
+            Event n = myList.get(i);
+            if (time<=n.time)
+                return i;
+        }
+        return -1;
+    }
+
+
     public Event GetNoteBy(int row, float time)
     {
-        int index = SetTimeRandom(time);
         for(int i=0;i<myList.size();i++)
         {
             Event n = myList.get(i);
@@ -35,7 +104,6 @@ public class SortedListOfNotes
         }
         return null;
     }
-
 
     private static int findFirstOccurrence(List<Event> a, int start, int end, float key){
 
@@ -66,50 +134,23 @@ public class SortedListOfNotes
         });
     }
 
-    private int getNotesCount()
+    private int getNotesCount(int index)
     {
+        if (myList==null)
+            return 0;
+
+        if (index>=myList.size())
+            return 0;
+
         mNotesCount = 0;
-        for(int i=mIndex;i<myList.size();i++)
+        float time = myList.get(index).time;
+        for(int i=index;i<myList.size();i++)
         {
-            if (myList.get(i).time==mTime)
-                mNotesCount++;
+            if (myList.get(i).time!=time)
+                return mNotesCount;
+            mNotesCount++;
         }
         return mNotesCount;
-    }
-
-    private int SetTimeNext()
-    {
-        mTime++;
-
-        mIndex += mNotesCount;
-        if (mIndex>=myList.size()) {
-            mNotesCount = 0;
-            return -1;
-        }
-        else if (myList.get(mIndex).time == mTime)
-        {
-            return getNotesCount();
-        }
-        else
-        {
-            mNotesCount = 0;
-            return 0;
-        }
-    }
-
-    private int SetTimeRandom(float time)
-    {
-        mTime = time;
-
-        int index = findFirstOccurrence(myList, 0, myList.size()-1, time);
-        if (index == -1) {
-            mNotesCount = 0;
-            return 0;
-        }
-        else {
-            mIndex = index;
-            return getNotesCount();
-        }
     }
 
     public void ScaleTime(int multiplier)
@@ -119,11 +160,6 @@ public class SortedListOfNotes
             //myList.get(i).time*=multiplier;
             //myList.get(i).durantion*=multiplier;
         }
-    }
-
-    public int SetTime(float time)
-    {
-        return SetTimeRandom(time);
     }
 
     public Event Get(int index)
@@ -153,8 +189,6 @@ public class SortedListOfNotes
                 break;
             }
         }
-
-        SetTimeRandom(mTime);
 
         return true;
     }

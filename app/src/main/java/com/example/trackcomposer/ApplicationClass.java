@@ -25,28 +25,19 @@ public class ApplicationClass extends Application {
     private float mTimeIni = 0, mTimeFin = 0;
 
     MySoundPool soundPool;
-    InstrumentList instrumentList;
+    InstrumentList instrumentList = InstrumentList.getInstance( );
     Mixer mixer;
     void Init()
     {
         if (mPatternMaster==null) {
-            instrumentList = new InstrumentList();
+            instrumentList.reset();
             mixer = new Mixer(instrumentList);
             soundPool = new MySoundPool();
             soundPool.init(44100, new MySoundPool.NextBeatListener() {
                 @Override
                 public void renderChunk(short[] chunk, int ini, int fin) {
-                    mixer.renderChunk(chunk, ini, fin);
-                }
-
-                @Override
-                public void beat() {
-                    if (mPlaying) {
-                        mPatternMaster.PlayBeat(mixer, mTime, 1);
-                        mTime++;
-
-                        if (mTime>=mTimeFin)
-                            mTime = mTimeIni;
+                    if (mPatternMaster!=null) {
+                        mPatternMaster.PlayBeat(chunk, ini, fin, 1);
                     }
                 }
             });
@@ -57,10 +48,6 @@ public class ApplicationClass extends Application {
         }
     }
 
-    public float getTime()
-    {
-        return mTime;
-    }
     public void setTime(float mTime)
     {
         this.mTime = mTime;
@@ -73,7 +60,6 @@ public class ApplicationClass extends Application {
 
         setTime(mTimeIni);
     }
-
 
     boolean PlayPause()
     {
@@ -92,7 +78,7 @@ public class ApplicationClass extends Application {
 
             JSONObject jsonObj = new JSONObject(lines);
 
-            instrumentList = new InstrumentList();
+            instrumentList.reset();
             mixer = new Mixer(instrumentList);
             instrumentList.serializeFromJson(jsonObj);
 

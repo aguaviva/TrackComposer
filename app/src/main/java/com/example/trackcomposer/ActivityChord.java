@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -65,6 +66,10 @@ public class ActivityChord extends AppCompatActivity {
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
         mNoteView.SetPattern(patternChord, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            @Override
+            public boolean onTouchEvent(MotionEvent event) {
+                return false;
+            }
             @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }

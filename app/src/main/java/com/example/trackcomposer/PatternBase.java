@@ -9,8 +9,11 @@ public class PatternBase {
     float length;
     private SortedListOfNotes mNotes = new SortedListOfNotes();
 
+    public SortedListOfNotes.State iter;
+
     public PatternBase(String name, String fileName, int channels, float length)
     {
+        iter = getIter();
         this.name=name;
         this.fileName = fileName;
         this.channels = channels;
@@ -34,6 +37,9 @@ public class PatternBase {
         return mNotes.GetNoteBy(row, time);
     }
 
+    public SortedListOfNotes.State getIter() {
+        return mNotes.getIter();
+    }
 
     void Set(int channel, float time, GeneratorInfo hit)
     {
@@ -47,7 +53,7 @@ public class PatternBase {
         }
         else
         {
-            mNotes.SetTime(time);
+            //mNotes.SetTime(time);
             mNotes.Clear(channel);
         };
     }
@@ -61,25 +67,10 @@ public class PatternBase {
             mBeatListener.beat(currentBeat);
     }
 
-    void PlayBeat(Mixer sp, float time, float volume)
+    void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
-        int noteCount = mNotes.SetTime(time);
-
-        CallBeatListener(time);
-
-        for (int c = 0; c < noteCount; c++) {
-            Event note = mNotes.Get(c);
-            if (note != null) {
-                Play(sp, note.channel, volume);
-            }
-        }
+        ////
     }
-
-    public void Play(Mixer sp, int channel, float volume)
-    {
-
-    }
-
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         jsonObj.put("name", name);
@@ -98,6 +89,8 @@ public class PatternBase {
         mNotes = new SortedListOfNotes();
         mNotes.serializeFromJson(jsonObj);
         //ScaleTime(16);
+
+        iter = getIter();
     }
 
     void ScaleTime(int multiplier)

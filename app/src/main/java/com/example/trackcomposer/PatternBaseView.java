@@ -32,6 +32,7 @@ public class PatternBaseView extends View {
     Paint blue;
     Paint green, greenFill;
     Paint selectedColor;
+    Paint bitmapPaint;
     private float mCurrentBeat = 0;
 
     private TextPaint mTextPaint;
@@ -131,6 +132,9 @@ public class PatternBaseView extends View {
         selectedColor = new Paint();
         selectedColor.setColor(Color.BLUE);
         selectedColor.setStyle(Paint.Style.FILL);
+
+        bitmapPaint = new Paint();
+        bitmapPaint.setFilterBitmap(false);
 
         ltgray = new Paint();
         ltgray.setColor(Color.LTGRAY);
@@ -342,7 +346,7 @@ public class PatternBaseView extends View {
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
-                    canvas.drawBitmap(bmp, null, rf, null);
+                    canvas.drawBitmap(bmp, null, rf, bitmapPaint);
 
                     rf.left = x1;
                     rf.top =  y* mRowHeight;
@@ -369,6 +373,19 @@ public class PatternBaseView extends View {
     }
 
     public boolean onTouchEvent(MotionEvent event) {
+
+        if (instrumentListener != null) {
+
+            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
+            row = indexToNote(row);
+            MotionEvent ev2 = MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
+            if (instrumentListener.onTouchEvent(ev2))
+                return true;
+
+        }
+
+
         boolean b1 =  mScaleGestureDetector.onTouchEvent(event);
         boolean b2 = mGestureDetector.onTouchEvent(event);
         return b1 || b2;
@@ -474,6 +491,7 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
+        boolean onTouchEvent(MotionEvent event);
         boolean noteTouched(int rowSelected, float time);
         void longPress(int rowSelected, float time);
         void scaling(float x, float y, float scale, float mTrackHeight);
@@ -490,6 +508,7 @@ public class PatternBaseView extends View {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         layout(0, 0, width, height);
+        centerViewInNotes();
         mLOD = 1;
         draw(canvas);
         mLOD = 0;

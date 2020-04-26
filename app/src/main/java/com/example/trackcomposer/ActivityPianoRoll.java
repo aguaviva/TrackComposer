@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -89,6 +90,10 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
+            public boolean onTouchEvent(MotionEvent event) {
+                return false;
+            }
+            @Override
             public void scaling(float x, float y, float scale, float trackHeight)
             {
                 timeLineView.init(patternPianoRoll, mTimeLine);
@@ -117,7 +122,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                     patternPianoRoll.Set(rowSelected, time,null);
                 }
 
-                patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);
+                //patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);
                 mNoteView.invalidate();
                 return true;
             }

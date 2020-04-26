@@ -11,14 +11,24 @@ public class InstrumentList
 {
     ArrayList<Generator> mSamples = new ArrayList<Generator>();
 
-    InstrumentList()
-    {
+    private static InstrumentList singleton = new InstrumentList( );
+
+    private InstrumentList()    {    }
+
+    public static InstrumentList getInstance( ) {
+        return singleton;
     }
 
     public Generator get(int i)
     {
         return mSamples.get(i);
     }
+
+    public void reset()
+    {
+        mSamples.clear();
+    }
+
 
     public int register(Generator sample, int sampleId) {
         if (sampleId == -1) {

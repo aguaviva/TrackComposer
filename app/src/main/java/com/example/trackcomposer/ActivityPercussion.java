@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.view.MotionEvent;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -47,6 +48,10 @@ public class ActivityPercussion extends AppCompatActivity {
         mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
         mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            @Override
+            public boolean onTouchEvent(MotionEvent event) {
+                return false;
+            }
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
             }

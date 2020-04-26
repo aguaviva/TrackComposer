@@ -33,6 +33,7 @@ public class PatternChord extends PatternBase
         return Misc.getFifthsProgressionName(progression);
     }
 
+/*
     @Override
     public void Play(Mixer sp, int channel, float volume)
     {
@@ -41,7 +42,7 @@ public class PatternChord extends PatternBase
             sp.play(sampleId, 0, Misc.GetFrequency(TrackToNote(channel)), volume);
         }
     }
-
+*/
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException {
         super.serializeToJson(jsonObj);

@@ -43,7 +43,6 @@ class MySoundPool {
     public interface NextBeatListener
     {
         public void renderChunk(short[] chunk, int ini, int fin);
-        public void beat();
     }
 
     NextBeatListener mNextBeat;
@@ -110,39 +109,8 @@ class MySoundPool {
         for (int i = ini; i < fin; i ++)
             mChunk[i] = 0;
 
-        while(ini<fin)
-        {
-            int ticksUntilNextBeat = 2*mTempoInSamples - mTick;
-            int length = (fin-ini);
-            if (ticksUntilNextBeat > length)
-            {
-                if (mNextBeat != null) {
-                    mNextBeat.renderChunk(mChunk, ini, fin);
-                }
-                mTick += length;
-                break;
-            }
-            else
-            {
-                int ff = ini + ticksUntilNextBeat;
-                ff = Math.min(ff,fin);
-                if (mNextBeat != null) {
-                    mNextBeat.renderChunk(mChunk, ini, ff);
-                }
-                mTick += (ff-ini);  //here mTick should be 2*mTempoInSamples
-                if (2*mTempoInSamples != mTick)
-                {
-                    Log.e(TAG, "beat:" + mTick + "   expected "+ (2*mTempoInSamples)) ;
-                }
-
-                if (mNextBeat != null) {
-                    mNextBeat.beat();
-                }
-
-                mTick = 0;
-
-                ini=ff;
-            }
+        if (mNextBeat != null) {
+            mNextBeat.renderChunk(mChunk, ini, fin);
         }
 
         track.write(mChunk, index * buffSizeInShorts, buffSizeInShorts);

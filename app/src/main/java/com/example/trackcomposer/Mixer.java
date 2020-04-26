@@ -4,16 +4,15 @@ public class Mixer {
     static class Channel {
         int sampleId = -1;
         int timeInSamples=0;
-        int timeDurationInSamples=0;
         boolean mPlaying = false;
         float speed;
         float volume;
         float volumeSpeed;
     };
-    Channel[] mChannel = new Channel[20];
+    Channel[] mChannel = new Channel[100];
     int mCurrentChannel = 0;
 
-    InstrumentList mInstrumentList = null;
+    InstrumentList mInstrumentList;
 
     Mixer(InstrumentList instrumentList)
     {
@@ -43,7 +42,6 @@ public class Mixer {
         mChannel[mCurrentChannel].sampleId = sampleId;
         mChannel[mCurrentChannel].speed = freq / freqBase;
         mChannel[mCurrentChannel].timeInSamples = 0;
-        mChannel[mCurrentChannel].timeDurationInSamples=11000;
         mChannel[mCurrentChannel].volume = volume;
         mChannel[mCurrentChannel].volumeSpeed = -0.00005f;
         mChannel[mCurrentChannel].mPlaying = true;

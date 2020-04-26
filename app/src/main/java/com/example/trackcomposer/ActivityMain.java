@@ -136,6 +136,40 @@ public class ActivityMain extends AppCompatActivity {
         masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true, PatternBaseView.ViewMode.MAIN);
         masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+
+            Event noteDown;
+            float d = 0;
+            @Override
+            public boolean onTouchEvent(MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
+                    if (noteDown!=null) {
+                        d = event.getX() - noteDown.time;
+
+                        masterView.selectedNote = noteDown;
+                        eventSelected = noteDown;
+                        mRowSelected = (int)event.getY();
+                    }
+                }
+                else if (event.getAction() == MotionEvent.ACTION_MOVE)
+                {
+                    Event noteTouched = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
+                    if (noteTouched!=null)
+                    {
+                        if (noteDown==noteTouched) {
+                            noteTouched.time = event.getX() - d;
+                            masterView.invalidate();
+                        }
+                        return true;
+                    }
+                } if (event.getAction() == MotionEvent.ACTION_UP) {
+                    noteDown = null;
+                }
+
+
+
+                return false;
+            }
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
                 timeLineView.init(mAppState.mPatternMaster, mTimeLine);
@@ -153,11 +187,13 @@ public class ActivityMain extends AppCompatActivity {
             }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
+
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 masterView.selectedNote = noteTouched;
                 eventSelected = noteTouched;
                 mRowSelected = rowSelected;
                 masterView.invalidate();
+
                 return true;
             }
         });
@@ -168,7 +204,7 @@ public class ActivityMain extends AppCompatActivity {
             public void beat(float currentBeat) {
                 masterView.setCurrentBeat(currentBeat);
                 masterView.invalidate();
-                mTimeLine.setTime(mAppState.getTime());
+                mTimeLine.setTime(mAppState.mPatternMaster.getTime());
                 timeLineView.invalidate();
             }
         });
@@ -382,7 +418,7 @@ public class ActivityMain extends AppCompatActivity {
                         public void beat(float currentBeat) {
                             masterView.setCurrentBeat(currentBeat);
                             masterView.invalidate();
-                            mTimeLine.setTime(mAppState.getTime());
+                            mTimeLine.setTime(mAppState.mPatternMaster.getTime());
                             timeLineView.invalidate();
                         }
                     });
