@@ -59,14 +59,14 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void onPatternEnd(float time)
             {
-                mNoteView.GetPattern().length = (int)time;
+                mNoteView.GetPattern().SetLength(time);
                 mNoteView.invalidate();
             }
         });
 
         //
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        mPatternHeaderView.SetPattern(mTimeLine, patternPianoRoll.channels, patternPianoRoll.length,true);
+        mPatternHeaderView.SetPattern(mTimeLine, patternPianoRoll.channels, patternPianoRoll.GetLength(),true);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}

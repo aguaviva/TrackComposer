@@ -54,7 +54,7 @@ public class SortedListOfNotes
             if (event!=null)
                 return event.time;
             else
-                return iter.GetNoteByIndex(mIndex-1).time+iter.GetNoteByIndex(mIndex-1).durantion;
+                return iter.mLength;
         }
 
         public void nextNote()
@@ -63,16 +63,12 @@ public class SortedListOfNotes
         }
     };
 
-
-    private int mIndex = 0;
-    private int mNotesCount = 0;
-
     private List<Event> myList = new ArrayList<>();
+    public float mLength = 0;
 
     public SortedListOfNotes.State getIter() {
         return new SortedListOfNotes.State(this);
     }
-
 
     public Event GetNoteByIndex(int index)
     {
@@ -80,7 +76,6 @@ public class SortedListOfNotes
             return myList.get(index);
         return null;
     }
-
 
     int GetNextNoteIndexByTime(float time)
     {
@@ -92,7 +87,6 @@ public class SortedListOfNotes
         }
         return -1;
     }
-
 
     public Event GetNoteBy(int row, float time)
     {
@@ -142,15 +136,15 @@ public class SortedListOfNotes
         if (index>=myList.size())
             return 0;
 
-        mNotesCount = 0;
+        int notesCount = 0;
         float time = myList.get(index).time;
         for(int i=index;i<myList.size();i++)
         {
             if (myList.get(i).time!=time)
-                return mNotesCount;
-            mNotesCount++;
+                return notesCount;
+            notesCount++;
         }
-        return mNotesCount;
+        return notesCount;
     }
 
     public void ScaleTime(int multiplier)
@@ -162,14 +156,6 @@ public class SortedListOfNotes
         }
     }
 
-    public Event Get(int index)
-    {
-        if (index>=mNotesCount)
-            return null;
-
-        return myList.get(mIndex+index);
-    }
-
     public void Set(Event gen)
     {
         Clear(gen.channel);
@@ -179,6 +165,7 @@ public class SortedListOfNotes
 
     public boolean Clear(int channel)
     {
+/*
         if (mNotesCount<=0)
             return false;
 
@@ -189,12 +176,14 @@ public class SortedListOfNotes
                 break;
             }
         }
-
+*/
         return true;
     }
 
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
+        jsonObj.put("length", mLength);
+
         JSONArray jsonArr = new JSONArray();
         for (int c = 0; c < myList.size(); c++)
         {
@@ -211,6 +200,8 @@ public class SortedListOfNotes
 
     void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
+        mLength = jsonObj.getInt("length");
+
         JSONArray jArr = jsonObj.getJSONArray("pattern");
         for (int c = 0; c < jArr.length(); c++)
         {

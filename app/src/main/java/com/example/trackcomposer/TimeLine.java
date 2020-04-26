@@ -15,7 +15,7 @@ public class TimeLine {
 
     public void init(PatternBase pattern, float ticksPerColumn) {
         mPattern = pattern;
-        mTicksPerTrack = (int)pattern.length;
+        mTicksPerTrack = (int)pattern.GetLength();
         mTicksPerColumn = ticksPerColumn;
         mColumns = mTicksPerTrack / mTicksPerColumn;
     }

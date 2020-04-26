@@ -126,7 +126,7 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void onPatternEnd(float time)
             {
-                masterView.GetPattern().length = time;
+                masterView.GetPattern().SetLength(time);
                 masterView.invalidate();
             }
         });
@@ -583,7 +583,7 @@ public class ActivityMain extends AppCompatActivity {
 
             timeLine.init(pattern, 1);
             pbv.SetPattern(pattern, timeLine,false, PatternBaseView.ViewMode.PIANO);
-            Bitmap b = pbv.getBitmapFromView((int)(5 * pattern.length), 3 * pattern.channels);
+            Bitmap b = pbv.getBitmapFromView((int)(5 * pattern.GetLength()), 3 * pattern.channels);
             mAppState.mPatternImgDataBase.put(key, b);
         }
     }

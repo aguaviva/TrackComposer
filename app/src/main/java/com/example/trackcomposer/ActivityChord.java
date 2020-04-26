@@ -36,7 +36,7 @@ public class ActivityChord extends AppCompatActivity {
         mTimeLine.init(patternChord, 1);
 
         chordNames = (PatternHeaderView)findViewById(R.id.chordNames);
-        chordNames.SetPattern(mTimeLine, patternChord.channels/3, patternChord.length,true);
+        chordNames.SetPattern(mTimeLine, patternChord.channels/3, patternChord.GetLength(),true);
         chordNames.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -50,7 +50,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(mTimeLine, patternChord.channels, patternChord.length,true);
+        patternHeaderView.SetPattern(mTimeLine, patternChord.channels, patternChord.GetLength(),true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}

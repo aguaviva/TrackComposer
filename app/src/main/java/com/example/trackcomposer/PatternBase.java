@@ -6,7 +6,6 @@ import org.json.JSONObject;
 public class PatternBase {
     String type, name, fileName;
     int channels;
-    float length;
     private SortedListOfNotes mNotes = new SortedListOfNotes();
 
     public SortedListOfNotes.State iter;
@@ -17,11 +16,12 @@ public class PatternBase {
         this.name=name;
         this.fileName = fileName;
         this.channels = channels;
-        this.length = length;
+        SetLength(length);
     }
 
     String GetName() { return name;}
-    float GetLength() { return length; }
+    float GetLength() { return mNotes.mLength; }
+    void SetLength(float length) { mNotes.mLength = length; }
     int GetChannelCount() { return channels; }
     Event GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
     Event Get(int channel, float time)
@@ -74,7 +74,6 @@ public class PatternBase {
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         jsonObj.put("name", name);
-        jsonObj.put("length", length);
         jsonObj.put("channels", channels);
 
         mNotes.serializeToJson(jsonObj);
@@ -83,7 +82,6 @@ public class PatternBase {
     void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
         name = jsonObj.getString("name");
-        length = jsonObj.getInt("length");
         channels = jsonObj.getInt("channels");
 
         mNotes = new SortedListOfNotes();

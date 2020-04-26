@@ -20,6 +20,7 @@ class PatternMaster extends PatternBase
         Event mEvent = null;
         int mTimeSamples;
         float mVolume;
+        SortedListOfNotes.State mState;
     };
 
     Channel[] mChannel;
@@ -65,13 +66,13 @@ class PatternMaster extends PatternBase
 
                     PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
                     p.iter.reset();
-
+                    ch.mState = p.iter;
 
                     iter.nextNote();
                 }
 
-                Event event = iter.GetNote();
-                iter.mNextTime = (int)(event.time * (44100/4));
+                float time = iter.GetTimeOfNextNote();
+                iter.mNextTime = (int)(time * (44100/4));
             }
 
             int deltaTime = (iter.mNextTime - iter.mTime);

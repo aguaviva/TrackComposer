@@ -29,7 +29,7 @@ public class ActivityPercussion extends AppCompatActivity {
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
 
         final PatternHeaderView patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(mTimeLine, patternPercussion.channels, patternPercussion.length,true);
+        patternHeaderView.SetPattern(mTimeLine, patternPercussion.channels, patternPercussion.GetLength(),true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) { instrumentChooser(note); }
