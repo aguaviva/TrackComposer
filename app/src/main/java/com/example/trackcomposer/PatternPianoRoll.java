@@ -8,50 +8,33 @@ class PatternPianoRoll extends PatternBase
     int sampleId = -1;
     int baseNote = 40; //c4 - 261.6256
 
-    Mixer mixer = new Mixer(InstrumentList.getInstance( ));
+    Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
+        @Override
+        public void AddNote(Mixer.Channel ch){
+
+            float freq = Misc.GetFrequency(ch.mEvent.channel);
+            float freqBase = Misc.GetFrequency(InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId).baseNote);
+
+            ch.speed = freq / freqBase;
+            ch.timeInSamples = 0;
+            ch.volume = 0.5f;
+            ch.mPlaying = true;
+        }
+
+        @Override
+        public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+            Generator g = InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId);
+            g.playSample(ch, chunk, ini, fin);
+        }
+    };
 
     public PatternPianoRoll(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
-
     }
 
     @Override
-    void PlayBeat(short[] chunk, int ini, int fin, float volume)
-    {
-        CallBeatListener(iter.mTime);
-
-        while(ini<fin) {
-
-            // hit notes
-            if (iter.mNextTime <= iter.mTime) {
-
-                int notes = iter.getNotesCount();
-                if (notes<=0) {
-                    return;
-                }
-
-                for (int i = 0; i < notes; i++) {
-                    Event event = iter.GetNote();
-
-                    mixer.play(event.mGen.sampleId, event.channel, Misc.GetFrequency(event.channel), volume);
-
-                    iter.nextNote();
-                }
-
-                float time = iter.GetTimeOfNextNote();
-                iter.mNextTime = (int)(time * (44100/4));
-            }
-
-            int deltaTime = (iter.mNextTime - iter.mTime);
-            int mid = Math.min(ini + 2*deltaTime, fin);
-
-            mixer.renderChunk(chunk, ini, mid);
-
-            iter.mTime += (mid-ini)/2;
-            ini = mid;
-        }
-    }
+    Mixer.MixerListener GetMixerListener() { return mMixerListener; }
 
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException {
@@ -65,6 +48,7 @@ class PatternPianoRoll extends PatternBase
         super.serializeFromJson(jsonObj);
         sampleId = jsonObj.getInt("sampleId");
         baseNote = jsonObj.getInt("baseNote");
-    }
 
+        //mixer.iter = getIter();
+    }
 };

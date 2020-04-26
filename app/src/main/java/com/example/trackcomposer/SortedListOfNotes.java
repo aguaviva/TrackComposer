@@ -32,9 +32,11 @@ public class SortedListOfNotes
             mIndex = iter.GetNextNoteIndexByTime(time);
             if (mIndex<0) {
                 mIndex = 0;
+                mNextTime = mIndex;
                 return false;
             }
             else {
+                mNextTime = mIndex;
                 return true;
             }
         }

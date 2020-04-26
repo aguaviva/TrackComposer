@@ -30,8 +30,7 @@ class MySoundPool {
     int index = 0;
     int queue = 0;
     int mTick = 0;
-    int mBeatsPerMinute = 0;
-    int mTempoInSamples = 0;
+
 
 
     String TAG = "RenderAudio";
@@ -48,17 +47,14 @@ class MySoundPool {
     NextBeatListener mNextBeat;
 
 
-    public void setBmp(int beatsPerMinute)
+    public int getSampleRate()
     {
-        float delaySecs = (60.0f/((float)beatsPerMinute)) / 2.0f;
-        mTempoInSamples = (int)(delaySecs * mSampleRate);
+        return mSampleRate;
     }
 
     public void init(int sampleRate, final NextBeatListener nextBeatListener) {
         mSampleRate= sampleRate;
         mNextBeat = nextBeatListener;
-
-        setBmp(120);
 
         buffSizeInBytes = AudioTrack.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
         buffSizeInShorts = buffSizeInBytes /2; //because 16bits
@@ -92,13 +88,21 @@ class MySoundPool {
             public void onMarkerReached(AudioTrack track) {}
         });
 
+        audioTrack.setPositionNotificationPeriod(buffSizeInFrames);
+    }
+
+    void play()
+    {
         while (queue<buffcount)
             nextChunk(audioTrack);
-
-        audioTrack.setPositionNotificationPeriod(buffSizeInFrames);
-
         audioTrack.play();
     }
+
+    void pause()
+    {
+        audioTrack.stop();
+    }
+
 
     void nextChunk(AudioTrack track)
     {

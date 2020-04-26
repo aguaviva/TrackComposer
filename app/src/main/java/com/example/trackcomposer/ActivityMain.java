@@ -215,8 +215,7 @@ public class ActivityMain extends AppCompatActivity {
         View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(mAppState.mPatternMaster.mBPM), new WidgetNoteTransposer.Listener() {
             @Override
             public String update(int inc) {
-                mAppState.mPatternMaster.mBPM+=inc;
-                mAppState.soundPool.setBmp(mAppState.mPatternMaster.mBPM);
+                mAppState.mPatternMaster.setBmp(mAppState.mPatternMaster.getBmp()+inc);
                 return String.valueOf(mAppState.mPatternMaster.mBPM);
             }
         });

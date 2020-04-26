@@ -12,97 +12,99 @@ import java.util.Iterator;
 class PatternMaster extends PatternBase
 {
     int mBPM = 120;
+    public int mSampleRate = 44100;
+    public int mTempoInSamples;
 
     public HashMap<Integer, PatternBase> mPatternDataBase = new HashMap<Integer, PatternBase>();
 
     class Channel
     {
-        Event mEvent = null;
-        int mTimeSamples;
         float mVolume;
-        SortedListOfNotes.State mState;
     };
 
     Channel[] mChannel;
-    SortedListOfNotes.State iter;
+
+    Mixer master;
+    Mixer[] mTracks;
 
     public PatternMaster(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
-        mChannel = new Channel[channels];
-        for (int c = 0; c < mChannel.length; c++)
-            mChannel[c] = new Channel();
 
-        iter = getIter();
-        iter.setTime(0);
-        iter.mTime = 0;
-        iter.mNextTime = 0;
+        master = new Mixer(InstrumentList.getInstance());
+        master.mMixerListener = new Mixer.MixerListener() {
+            @Override
+            public void AddNote(Mixer.Channel ch){
+
+                PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
+                Mixer.MixerListener listener = p.GetMixerListener();
+
+                mTracks[ch.mEvent.channel].iter = p.getIter();
+                mTracks[ch.mEvent.channel].mMixerListener = listener;
+                ch.volume = mChannel[ch.mEvent.channel].mVolume;
+            }
+
+            @Override
+            public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+            }
+        };
+
+        mTracks = new Mixer[channels];
+        mChannel = new Channel[channels];
+        for (int c = 0; c < mTracks.length; c++) {
+            mTracks[c] = new Mixer(InstrumentList.getInstance());
+            mChannel[c] = new Channel();
+        }
+
+        master.iter = getIter();
+        master.iter.setTime(0);
+        master.iter.mTime = 0;
+        master.iter.mNextTime = 0;
+    }
+
+    public void setTime(float time) {
+        master.iter.setTime((int)(time * 9800));
     }
 
     public float getTime() {
-        return (float)iter.mTime/(44100.0f/4.0f);
+        return (float)master.iter.mTime/9800;
     }
 
-    @Override
     void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
-        CallBeatListener(iter.mTime);
+        CallBeatListener(master.iter.mTime/9800);
 
-        while(ini<fin) {
+        master.renderChunk(chunk, ini, fin, volume);
 
-            // hit notes
-            if (iter.mNextTime <= iter.mTime) {
-
-                int notes = iter.getNotesCount();
-                if (notes<=0) {
-                    return;
-                }
-
-                for (int i = 0; i < notes; i++) {
-                    Event event = iter.GetNote();
-                    Channel ch = mChannel[event.channel];
-                    ch.mEvent = event;
-                    ch.mTimeSamples = (int)(event.durantion * (44100/4));
-
-                    PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
-                    p.iter.reset();
-                    ch.mState = p.iter;
-
-                    iter.nextNote();
-                }
-
-                float time = iter.GetTimeOfNextNote();
-                iter.mNextTime = (int)(time * (44100/4));
-            }
-
-            int deltaTime = (iter.mNextTime - iter.mTime);
-            int mid = Math.min(ini + 2*deltaTime, fin);
-
-            // play channels
-            for (int c = 0; c < mChannel.length; c++) {
-                Channel ch = mChannel[c];
-                if (ch.mEvent != null) {
-                    PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
-                    if (p != null) {
-                        if (ch.mVolume > 0) {
-                            p.PlayBeat(chunk, ini, mid, ch.mVolume);
-                        }
-
-                        ch.mTimeSamples -= (mid - ini)/2;
-                        if (ch.mTimeSamples <= 0) {
-                            ch.mEvent = null;
-                        }
-                    }
+        for (int c = 0; c < mTracks.length; c++) {
+            if (mTracks[c].iter!=null) {
+                if (mChannel[c].mVolume>0) {
+                    mTracks[c].renderChunk(chunk, ini, fin, mChannel[c].mVolume);
                 }
             }
-
-            iter.mTime += (mid-ini)/2;
-            ini = mid;
         }
     }
 
-    public void setVolume(int channel, float volume) { mChannel[channel].mVolume=volume;}
-    public float getVolume(int channel) { return mChannel[channel].mVolume;}
+    public void setVolume(int channel, float volume) {
+        mChannel[channel].mVolume=volume;
+    }
+
+    public float getVolume(int channel)
+    {
+        return mChannel[channel].mVolume;
+    }
+
+    public int getBmp() { return mBPM; }
+    public void setBmp(int beatsPerMinute)
+    {
+        mBPM = beatsPerMinute;
+        float delaySecs = (60.0f/((float)beatsPerMinute)) / 2.0f;
+        mTempoInSamples = (int)(delaySecs * mSampleRate);
+
+        master.mTempoInSamples = mTempoInSamples;
+        for (int c = 0; c < mTracks.length; c++)
+            mTracks[c].mTempoInSamples = mTempoInSamples;
+    }
 
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -159,7 +161,7 @@ class PatternMaster extends PatternBase
 
         if (jsonObj.has("info")) {
             JSONObject jsonObj2 = jsonObj.getJSONObject("info");
-            mBPM = jsonObj2.getInt("BPM");
+            setBmp(jsonObj2.getInt("BPM"));
         }
 
         {
@@ -169,9 +171,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                PatternPercussion patern = new PatternPercussion("", "", 16, 16);
-                mPatternDataBase.put(i, patern);
-                patern.serializeFromJson(jsonObj3);
+                PatternPercussion pattern = new PatternPercussion("", "", 16, 16);
+                mPatternDataBase.put(i, pattern);
+                pattern.serializeFromJson(jsonObj3);
             }
         }
 
@@ -182,9 +184,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                PatternPianoRoll patern = new PatternPianoRoll("", "", 16, 16);
-                mPatternDataBase.put(i, patern);
-                patern.serializeFromJson(jsonObj3);
+                PatternPianoRoll pattern = new PatternPianoRoll("", "", 16, 16);
+                mPatternDataBase.put(i, pattern);
+                pattern.serializeFromJson(jsonObj3);
             }
         }
 
@@ -195,9 +197,9 @@ class PatternMaster extends PatternBase
                 String key = iter.next();
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
-                PatternChord patern = new PatternChord("", "", 16, 16);
-                mPatternDataBase.put(i, patern);
-                patern.serializeFromJson(jsonObj3);
+                PatternChord pattern = new PatternChord("", "", 16, 16);
+                mPatternDataBase.put(i, pattern);
+                pattern.serializeFromJson(jsonObj3);
             }
         }
 
@@ -213,7 +215,9 @@ class PatternMaster extends PatternBase
             }
         }
 
-        iter = getIter();
-        iter.reset();
+        master.iter = getIter();
+        master.iter.setTime(0);
+        master.iter.mTime = 0;
+        master.iter.mNextTime = 0;
     }
 };

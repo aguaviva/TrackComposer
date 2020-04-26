@@ -23,6 +23,7 @@ public class ApplicationClass extends Application {
     private boolean mPlaying = false;
     private float mTime = 0;
     private float mTimeIni = 0, mTimeFin = 0;
+    int mSampleRate = 44100;
 
     MySoundPool soundPool;
     InstrumentList instrumentList = InstrumentList.getInstance( );
@@ -33,7 +34,7 @@ public class ApplicationClass extends Application {
             instrumentList.reset();
             mixer = new Mixer(instrumentList);
             soundPool = new MySoundPool();
-            soundPool.init(44100, new MySoundPool.NextBeatListener() {
+            soundPool.init(mSampleRate, new MySoundPool.NextBeatListener() {
                 @Override
                 public void renderChunk(short[] chunk, int ini, int fin) {
                     if (mPatternMaster!=null) {
@@ -48,9 +49,10 @@ public class ApplicationClass extends Application {
         }
     }
 
+
     public void setTime(float mTime)
     {
-        this.mTime = mTime;
+        mPatternMaster.setTime(mTime);
     }
 
     void setLoop(float timeIni, float timeFin)
@@ -64,6 +66,12 @@ public class ApplicationClass extends Application {
     boolean PlayPause()
     {
         mPlaying=!mPlaying;
+
+        if (mPlaying)
+            soundPool.play();
+        else
+            soundPool.pause();
+
         return mPlaying;
     }
 
@@ -84,8 +92,6 @@ public class ApplicationClass extends Application {
 
             mPatternMaster = new PatternMaster("caca", filename, 16,16);
             mPatternMaster.serializeFromJson(jsonObj);
-
-            soundPool.setBmp(mPatternMaster.mBPM);
         }
         catch (JSONException e) {
             e.printStackTrace();
