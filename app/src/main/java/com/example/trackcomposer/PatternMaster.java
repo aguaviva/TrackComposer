@@ -35,7 +35,6 @@ class PatternMaster extends PatternBase
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
             public void AddNote(Mixer.Channel ch){
-
                 PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
                 Mixer.MixerListener listener = p.GetMixerListener();
 
@@ -46,6 +45,9 @@ class PatternMaster extends PatternBase
 
             @Override
             public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+                if (mChannel[ch.mEvent.channel].mVolume>0) {
+                    mTracks[ch.mEvent.channel].renderChunk(chunk, ini, fin, mChannel[ch.mEvent.channel].mVolume);
+                }
             }
         };
 
@@ -63,7 +65,7 @@ class PatternMaster extends PatternBase
     }
 
     public void setTime(float time) {
-        master.iter.setTime((int)(time * 9800));
+        master.iter.setTime((int)(time ));
     }
 
     public float getTime() {
@@ -73,24 +75,14 @@ class PatternMaster extends PatternBase
     void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
         CallBeatListener(master.iter.mTime/9800);
-
         master.renderChunk(chunk, ini, fin, volume);
-
-        for (int c = 0; c < mTracks.length; c++) {
-            if (mTracks[c].iter!=null) {
-                if (mChannel[c].mVolume>0) {
-                    mTracks[c].renderChunk(chunk, ini, fin, mChannel[c].mVolume);
-                }
-            }
-        }
     }
 
     public void setVolume(int channel, float volume) {
         mChannel[channel].mVolume=volume;
     }
 
-    public float getVolume(int channel)
-    {
+    public float getVolume(int channel) {
         return mChannel[channel].mVolume;
     }
 
@@ -114,7 +106,6 @@ class PatternMaster extends PatternBase
         JSONObject jsonInfo = new JSONObject();
         jsonInfo.put("BPM", mBPM);
         jsonObj.put("info", jsonInfo);
-
 
         JSONObject jsonPatterns = new JSONObject();
         JSONObject jsonNotes = new JSONObject();

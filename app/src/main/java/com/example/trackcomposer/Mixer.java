@@ -50,6 +50,7 @@ public class Mixer {
                     ch.mEvent = event;
                     ch.timeInSamples = 0;
                     ch.volume = 1;
+                    ch.mPlaying = true;
 
                     if (mMixerListener!=null)
                     {

@@ -21,7 +21,6 @@ public class ApplicationClass extends Application {
     public PatternBase mLastPatternAdded;
     public File extStoreDir;
     private boolean mPlaying = false;
-    private float mTime = 0;
     private float mTimeIni = 0, mTimeFin = 0;
     int mSampleRate = 44100;
 
