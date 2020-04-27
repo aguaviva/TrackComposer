@@ -100,7 +100,8 @@ class MySoundPool {
 
     void pause()
     {
-        audioTrack.stop();
+        queue = 0;
+        audioTrack.pause();
     }
 
 
