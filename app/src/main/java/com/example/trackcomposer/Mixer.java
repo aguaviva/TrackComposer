@@ -10,6 +10,9 @@ public class Mixer {
     };
     Channel[] mChannel = new Channel[100];
     int mTempoInSamples = 44100/4;
+
+    public int mTime = 0, mNextTime = 0;
+
     SortedListOfNotes.State iter;
 
     InstrumentList mInstrumentList;
@@ -19,6 +22,9 @@ public class Mixer {
         mInstrumentList = instrumentList;
         for(int i = 0; i< mChannel.length; i++)
             mChannel[i] = new Channel();
+
+        mTime = 0;
+        mNextTime = 0;
     }
 
     public void play(int sampleId, int channel, float freq, float volume)
@@ -31,40 +37,48 @@ public class Mixer {
         mChannel[channel].mPlaying = true;
     }
 
+    private boolean sequencer(MixerListener mixerListener)
+    {
+        if (mNextTime <= mTime) {
+
+            int notes = iter.getNotesCount();
+            if (notes<=0) {
+                return false;
+            }
+
+            for (int i = 0; i < notes; i++) {
+                Event event = iter.GetNote();
+                Channel ch = mChannel[event.channel];
+
+                ch.mEvent = event;
+                ch.timeInSamples = mTime - (int)(event.time * mTempoInSamples);
+                ch.volume = 1;
+                ch.mPlaying = true;
+
+                if (mixerListener!=null)
+                {
+                    mixerListener.AddNote(ch);
+                }
+
+                iter.nextNote();
+            }
+
+            float time = iter.GetTimeOfNextNote();
+            mNextTime = (int)(time * mTempoInSamples);
+        }
+
+        return true;
+    }
+
     void renderChunk(short[] chunk, int ini, int fin, float volume)
     {
         while(ini<fin) {
 
             // hit notes
-            if (iter.mNextTime <= iter.mTime) {
+            if (sequencer(mMixerListener)==false)
+                return;
 
-                int notes = iter.getNotesCount();
-                if (notes<=0) {
-                    return;
-                }
-
-                for (int i = 0; i < notes; i++) {
-                    Event event = iter.GetNote();
-                    Channel ch = mChannel[event.channel];
-
-                    ch.mEvent = event;
-                    ch.timeInSamples = 0;
-                    ch.volume = 1;
-                    ch.mPlaying = true;
-
-                    if (mMixerListener!=null)
-                    {
-                        mMixerListener.AddNote(ch);
-                    }
-
-                    iter.nextNote();
-                }
-
-                float time = iter.GetTimeOfNextNote();
-                iter.mNextTime = (int)(time * mTempoInSamples);
-            }
-
-            int deltaTime = (iter.mNextTime - iter.mTime);
+            int deltaTime = (mNextTime - mTime);
             int mid = Math.min(ini + 2*deltaTime, fin);
 
             // play channels
@@ -82,10 +96,31 @@ public class Mixer {
                 }
             }
 
-            iter.mTime += (mid-ini)/2;
+            mTime += (mid-ini)/2;
             ini = mid;
         }
     }
+
+    public void setTime(float time) {
+
+        for (int c = 0; c < mChannel.length; c++) {
+            Channel ch = mChannel[c];
+            ch.mEvent = null;
+            ch.mPlaying=false;
+        }
+
+        iter.setTime(time);
+        mTime = (int)(time * mTempoInSamples);
+        mNextTime = mTime;
+        sequencer(mMixerListener);
+        //iter.setTime(time);
+    }
+
+    public float getTime()
+    {
+        return ((float)mTime)/((float)mTempoInSamples);
+    }
+
 
     public interface MixerListener
     {

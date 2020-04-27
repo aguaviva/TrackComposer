@@ -40,6 +40,7 @@ class PatternMaster extends PatternBase
 
                 mTracks[ch.mEvent.channel].iter = p.getIter();
                 mTracks[ch.mEvent.channel].mMixerListener = listener;
+                mTracks[ch.mEvent.channel].setTime(ch.timeInSamples/master.mTempoInSamples);
                 ch.volume = mChannel[ch.mEvent.channel].mVolume;
             }
 
@@ -60,21 +61,19 @@ class PatternMaster extends PatternBase
 
         master.iter = getIter();
         master.iter.setTime(0);
-        master.iter.mTime = 0;
-        master.iter.mNextTime = 0;
     }
 
     public void setTime(float time) {
-        master.iter.setTime((int)(time ));
+        master.setTime(time);
     }
 
     public float getTime() {
-        return (float)master.iter.mTime/9800;
+        return master.getTime();
     }
 
     void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
-        CallBeatListener(master.iter.mTime/9800);
+        CallBeatListener(master.getTime());
         master.renderChunk(chunk, ini, fin, volume);
     }
 
@@ -148,8 +147,6 @@ class PatternMaster extends PatternBase
     {
         super.serializeFromJson(jsonObj);
 
-        //ScaleTime(16);
-
         if (jsonObj.has("info")) {
             JSONObject jsonObj2 = jsonObj.getJSONObject("info");
             setBmp(jsonObj2.getInt("BPM"));
@@ -207,8 +204,6 @@ class PatternMaster extends PatternBase
         }
 
         master.iter = getIter();
-        master.iter.setTime(0);
-        master.iter.mTime = 0;
-        master.iter.mNextTime = 0;
+        master.setTime(0);
     }
 };

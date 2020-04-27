@@ -21,7 +21,6 @@ public class ApplicationClass extends Application {
     public PatternBase mLastPatternAdded;
     public File extStoreDir;
     private boolean mPlaying = false;
-    private float mTimeIni = 0, mTimeFin = 0;
     int mSampleRate = 44100;
 
     MySoundPool soundPool;
@@ -44,22 +43,8 @@ public class ApplicationClass extends Application {
 
             extStoreDir = new File(Environment.getExternalStorageDirectory() + "/TrackComposer");
 
-            mPatternMaster = new PatternMaster("songy", extStoreDir + "/songy", 8, 64);
+            mPatternMaster = new PatternMaster("songy", extStoreDir + "/songy", 8, 256);
         }
-    }
-
-
-    public void setTime(float mTime)
-    {
-        mPatternMaster.setTime(mTime);
-    }
-
-    void setLoop(float timeIni, float timeFin)
-    {
-        mTimeIni = timeIni;
-        mTimeFin = timeFin;
-
-        setTime(mTimeIni);
     }
 
     boolean PlayPause()
@@ -78,10 +63,11 @@ public class ApplicationClass extends Application {
     {
         try {
             FileInputStream fileInputStream = new FileInputStream (new File(filename));
-            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuffer stringBuffer = new StringBuffer();
-            String lines=bufferedReader.readLine();
+            int size = fileInputStream.available();
+            byte[] buffer = new byte[size];
+            fileInputStream.read(buffer);
+            fileInputStream.close();
+            String lines = new String(buffer, "UTF-8");
 
             JSONObject jsonObj = new JSONObject(lines);
 

@@ -13,7 +13,6 @@ public class SortedListOfNotes
 {
     public class State {
         private int mIndex = 0;
-        public int  mTime = 0, mNextTime = 0;
         private SortedListOfNotes iter;
 
         public State(SortedListOfNotes sln)
@@ -21,24 +20,23 @@ public class SortedListOfNotes
             iter=sln;
         }
 
-        public void reset()
-        {
-            mTime = 0;
-            mNextTime = 0;
-            setTime(0);
-        }
+        public void setTime(float time) {
+            for(int i=0;i<myList.size();) {
+                int notes = iter.getNotesCount(i);
+                for(int n=0;n<notes;n++) {
+                    Event note = myList.get(i+n);
+                    if (time >= note.time  && time< note.time + note.durantion) {
+                        mIndex = i;
+                        return;
+                    }
+                    if (time <= note.time) {
+                        mIndex = i;
+                        return;
+                    }
+                }
+                i+= notes;
+            }
 
-        public boolean setTime(float time) {
-            mIndex = iter.GetNextNoteIndexByTime(time);
-            if (mIndex<0) {
-                mIndex = 0;
-                mNextTime = mIndex;
-                return false;
-            }
-            else {
-                mNextTime = mIndex;
-                return true;
-            }
         }
 
         public int getNotesCount() {

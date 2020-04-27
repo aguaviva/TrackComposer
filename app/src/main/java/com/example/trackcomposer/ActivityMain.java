@@ -80,8 +80,9 @@ public class ActivityMain extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mAppState.setLoop((int) 0, (int) (1 * 16 * 16));
+                //mAppState.setLoop((int) 0, (int) (1 * 16 * 16));
                 mTimeLine.setTime(0);
+                mAppState.mPatternMaster.setTime(0);
                 timeLineView.invalidate();
             }
         });
@@ -121,7 +122,9 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
-                mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+                //mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+                mAppState.mPatternMaster.setTime(time);
+                masterView.invalidate();
             }
             @Override
             public void onPatternEnd(float time)
@@ -226,7 +229,7 @@ public class ActivityMain extends AppCompatActivity {
     public void onResume(){
         super.onResume();
 
-        mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
+        //mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
 
         if (eventSelected!=null)
         {
@@ -325,7 +328,7 @@ public class ActivityMain extends AppCompatActivity {
                     break;
                 case R.id.btnEdit:
                     if (eventSelected!=null) {
-                        mAppState.setLoop(eventSelected.time, eventSelected.time + eventSelected.durantion);
+                        //mAppState.setLoop(eventSelected.time, eventSelected.time + eventSelected.durantion);
                         editPattern(eventSelected);
                     }
                     break;

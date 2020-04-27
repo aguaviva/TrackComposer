@@ -54,7 +54,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
-                mAppState.setLoop(time, (1 * 16 * 16));
+                //mAppState.setLoop(time, (1 * 16 * 16));
             }
             @Override
             public void onPatternEnd(float time)
