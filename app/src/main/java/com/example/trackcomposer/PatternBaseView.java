@@ -334,7 +334,7 @@ public class PatternBaseView extends View {
             int y = indexToNote(note.channel);
 
             int padTL = (mLOD==0)?2:1;
-            int padDR = (mLOD==0)?2:0;
+            int padDR = (mLOD==0)?2:1;
 
             RectF rf = new RectF();
             rf.left = x1 + padTL;
@@ -346,13 +346,12 @@ public class PatternBaseView extends View {
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
-                    canvas.drawBitmap(bmp, null, rf, bitmapPaint);
-
                     rf.left = x1;
                     rf.top =  y* mRowHeight;
                     rf.right = x2;
                     rf.bottom = (y+1)* mRowHeight;
 
+                    canvas.drawBitmap(bmp, null, rf, bitmapPaint);
                     canvas.drawRoundRect( rf, 10,10, green);
                 }
             }

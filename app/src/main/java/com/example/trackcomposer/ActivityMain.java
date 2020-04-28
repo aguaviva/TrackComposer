@@ -176,12 +176,17 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void longPress(int rowSelected, float time)
             {
+/*
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 if (noteTouched!=null) {
                     eventSelected = noteTouched;
                     mRowSelected = rowSelected;
                     createPopUpMenu(new PointF());
                 }
+*/
+                mRowSelected = rowSelected;
+                createPopUpMenu(new PointF());
+
             }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
@@ -320,6 +325,7 @@ public class ActivityMain extends AppCompatActivity {
             switch (v.getId())
             {
                 case R.id.btnNew:
+                    addPattern(mRowSelected, mTimeLine.getTime());
                     break;
                 case R.id.btnEdit:
                     if (eventSelected!=null) {
@@ -588,7 +594,7 @@ public class ActivityMain extends AppCompatActivity {
 
             timeLine.init(pattern, 1);
             pbv.SetPattern(pattern, timeLine,false, PatternBaseView.ViewMode.PIANO);
-            Bitmap b = pbv.getBitmapFromView((int)(5 * pattern.GetLength()), 3 * pattern.channels);
+            Bitmap b = pbv.getBitmapFromView((int)(25 * pattern.GetLength()), 3 * pattern.channels);
             mAppState.mPatternImgDataBase.put(key, b);
         }
     }
