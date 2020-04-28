@@ -182,11 +182,13 @@ public class PatternBaseView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh)
     {
-        mTimeLine.setViewSize(getWidth(), getHeight());
+        if (mTimeLine!=null) {
+            mTimeLine.setViewSize(getWidth(), getHeight());
 
-        centerViewInNotes();
+            centerViewInNotes();
 
-        mTimeLine.mViewport.updateViewport();
+            mTimeLine.mViewport.updateViewport();
+        }
     }
 
     void centerViewInNotes()
