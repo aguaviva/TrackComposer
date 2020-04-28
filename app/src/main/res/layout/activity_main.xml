@@ -12,7 +12,9 @@
         android:background="?attr/colorPrimary"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        tools:layout_editor_absoluteY="5dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -29,17 +31,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
-            android:contentDescription="previous    "
+            android:contentDescription="@string/previous"
             app:backgroundTint="@color/colorAccent"
             tools:src="@android:drawable/ic_media_previous" />
 
         <ImageButton
             android:id="@+id/play"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp "
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#FFFFFF"
-            android:contentDescription="play"
+            android:contentDescription="@string/play"
             app:backgroundTint="@color/colorAccent"
             tools:src="@android:drawable/ic_media_play" />
 
@@ -48,7 +50,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
-            android:contentDescription="play loop"
+            android:contentDescription="@string/play_loop"
             app:backgroundTint="@color/colorAccent"
             tools:src="@android:drawable/ic_menu_add" />
     </LinearLayout>
@@ -57,7 +59,7 @@
         android:id="@+id/textView3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="el puto"
+        android:text="@string/el_puto"
         app:layout_constraintBottom_toTopOf="@+id/guideline"
         app:layout_constraintEnd_toStartOf="@+id/guideline3"
         app:layout_constraintStart_toStartOf="parent"
@@ -110,7 +112,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.25" />
+        app:layout_constraintGuide_percent="0.2" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline4"

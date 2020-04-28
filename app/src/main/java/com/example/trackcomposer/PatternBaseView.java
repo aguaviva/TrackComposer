@@ -104,6 +104,18 @@ public class PatternBaseView extends View {
 
     public PatternBaseView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        if (isInEditMode())
+        {
+            PatternPianoRoll pattern = new PatternPianoRoll("caca","caca",16, 16);
+
+            TimeLine timeLine = new TimeLine();
+            timeLine.init(pattern, 64);
+            timeLine.setViewSize(getWidth(), getHeight());
+
+            SetPattern(pattern, timeLine,false, ViewMode.PIANO);
+        }
+
         init(attrs, 0);
     }
 

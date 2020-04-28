@@ -5,4 +5,8 @@
     <string name="alert_dialog_cancel" />
     <string name="title_activity_percussion">ActivityPercussion</string>
     <string name="title_activity_note">ActivityNote</string>
+    <string name="previous">previous</string>
+    <string name="play">play</string>
+    <string name="play_loop">play loop</string>
+    <string name="el_puto">el puto</string>
 </resources>

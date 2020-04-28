@@ -36,6 +36,18 @@ public class TimeLineView extends View {
 
     public TimeLineView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        if (isInEditMode())
+        {
+            PatternPianoRoll pattern = new PatternPianoRoll("caca","caca",16, 16);
+
+            TimeLine timeLine = new TimeLine();
+            timeLine.init(pattern, 64);
+            timeLine.setViewSize(getWidth(), getHeight());
+
+            init(pattern, timeLine);
+        }
+
         init(attrs, 0);
     }
 
@@ -72,21 +84,23 @@ public class TimeLineView extends View {
         mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.mLOD);
         mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.mLOD);
 
+        float hh = getHeight() / 5.0f;
+
         for (int i=mIni;i<mFin;i++) {
 
             float x = mViewport.applyPosScaleX(i* mTimeLine.getTickWidth()/mViewport.mLOD);
 
             float h = 0;
             if (((i%16)==0)) {
-                h = 10;
+                h = hh;
                 canvas.drawText(String.valueOf((int)(i/mViewport.mLOD)), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
-                h = 10+10;
+                h = hh*2;
             else
-                h = 10+10+10;
+                h = hh*3;
 
-            canvas.drawLine(x, 10+h, x, getHeight()-10, black);
+            canvas.drawLine(x, h, x, hh*4, black);
         }
 
         // draw time pos marker
