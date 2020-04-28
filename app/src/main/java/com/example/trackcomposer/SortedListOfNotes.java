@@ -158,26 +158,21 @@ public class SortedListOfNotes
 
     public void Set(Event gen)
     {
-        Clear(gen.channel);
+        Clear(gen.channel, gen.time);
         myList.add(gen);
         sortNotes();
     }
 
-    public boolean Clear(int channel)
+    public boolean Clear(int channel, float time)
     {
-/*
-        if (mNotesCount<=0)
-            return false;
-
-        for(int i=mIndex;i<mIndex + mNotesCount;i++)
+        for(int i=0;i<myList.size();i++)
         {
-            if (myList.get(i).channel==channel) {
+            if (myList.get(i).channel==channel && myList.get(i).time == time) {
                 myList.remove(i);
-                break;
+                return true;
             }
         }
-*/
-        return true;
+        return false;
     }
 
     void serializeToJson(JSONObject jsonObj) throws JSONException

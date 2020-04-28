@@ -51,7 +51,7 @@ public class PatternBase {
         else
         {
             //mNotes.SetTime(time);
-            mNotes.Clear(channel);
+            mNotes.Clear(channel, time);
         };
     }
 

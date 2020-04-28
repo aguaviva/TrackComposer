@@ -353,7 +353,15 @@ public class ActivityMain extends AppCompatActivity {
                     break;
                 }
                 case R.id.btnDelete:
-                    mAppState.mPatternMaster.Set(mNote, mBeat, null); break;
+                    if (eventSelected!=null) {
+                        mAppState.mPatternMaster.Set(eventSelected.channel, eventSelected.time, null);
+                        masterView.selectedNote = null;
+                        eventSelected = null;
+                    } else {
+                        Toast.makeText(mContext, "Nothing to delete", Toast.LENGTH_SHORT).show();
+                    }
+
+                    break;
             }
             masterView.invalidate();
         }
