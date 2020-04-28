@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
@@ -319,7 +318,7 @@ public class ActivityMain extends AppCompatActivity {
     }
 
     View.OnClickListener btnEditingListent = new View.OnClickListener() {
-        int copiedId = -1;
+        Event copiedEvent = null;
         @Override
         public void onClick(View v) {
             switch (v.getId())
@@ -335,16 +334,20 @@ public class ActivityMain extends AppCompatActivity {
                     break;
                 case R.id.btnCopy: {
                     if (eventSelected != null)
-                        copiedId = eventSelected.mGen.sampleId;
+                        copiedEvent = eventSelected;
                     else
-                        copiedId = -1;
+                        copiedEvent = null;
                     break;
                 }
                 case R.id.btnPaste: {
-                    if (copiedId != -1) {
-                        GeneratorInfo genInf = new GeneratorInfo();
-                        genInf.sampleId = copiedId;
-                        mAppState.mPatternMaster.Set(eventSelected.channel, mTimeLine.getTime(), genInf);
+                    if (copiedEvent != null) {
+                        Event note = new Event();
+                        note.time = mTimeLine.getTime();
+                        note.channel = mRowSelected;
+                        note.durantion = copiedEvent.durantion;
+                        note.mGen = copiedEvent.mGen;
+
+                        mAppState.mPatternMaster.Set(note);
                         break;
                     }
                     else
@@ -355,7 +358,7 @@ public class ActivityMain extends AppCompatActivity {
                 }
                 case R.id.btnDelete:
                     if (eventSelected!=null) {
-                        mAppState.mPatternMaster.Set(eventSelected.channel, eventSelected.time, null);
+                        mAppState.mPatternMaster.Clear(eventSelected.channel, eventSelected.time);
                         masterView.selectedNote = null;
                         eventSelected = null;
                     } else {

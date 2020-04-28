@@ -1,8 +1,6 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -115,11 +113,11 @@ public class ActivityPianoRoll extends AppCompatActivity {
                     note.channel = rowSelected;
                     note.durantion = 1;
                     note.mGen = new GeneratorInfo();
-                    note.mGen.sampleId = 0;
+                    note.mGen.sampleId = patternPianoRoll.sampleId;
                     patternPianoRoll.Set(note);
                 }
                 else {
-                    patternPianoRoll.Set(rowSelected, time,null);
+                    patternPianoRoll.Clear(rowSelected, time);
                 }
 
                 //patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);

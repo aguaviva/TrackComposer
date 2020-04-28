@@ -26,9 +26,6 @@ public class PatternBase {
         return mNotes.GetNoteBy(channel, time);
     }
     Mixer.MixerListener GetMixerListener() { return null; }
-    void Set(Event note) {
-        mNotes.Set(note);
-    }
 
     public Event get(int row, float time) {
         return mNotes.GetNoteBy(row, time);
@@ -38,21 +35,12 @@ public class PatternBase {
         return mNotes.getIter();
     }
 
-    void Set(int channel, float time, GeneratorInfo hit)
-    {
-        if (hit!=null)
-        {
-            Event note = new Event();
-            note.time = time;
-            note.channel = channel;
-            note.mGen = hit;
-            mNotes.Set(note);
-        }
-        else
-        {
-            //mNotes.SetTime(time);
-            mNotes.Clear(channel, time);
-        };
+    void Set(Event note) {
+        mNotes.Set(note);
+    }
+
+    void Clear(int channel, float time) {
+        mNotes.Clear(channel, time);
     }
 
     public interface BeatListener { public void beat(float currentBeat); }
