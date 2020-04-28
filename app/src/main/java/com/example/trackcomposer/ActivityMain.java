@@ -156,20 +156,15 @@ public class ActivityMain extends AppCompatActivity {
                 }
                 else if (event.getAction() == MotionEvent.ACTION_MOVE)
                 {
-                    Event noteTouched = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
-                    if (noteTouched!=null)
+                    if (noteDown!=null)
                     {
-                        if (noteDown==noteTouched) {
-                            noteTouched.time = event.getX() - d;
-                            masterView.invalidate();
-                        }
+                        noteDown.time = event.getX() - d;
+                        masterView.invalidate();
                         return true;
                     }
                 } if (event.getAction() == MotionEvent.ACTION_UP) {
                     noteDown = null;
                 }
-
-
 
                 return false;
             }
