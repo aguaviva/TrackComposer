@@ -271,10 +271,10 @@ public class PatternBaseView extends View {
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLOD());
-        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLOD());
+        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLod());
+        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLod());
         if (columnLeft<0) columnLeft = 0;
-        if (columnRight>mLength*mViewport.getLOD()) columnRight = (int)(mLength*mViewport.getLOD());
+        if (columnRight>mLength*mViewport.getLod()) columnRight = (int)(mLength*mViewport.getLod());
 
         // Draw background
         //
@@ -322,7 +322,7 @@ public class PatternBaseView extends View {
 
             for (int i=columnLeft;i<columnRight;i++) {
 
-                float x = i* mTimeLine.getTickWidth()/mViewport.getLOD();
+                float x = i* mTimeLine.getTickWidth()/mViewport.getLod();
 
                 if (((i%16)==0)) {
                     canvas.drawLine(x, yTop, x, yBottom, white);

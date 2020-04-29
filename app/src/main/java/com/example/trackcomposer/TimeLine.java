@@ -1,21 +1,14 @@
 package com.example.trackcomposer;
 
-import android.graphics.PointF;
-import android.graphics.RectF;
-import android.view.MotionEvent;
-
 public class TimeLine {
 
     PatternBase mPattern;
-    int mTicksPerTrack;
-    float mTicksPerColumn;
 
     Viewport mViewport = new Viewport();
 
-    public void init(PatternBase pattern, float ticksPerColumn) {
+    public void init(PatternBase pattern, float bias) {
         mPattern = pattern;
-        mTicksPerTrack = (int)pattern.GetLength();
-        mTicksPerColumn = ticksPerColumn;
+        mViewport.setLodFactor(4.0f/bias); // 4 is the number of
     }
 
     float mTickWidth;
@@ -57,7 +50,7 @@ public class TimeLine {
     public float getTimeFromScreen(float x)
     {
         x = mViewport.removePosScaleX(x);
-        return (float)Math.floor(x / ((getTickWidth()/mViewport.getLOD())))/mViewport.getLOD();
+        return (float)Math.floor(x / ((getTickWidth()/mViewport.getLod())))/mViewport.getLod();
     }
 
 }

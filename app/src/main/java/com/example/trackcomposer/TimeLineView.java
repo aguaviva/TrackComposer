@@ -6,12 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -81,19 +78,19 @@ public class TimeLineView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLOD());
-        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLOD());
+        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLod());
+        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLod());
 
         float hh = getHeight() / 5.0f;
 
         for (int i=mIni;i<mFin;i++) {
 
-            float x = mViewport.applyPosScaleX(i* mTimeLine.getTickWidth()/mViewport.getLOD());
+            float x = mViewport.applyPosScaleX(i* mTimeLine.getTickWidth()/mViewport.getLod());
 
             float h = 0;
             if (((i%16)==0)) {
                 h = hh;
-                canvas.drawText(String.valueOf((int)(i/mViewport.getLOD())), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+                canvas.drawText(String.valueOf((int)(i/mViewport.getLod())), x+5,mTextBlack.getTextSize()+5, mTextBlack);
             }
             else if (i%4==0)
                 h = hh*2;

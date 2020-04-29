@@ -43,7 +43,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
-        mTimeLine.init(patternPianoRoll, 1);
+        mTimeLine.init(patternPianoRoll, 1); // at scale 1, draw 1 vertical line every tick
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -52,6 +52,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
+                mNoteView.invalidate();
                 //mAppState.setLoop(time, (1 * 16 * 16));
             }
             @Override
@@ -120,7 +121,9 @@ public class ActivityPianoRoll extends AppCompatActivity {
                     patternPianoRoll.Clear(rowSelected, time);
                 }
 
-                //patternPianoRoll.Play(mAppState.mixer, rowSelected, 1);
+                //if (patternPianoRoll.sampleId>=0)
+                //    mAppState.mPatternMaster.master.play(patternPianoRoll.sampleId,rowSelected,patternPianoRoll.ChannelToFreq(rowSelected),1);
+
                 mNoteView.invalidate();
                 return true;
             }

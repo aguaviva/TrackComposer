@@ -112,7 +112,7 @@ public class ActivityMain extends AppCompatActivity {
             }
         }
 
-        mTimeLine.init(mAppState.mPatternMaster, 1);
+        mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -411,10 +411,7 @@ public class ActivityMain extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_load) {
-            String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
-            File directory = new File(extStore);
-
-            final FileChooser filesChooser = new FileChooser(this, directory, "Load Song");
+            final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Load Song");
             filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                 @Override
                 public void fileSelected(String file)
@@ -447,11 +444,7 @@ public class ActivityMain extends AppCompatActivity {
         }
 
         if (id == R.id.action_save) {
-
-            String extStore = Environment.getExternalStorageDirectory() + "/TrackComposer";
-            File directory = new File(extStore);
-
-            final FileChooser filesChooser = new FileChooser(this, directory, "Save Song");
+            final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Save Song");
             filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                 @Override
                 public void fileSelected(String file) { mAppState.Save(file); }
@@ -477,6 +470,7 @@ public class ActivityMain extends AppCompatActivity {
 
         PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.mGen.sampleId);
         mAppState.mLastPatternAdded = pattern;
+        //mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
         Intent intent = null;
 
@@ -532,6 +526,7 @@ public class ActivityMain extends AppCompatActivity {
                 int id = mAppState.mPatternMaster.mPatternDataBase.size();
                 mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
                 mAppState.mLastPatternAdded = pattern;
+                //mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
                 Event note = new Event();
                 note.time = time;
@@ -606,20 +601,28 @@ public class ActivityMain extends AppCompatActivity {
     public boolean isStoragePermissionGranted() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG,"Permission is granted");
-                return true;
-            } else {
-
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 Log.v(TAG,"Permission is revoked");
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 return false;
             }
         }
         else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG,"Permission is granted");
-            return true;
         }
+
+        Log.v(TAG,"Permission is granted");
+
+        try{
+            if(mAppState.extStoreDir.mkdir()) {
+                System.out.println("Directory created");
+            } else {
+                System.out.println("Directory is not created");
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
     }
 }
