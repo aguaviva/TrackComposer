@@ -8,8 +8,7 @@ public class Viewport {
     protected float mPosX = 0.0f, mPosY = 0.0f;
     protected float mScaleX = 1.0f, mScaleY = 1.0f;
     protected float mVelX = 0.0f, mVelY = 0.0f;
-
-    float mLOD = 1; // for ticks
+    private float mLOD = 1; // for ticks
 
     RectF mRect = new RectF();
 
@@ -26,6 +25,8 @@ public class Viewport {
         mRect.left = (0 - mPosX) / mScaleX;
         mRect.right = (mScreenWidth - mPosX) / mScaleX;
     }
+
+    public float getLOD() { return mLOD; }
 
     public float applyPosScaleX(float x) {
         return (x * mScaleX) + mPosX;

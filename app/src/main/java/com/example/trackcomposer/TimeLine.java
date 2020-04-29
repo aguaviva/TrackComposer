@@ -9,7 +9,6 @@ public class TimeLine {
     PatternBase mPattern;
     int mTicksPerTrack;
     float mTicksPerColumn;
-    float mColumns;
 
     Viewport mViewport = new Viewport();
 
@@ -17,7 +16,6 @@ public class TimeLine {
         mPattern = pattern;
         mTicksPerTrack = (int)pattern.GetLength();
         mTicksPerColumn = ticksPerColumn;
-        mColumns = mTicksPerTrack / mTicksPerColumn;
     }
 
     float mTickWidth;
@@ -59,7 +57,7 @@ public class TimeLine {
     public float getTimeFromScreen(float x)
     {
         x = mViewport.removePosScaleX(x);
-        return (float)Math.floor(x / ((getTickWidth()/mViewport.mLOD)))/mViewport.mLOD;
+        return (float)Math.floor(x / ((getTickWidth()/mViewport.getLOD())))/mViewport.getLOD();
     }
 
 }
