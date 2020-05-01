@@ -19,6 +19,7 @@ public class GeneratorSynth extends Generator {
         SetSampleRate(44100);
         adsr.setTimings(.1f,1.0f,.1f,.8f,0.3f);
         adsr.setSustainTime(.5f);
+        instrumentName = "GeneratorSynth";
     }
 
     @Override

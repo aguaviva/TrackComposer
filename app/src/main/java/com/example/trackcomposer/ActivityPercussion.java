@@ -1,8 +1,6 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
@@ -13,8 +11,8 @@ public class ActivityPercussion extends AppCompatActivity {
     ApplicationClass mAppState;
     PatternBaseView mDrumTracker;
     Context mContext;
-    PatternHeaderView patternHeaderView;
-    PatternPercussion patternPercussion;
+    PatternHeaderView mPatternHeaderView;
+    PatternPercussion mPattern;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
 
@@ -28,9 +26,9 @@ public class ActivityPercussion extends AppCompatActivity {
         mContext = this;
 
         mAppState = ((ApplicationClass)this.getApplication());
-        patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
+        mPattern = (PatternPercussion)mAppState.mLastPatternAdded;
 
-        mTimeLine.init(patternPercussion, 1); //
+        mTimeLine.init(mPattern, 1); //
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -51,9 +49,9 @@ public class ActivityPercussion extends AppCompatActivity {
             }
         });
 
-        patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(mTimeLine, patternPercussion.channels, patternPercussion.GetLength(),true);
-        patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
+        mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
+        mPatternHeaderView.SetPattern(mTimeLine, mPattern.channels, mPattern.GetLength(),false);
+        mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) { instrumentChooser(note); }
             @Override
@@ -61,7 +59,7 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public String getInstrumentName(int channel)
             {
-                int sampleId = patternPercussion.mChannels[channel];
+                int sampleId = mPattern.mChannels[channel];
                 if (sampleId>=0)
                     return mAppState.instrumentList.get(sampleId).instrumentName;
                 return "none";
@@ -77,21 +75,45 @@ public class ActivityPercussion extends AppCompatActivity {
             }
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
+                timeLineView.init(mPattern, mTimeLine);
+                timeLineView.invalidate();
+
+                mPatternHeaderView.setPosScale(trackHeight);
+                mPatternHeaderView.invalidate();
             }
             @Override
             public void longPress(int rowSelected, float time) {}
             @Override
-            public boolean noteTouched(int rowSelected, float time) { return false;}
+            public boolean noteTouched(int rowSelected, float time) {
+                Event noteTouched = mPattern.get(rowSelected, time);
+                if (noteTouched==null) {
+                    noteTouched = new Event();
+                    noteTouched.time = time;
+                    noteTouched.channel = rowSelected;
+                    noteTouched.durantion = 1;
+                    noteTouched.mGen = new GeneratorInfo();
+                    noteTouched.mGen.sampleId = mPattern.mChannels[rowSelected];
+                    mPattern.Set(noteTouched);
+                }
+                else {
+                    mPattern.Clear(rowSelected, time);
+                }
+
+                if (mPattern.mChannels[rowSelected]>=0) {
+                    mAppState.mLastPatternMixer.play(noteTouched, rowSelected, 1, 1);
+                }
+                mDrumTracker.invalidate();
+                return true;}
         });
     }
 
     private void instrumentChooser(final int channel)
     {
-        InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, patternPercussion.mChannels[channel], new InstrumentChooser.InstrumentChooserListener()
+        InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, mPattern.mChannels[channel], new InstrumentChooser.InstrumentChooserListener()
         {
             @Override
             public void GetSelectedInstrumentId(Generator generator) {
-                patternPercussion.mChannels[channel] = generator.sampleId;
+                mPattern.mChannels[channel] = generator.sampleId;
             }
         });
     }

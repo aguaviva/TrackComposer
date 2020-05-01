@@ -227,6 +227,12 @@ public class PatternBaseView extends View {
                 mChannels = 12;
             }
         }
+        else if (mViewMode == ViewMode.DRUMS) {
+            if (mChannels < 8) {
+                mChannels = 8;
+                max = 0;
+            }
+        }
         else if (mViewMode == ViewMode.MAIN) {
             if (mChannels < 8) {
                 mChannels = 8;
