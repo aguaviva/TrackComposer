@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 public class GeneratorSynth extends Generator {
     float TwoPi = 2.0f * 3.1415926f;
-
+    float mAmplitude = (float)((Short.MAX_VALUE-1)/4.0f);
     float mTremoloFreq = 0, mTremoloAmplitude = 0.0f;
     float mVibratoFreq = 0, mVibratoAmplitude = 0.0f;
 
@@ -61,7 +61,7 @@ public class GeneratorSynth extends Generator {
 
             float envelope = adsr.getEnvelope(timeInSeconds);
 
-            float generator = (float)((Short.MAX_VALUE-1) * (Math.sin(freqN * t + vibrato)));
+            float generator = mAmplitude * (float)Math.sin(freqN * t + vibrato);
 
             short v = (short) (tremolo * channel.volume * envelope * generator);
 

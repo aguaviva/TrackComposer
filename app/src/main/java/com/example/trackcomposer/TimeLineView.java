@@ -85,15 +85,13 @@ public class TimeLineView extends View {
 
         for (int i=mIni;i<mFin;i++) {
 
-            float x = mViewport.applyPosScaleX(i* mTimeLine.getTickWidth()/mViewport.getLod());
+            float x = mViewport.applyPosScaleX(i * mTimeLine.getTickWidth() / mViewport.getLod());
 
             float h = 0;
-            if (((i%16)==0)) {
-                h = hh;
-                canvas.drawText(String.valueOf((int)(i/mViewport.getLod())), x+5,mTextBlack.getTextSize()+5, mTextBlack);
+            if (i % 4 == 0) {
+                h = hh * 2;
+            canvas.drawText(String.valueOf((int) (i / mViewport.getLod())), x + 5, mTextBlack.getTextSize() + 5, mTextBlack);
             }
-            else if (i%4==0)
-                h = hh*2;
             else
                 h = hh*3;
 

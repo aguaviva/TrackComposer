@@ -114,7 +114,7 @@ public class WaveformView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (mGenerator.getLengthInFrames()<=0)
+        if (mGenerator==null || mGenerator.getLengthInFrames()<=0)
         {
             canvas.drawText("cannot found", getWidth()/2, getHeight()/2, black);
             return;

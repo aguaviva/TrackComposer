@@ -8,7 +8,7 @@ public class TimeLine {
 
     public void init(PatternBase pattern, float bias) {
         mPattern = pattern;
-        mViewport.setLodFactor(4.0f/bias); // 4 is the number of
+        mViewport.setLodFactor(1.0f/bias); // 4 is the number of
     }
 
     float mTickWidth;

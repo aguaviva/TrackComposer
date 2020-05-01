@@ -19,18 +19,17 @@ public class ApplicationClass extends Application {
     public HashMap<Integer, Bitmap> mPatternImgDataBase = new HashMap<Integer, Bitmap>();
     public PatternMaster mPatternMaster;
     public PatternBase mLastPatternAdded;
+    public Mixer mLastPatternMixer;
     public File extStoreDir;
     private boolean mPlaying = false;
     int mSampleRate = 44100;
 
     MySoundPool soundPool;
     InstrumentList instrumentList = InstrumentList.getInstance( );
-    Mixer mixer;
     void Init()
     {
         if (mPatternMaster==null) {
             instrumentList.reset();
-            mixer = new Mixer(instrumentList);
             soundPool = new MySoundPool();
             soundPool.init(mSampleRate, new MySoundPool.NextBeatListener() {
                 @Override
@@ -72,7 +71,6 @@ public class ApplicationClass extends Application {
             JSONObject jsonObj = new JSONObject(lines);
 
             instrumentList.reset();
-            mixer = new Mixer(instrumentList);
             instrumentList.serializeFromJson(jsonObj);
 
             mPatternMaster = new PatternMaster("caca", filename, 16,16);

@@ -11,11 +11,7 @@ class PatternPianoRoll extends PatternBase
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
         public void AddNote(Mixer.Channel ch){
-
-            float freq = Misc.GetFrequency(ch.mEvent.channel);
-            float freqBase = Misc.GetFrequency(InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId).baseNote);
-
-            ch.speed = freq / freqBase;
+            ch.speed = ComputeSpeed(ch.mEvent);
             ch.timeInSamples = 0;
             ch.volume = 0.5f;
             ch.mPlaying = true;
@@ -23,7 +19,7 @@ class PatternPianoRoll extends PatternBase
 
         @Override
         public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
-            Generator g = InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId);
+            Generator g = InstrumentList.getInstance().get(sampleId);
             g.playSample(ch, chunk, ini, fin);
         }
     };
@@ -31,6 +27,18 @@ class PatternPianoRoll extends PatternBase
     public PatternPianoRoll(String name, String filename, int channels, int length)
     {
         super(name, filename, channels, length);
+    }
+
+    public float ComputeSpeed(Event ev)
+    {
+        float freq = ChannelToFreq(ev.channel);
+        float freqBase = Misc.GetFrequency(InstrumentList.getInstance().get(sampleId).baseNote);
+        return freq / freqBase;
+    }
+
+    public float ChannelToFreq(int channel)
+    {
+        return Misc.GetFrequency(channel);
     }
 
     @Override
@@ -48,7 +56,5 @@ class PatternPianoRoll extends PatternBase
         super.serializeFromJson(jsonObj);
         sampleId = jsonObj.getInt("sampleId");
         baseNote = jsonObj.getInt("baseNote");
-
-        //mixer.iter = getIter();
     }
 };

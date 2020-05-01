@@ -31,14 +31,14 @@ class PatternMaster extends PatternBase
     {
         super(name, filename, channels, length);
 
-        master = new Mixer(InstrumentList.getInstance());
+        master = new Mixer(null, InstrumentList.getInstance());
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
             public void AddNote(Mixer.Channel ch){
                 PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
                 Mixer.MixerListener listener = p.GetMixerListener();
 
-                mTracks[ch.mEvent.channel].iter = p.getIter();
+                mTracks[ch.mEvent.channel].SetState(p.getIter());
                 mTracks[ch.mEvent.channel].mMixerListener = listener;
                 mTracks[ch.mEvent.channel].setTime(ch.timeInSamples/master.mTempoInSamples);
                 ch.volume = mChannel[ch.mEvent.channel].mVolume;
@@ -55,12 +55,12 @@ class PatternMaster extends PatternBase
         mTracks = new Mixer[channels];
         mChannel = new Channel[channels];
         for (int c = 0; c < mTracks.length; c++) {
-            mTracks[c] = new Mixer(InstrumentList.getInstance());
+            mTracks[c] = new Mixer(master, InstrumentList.getInstance());
             mChannel[c] = new Channel();
         }
 
-        master.iter = getIter();
-        master.iter.setTime(0);
+        master.SetState(getIter());
+        master.setTime(0);
     }
 
     public void setTime(float time) {
@@ -80,7 +80,6 @@ class PatternMaster extends PatternBase
     public void setVolume(int channel, float volume) {
         mChannel[channel].mVolume=volume;
     }
-
     public float getVolume(int channel) {
         return mChannel[channel].mVolume;
     }
@@ -203,7 +202,7 @@ class PatternMaster extends PatternBase
             }
         }
 
-        master.iter = getIter();
+        master.SetState(getIter());
         master.setTime(0);
     }
 };

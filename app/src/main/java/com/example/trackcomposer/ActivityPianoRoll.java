@@ -15,9 +15,9 @@ import androidx.appcompat.widget.Toolbar;
 public class ActivityPianoRoll extends AppCompatActivity {
     ApplicationClass mAppState;
     PatternBaseView mNoteView;
+    Context mContext;
     PatternHeaderView mPatternHeaderView;
     PatternPianoRoll patternPianoRoll;
-    Context mContext;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
 
@@ -32,16 +32,6 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         mAppState = ((ApplicationClass)this.getApplication());
         patternPianoRoll = (PatternPianoRoll)mAppState.mLastPatternAdded;
-
-        final ImageButton fab = (ImageButton)findViewById(R.id.play);
-        fab.setImageResource(android.R.drawable.ic_media_play);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean playing = mAppState.PlayPause();
-                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
-            }
-        });
 
         mTimeLine.init(patternPianoRoll, 1); // at scale 1, draw 1 vertical line every tick
 
@@ -109,25 +99,36 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
                 Event noteTouched = patternPianoRoll.get(rowSelected, time);
                 if (noteTouched==null) {
-                    Event note = new Event();
-                    note.time = time;
-                    note.channel = rowSelected;
-                    note.durantion = 1;
-                    note.mGen = new GeneratorInfo();
-                    note.mGen.sampleId = patternPianoRoll.sampleId;
-                    patternPianoRoll.Set(note);
+                    noteTouched = new Event();
+                    noteTouched.time = time;
+                    noteTouched.channel = rowSelected;
+                    noteTouched.durantion = 1;
+                    noteTouched.mGen = new GeneratorInfo();
+                    noteTouched.mGen.sampleId = patternPianoRoll.sampleId;
+                    patternPianoRoll.Set(noteTouched);
                 }
                 else {
                     patternPianoRoll.Clear(rowSelected, time);
                 }
 
-                //if (patternPianoRoll.sampleId>=0)
-                //    mAppState.mPatternMaster.master.play(patternPianoRoll.sampleId,rowSelected,patternPianoRoll.ChannelToFreq(rowSelected),1);
-
+                if (patternPianoRoll.sampleId>=0) {
+                    mAppState.mLastPatternMixer.play(noteTouched, rowSelected, patternPianoRoll.ComputeSpeed(noteTouched), 1);
+                }
                 mNoteView.invalidate();
                 return true;
             }
         });
+
+        final ImageButton fab = (ImageButton)findViewById(R.id.play);
+        fab.setImageResource(android.R.drawable.ic_media_play);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean playing = mAppState.PlayPause();
+                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
+            }
+        });
+
 
         // set note controls up in the toolbar
         //View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, mNoteView, patternPianoRoll);

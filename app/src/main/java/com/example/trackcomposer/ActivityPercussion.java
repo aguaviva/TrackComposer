@@ -13,8 +13,10 @@ public class ActivityPercussion extends AppCompatActivity {
     ApplicationClass mAppState;
     PatternBaseView mDrumTracker;
     Context mContext;
+    PatternHeaderView patternHeaderView;
     PatternPercussion patternPercussion;
     TimeLine mTimeLine = new TimeLine();
+    TimeLineView timeLineView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +30,28 @@ public class ActivityPercussion extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternPercussion = (PatternPercussion)mAppState.mLastPatternAdded;
 
-        final PatternHeaderView patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
+        mTimeLine.init(patternPercussion, 1); //
+
+        //
+        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView.init(mAppState.mPatternMaster, mTimeLine);
+        timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
+            @Override
+            public void onTimeChanged(float time)
+            {
+                //mAppState.setLoop((int) time, (int) (1 * 16 * 16));
+                mAppState.mPatternMaster.setTime(time);
+                mDrumTracker.invalidate();
+            }
+            @Override
+            public void onPatternEnd(float time)
+            {
+                mDrumTracker.GetPattern().SetLength(time);
+                mDrumTracker.invalidate();
+            }
+        });
+
+        patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
         patternHeaderView.SetPattern(mTimeLine, patternPercussion.channels, patternPercussion.GetLength(),true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
@@ -45,7 +68,7 @@ public class ActivityPercussion extends AppCompatActivity {
             }
         });
 
-        mDrumTracker = (PatternBaseView)findViewById(R.id.drumView);
+        mDrumTracker = (PatternBaseView)findViewById(R.id.tracksView);
         mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override

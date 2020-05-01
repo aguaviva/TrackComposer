@@ -417,6 +417,8 @@ public class ActivityMain extends AppCompatActivity {
                 public void fileSelected(String file)
                 {
                     mAppState.Load(file);
+                    mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
+                    timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                     setTrackNames();
                     masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true,PatternBaseView.ViewMode.MAIN);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
@@ -470,7 +472,7 @@ public class ActivityMain extends AppCompatActivity {
 
         PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.mGen.sampleId);
         mAppState.mLastPatternAdded = pattern;
-        //mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
+        mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
         Intent intent = null;
 
@@ -526,7 +528,7 @@ public class ActivityMain extends AppCompatActivity {
                 int id = mAppState.mPatternMaster.mPatternDataBase.size();
                 mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
                 mAppState.mLastPatternAdded = pattern;
-                //mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
+                mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
                 Event note = new Event();
                 note.time = time;
