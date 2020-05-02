@@ -78,8 +78,38 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
         mNoteView.setBaseNote(patternPianoRoll.baseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
+            Event noteDown;
+            float dx = 0, dy = 0;
+            boolean bMoved=false;
             @Override
             public boolean onTouchEvent(MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
+                    if (noteDown!=null) {
+                        dx = event.getX() - noteDown.time;
+                        dy = event.getY() - noteDown.channel;
+
+                        mNoteView.selectedNote = noteDown;
+                        //eventSelected = noteDown;
+                        //mRowSelected = (int)event.getY();
+                    }
+                }
+                else if (event.getAction() == MotionEvent.ACTION_MOVE)
+                {
+                    if (noteDown!=null)
+                    {
+                        noteDown.time = event.getX() - dx;
+                        noteDown.channel = (int)(event.getY() - dy);
+                        //if ()
+                        mNoteView.invalidate();
+                        return true;
+                    }
+                } if (event.getAction() == MotionEvent.ACTION_UP) {
+                    noteDown = null;
+                    if (bMoved)
+                        return true; //prevent other handlers from using this motion
+                }
+
                 return false;
             }
             @Override
@@ -103,8 +133,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                     noteTouched.time = time;
                     noteTouched.channel = rowSelected;
                     noteTouched.durantion = 1;
-                    noteTouched.mGen = new GeneratorInfo();
-                    noteTouched.mGen.sampleId = patternPianoRoll.sampleId;
+                    noteTouched.id = patternPianoRoll.sampleId;
                     patternPianoRoll.Set(noteTouched);
                 }
                 else {

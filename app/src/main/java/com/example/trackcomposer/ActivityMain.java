@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-import android.os.Environment;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -33,7 +32,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import java.io.File;
 
 public class ActivityMain extends AppCompatActivity {
     private static final String TAG = "TrackComposer";
@@ -232,7 +230,7 @@ public class ActivityMain extends AppCompatActivity {
 
         if (eventSelected!=null)
         {
-            eventSelected.durantion = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.mGen.sampleId).GetLength();
+            eventSelected.durantion = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.id).GetLength();
         }
 
         generateIcons();
@@ -345,7 +343,7 @@ public class ActivityMain extends AppCompatActivity {
                         note.time = mTimeLine.getTime();
                         note.channel = mRowSelected;
                         note.durantion = copiedEvent.durantion;
-                        note.mGen = copiedEvent.mGen;
+                        note.id = copiedEvent.id;
 
                         mAppState.mPatternMaster.Set(note);
                         break;
@@ -470,7 +468,7 @@ public class ActivityMain extends AppCompatActivity {
             return;
         }
 
-        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.mGen.sampleId);
+        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.id);
         mAppState.mLastPatternAdded = pattern;
         mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
@@ -534,8 +532,7 @@ public class ActivityMain extends AppCompatActivity {
                 note.time = time;
                 note.channel = channel;
                 note.durantion = 16;
-                note.mGen = new GeneratorInfo();
-                note.mGen.sampleId = id;
+                note.id = id;
                 mAppState.mPatternMaster.Set(note);
                 eventSelected = note;
 

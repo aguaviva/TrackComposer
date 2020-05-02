@@ -15,6 +15,8 @@ public class GeneratorKarplusStrong extends Generator {
 
     void pluck(int length)
     {
+        timeInSamples = 0;
+        mPlaying = true;
         length = Math.min(length, delayLine.length);
 
         for(int i=0;i<length;i++)
@@ -48,10 +50,11 @@ public class GeneratorKarplusStrong extends Generator {
 
         if (channel.timeInSamples==0)
         {
-             pluck((int)(44100.0f / (channel.speed*220.0f)));
+             pluck((int)(44100.0f / (channel.speed*110.0f)));
+            channel.timeInSamples++;
         }
 
-        float timeInSeconds = channel.timeInSamples * GetInvSampleRate();
+        float timeInSeconds = timeInSamples * GetInvSampleRate();
 
         for (int i = ini; i < fin; i += 2) {
 
@@ -60,9 +63,10 @@ public class GeneratorKarplusStrong extends Generator {
             chunk[i + 0] += v;
             chunk[i + 1] += v;
 
-            channel.timeInSamples++;
+            timeInSamples++;
 
-            if (channel.timeInSamples>44100.0f/1.0f) {
+            if (timeInSamples>44100.0f/1.0f) {
+                mPlaying = false;
                 channel.mPlaying = false;
                 break;
             }

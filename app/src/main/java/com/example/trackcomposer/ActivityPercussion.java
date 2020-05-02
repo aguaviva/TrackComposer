@@ -91,8 +91,7 @@ public class ActivityPercussion extends AppCompatActivity {
                     noteTouched.time = time;
                     noteTouched.channel = rowSelected;
                     noteTouched.durantion = 1;
-                    noteTouched.mGen = new GeneratorInfo();
-                    noteTouched.mGen.sampleId = mPattern.mChannels[rowSelected];
+                    noteTouched.id = mPattern.mChannels[rowSelected];
                     mPattern.Set(noteTouched);
                 }
                 else {

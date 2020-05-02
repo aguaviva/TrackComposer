@@ -184,10 +184,7 @@ public class SortedListOfNotes
         {
             JSONObject json = new JSONObject();
             Event note = myList.get(c);
-            json.put("time", note.time);
-            json.put("channel", note.channel);
-            json.put("durantion", note.durantion);
-            note.mGen.serializeToJson(json);
+            note.serializeToJson(json);
             jsonArr.put(json);
         }
         jsonObj.put("pattern", jsonArr);
@@ -202,12 +199,7 @@ public class SortedListOfNotes
         {
             JSONObject json = jArr.getJSONObject(c);
             Event note = new Event();
-            note.time = json.getInt("time");
-            note.channel = json.getInt("channel");
-            note.durantion = json.getInt("durantion");
-            note.mGen = new GeneratorInfo();
-
-            note.mGen.serializeFromJson(json);
+            note.serializeFromJson(json);
             myList.add(note);
         }
     }

@@ -1,7 +1,5 @@
 package com.example.trackcomposer;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +33,7 @@ class PatternMaster extends PatternBase
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
             public void AddNote(Mixer.Channel ch){
-                PatternBase p = mPatternDataBase.get(ch.mEvent.mGen.sampleId);
+                PatternBase p = mPatternDataBase.get(ch.mEvent.id);
                 Mixer.MixerListener listener = p.GetMixerListener();
 
                 mTracks[ch.mEvent.channel].SetState(p.getIter());

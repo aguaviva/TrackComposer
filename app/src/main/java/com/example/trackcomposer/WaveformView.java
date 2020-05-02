@@ -74,8 +74,7 @@ public class WaveformView extends View {
 
         Mixer.Channel channel = new Mixer.Channel();
         channel.mEvent = new Event();
-        channel.mEvent.mGen = new GeneratorInfo();
-        channel.mEvent.mGen.sampleId = mGenerator.sampleId;
+        channel.mEvent.id = mGenerator.sampleId;
         channel.mPlaying = true;
         channel.volume = 1.0f;
         channel.speed = 1.0f;

@@ -362,7 +362,7 @@ public class PatternBaseView extends View {
             rf.right = x2 - padDR;
             rf.bottom = (y+1)* mRowHeight - padDR;
 
-            Integer id = note.mGen.sampleId;
+            Integer id = note.id;
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
