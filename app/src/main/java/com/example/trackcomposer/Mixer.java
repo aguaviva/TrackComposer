@@ -3,17 +3,6 @@ package com.example.trackcomposer;
 import android.util.Log;
 
 class Mixer {
-    static class Channel {
-        Event mEvent;
-        int timeInSamples=0;
-        int durationInSamples=0;
-        boolean mPlaying = false;
-        float speed;
-        float volume;
-    };
-    Mixer mParent;
-
-    Channel[] mChannel = new Channel[100];
     int mTempoInSamples = 44100/4;
     public int mTime = 0, mNextTime = 0;
 
@@ -22,15 +11,8 @@ class Mixer {
 
     private SortedListOfNotes.State iter = null;
 
-    InstrumentList mInstrumentList;
-
-    Mixer(Mixer parent, InstrumentList instrumentList)
+    Mixer()
     {
-        mParent = parent;
-        mInstrumentList = instrumentList;
-        for(int i = 0; i< mChannel.length; i++)
-            mChannel[i] = new Channel();
-
         mTime = 0;
         mNextTime = 0;
     }
@@ -42,13 +24,6 @@ class Mixer {
 
     public void play(Event event, int channel, float speed, float volume)
     {
-        mChannel[channel].mEvent = event;
-        mChannel[channel].speed = speed;
-        mChannel[channel].timeInSamples = 0;
-        mChannel[channel].durationInSamples = 0;
-        mChannel[channel].volume = volume;
-        mChannel[channel].mPlaying = true;
-
         //mParent.play(int sampleId, int channel, 1, 1);
     }
 
@@ -68,26 +43,12 @@ class Mixer {
             Event event = null;
             for (int i = 0; i < notes; i++) {
                 event = iter.GetNote();
-                Channel ch = mChannel[event.channel];
 
-                ch.mEvent = event;
-                ch.timeInSamples = mTime - (int)(event.time * mTempoInSamples);
-                ch.durationInSamples = (int)(event.durantion * mTempoInSamples);
-                ch.volume = 1;
-                ch.mPlaying = true;
-
-                if (mParent==null)
-                {
-                    Log.i("TC", String.format("time %f %d",((float)mTime/(float)mTempoInSamples), event.channel));
-                }
-                else
-                {
-                    Log.i("TC", String.format("  - time %f %d",(float)mTime/(float)mTempoInSamples, event.channel));
-                }
+                Log.i("TC", String.format("  - time %f %d",(float)mTime/(float)mTempoInSamples, event.channel));
 
                 if (mMixerListener!=null)
                 {
-                    mMixerListener.AddNote(ch);
+                    mMixerListener.AddNote(event);
                 }
 
                 iter.nextNote();
@@ -126,7 +87,7 @@ class Mixer {
             //mStillPlaying = render(chunk, ini, mid, volume);
             if (mMixerListener!=null){
 
-                mMixerListener.PlayBeat(null, chunk, ini, fin, volume);
+                mMixerListener.PlayBeat(chunk, ini, fin, volume);
             }
 
             mTime += (mid-ini)/2;
@@ -135,13 +96,6 @@ class Mixer {
     }
 
     public void setTime(float time) {
-
-        for (int c = 0; c < mChannel.length; c++) {
-            Channel ch = mChannel[c];
-            ch.mEvent = null;
-            ch.mPlaying=false;
-        }
-
         iter.setTime(time);
         mTime = (int)(time * mTempoInSamples);
         mNextTime = mTime;
@@ -160,8 +114,8 @@ class Mixer {
 
     public interface MixerListener
     {
-        public void AddNote(Channel ch);
-        public void PlayBeat(Channel ch, short[] chunk, int ini, int fin, float volume);
+        public void AddNote(Event event);
+        public void PlayBeat(short[] chunk, int ini, int fin, float volume);
     }
 
     MixerListener mMixerListener;

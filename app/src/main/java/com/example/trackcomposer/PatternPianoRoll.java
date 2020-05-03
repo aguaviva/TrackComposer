@@ -10,22 +10,14 @@ class PatternPianoRoll extends PatternBase
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
-        public void AddNote(Mixer.Channel ch){
-            /*
-            ch.speed = ComputeSpeed(ch.mEvent);
-            ch.timeInSamples = 0;
-            ch.volume = 0.5f;
-            ch.mPlaying = true;
-            */
-            InstrumentBase g = InstrumentList.getInstance().get(sampleId);
-            g.playSample(ch.mEvent.channel, ComputeSpeed(ch.mEvent));
-
+        public void AddNote(Event event){
+            play(event);
         }
 
         @Override
-        public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+        public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
             InstrumentBase g = InstrumentList.getInstance().get(sampleId);
-            g.playSample(ch, chunk, ini, fin);
+            g.playSample(chunk, ini, fin);
         }
     };
 
@@ -34,16 +26,10 @@ class PatternPianoRoll extends PatternBase
         super(name, filename, channels, length);
     }
 
-    public float ComputeSpeed(Event ev)
+    public void play(Event event)
     {
-        float freq = ChannelToFreq(ev.channel);
-        float freqBase = Misc.GetFrequency(InstrumentList.getInstance().get(sampleId).baseNote);
-        return freq / freqBase;
-    }
-
-    public float ChannelToFreq(int channel)
-    {
-        return Misc.GetFrequency(channel);
+        InstrumentBase g = InstrumentList.getInstance().get(sampleId);
+        g.playSample(event.channel, Misc.GetFrequency(event.channel));
     }
 
     @Override

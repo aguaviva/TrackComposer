@@ -29,26 +29,20 @@ class PatternMaster extends PatternBase
     {
         super(name, filename, channels, length);
 
-        master = new Mixer(null, InstrumentList.getInstance());
+        master = new Mixer();
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
-            public void AddNote(Mixer.Channel ch){
-                PatternBase p = mPatternDataBase.get(ch.mEvent.id);
+            public void AddNote(Event event){
+                PatternBase p = mPatternDataBase.get(event.id);
                 Mixer.MixerListener listener = p.GetMixerListener();
 
-                mTracks[ch.mEvent.channel].SetState(p.getIter());
-                mTracks[ch.mEvent.channel].mMixerListener = listener;
-                mTracks[ch.mEvent.channel].setTime(ch.timeInSamples/master.mTempoInSamples);
-                ch.volume = mChannel[ch.mEvent.channel].mVolume;
+                mTracks[event.channel].SetState(p.getIter());
+                mTracks[event.channel].mMixerListener = listener;
+                mTracks[event.channel].setTime(0);//ch.timeInSamples/master.mTempoInSamples);
             }
 
             @Override
-            public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
-/*
-                if (mChannel[ch.mEvent.channel].mVolume>0) {
-                    mTracks[ch.mEvent.channel].renderChunk(chunk, ini, fin, mChannel[ch.mEvent.channel].mVolume);
-                }
-*/
+            public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
                 for (int c = 0; c < mTracks.length; c++) {
                     mTracks[c].renderChunk(chunk, ini, fin, 1);
                 }
@@ -58,7 +52,7 @@ class PatternMaster extends PatternBase
         mTracks = new Mixer[channels];
         mChannel = new Channel[channels];
         for (int c = 0; c < mTracks.length; c++) {
-            mTracks[c] = new Mixer(master, InstrumentList.getInstance());
+            mTracks[c] = new Mixer();
             mChannel[c] = new Channel();
         }
 

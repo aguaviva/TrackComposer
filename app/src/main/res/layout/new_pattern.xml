@@ -4,17 +4,13 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-
     <EditText
         android:id="@+id/editTextKeywordsToBlock"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="new pattern name">
-
         <requestFocus />
     </EditText>
-
-
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -25,39 +21,36 @@
 
 
         <Button
-            android:id="@+id/buttonNewPercussion"
+            android:id="@+id/percussion"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_weight="1"
-            android:text="CREATE Percussion" />
+            android:text="Percussion" />
 
         <Button
-            android:id="@+id/buttonNewNote"
+            android:id="@+id/pianoRoll"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_weight="1"
-            android:text="CREATE notes" />
+            android:text="piano roll" />
 
         <Button
-            android:id="@+id/buttonNewChord"
+            android:id="@+id/chords"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_weight="1"
-            android:text="CREATE chords" />
+            android:text="chords" />
 
         <Button
-            android:id="@+id/buttonCancelBlockKeyword"
+            android:id="@+id/cancel"
             android:layout_marginTop="15dp"
             android:layout_weight="1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="Cancel"
             />
-
     </LinearLayout>
-
-
 </LinearLayout>

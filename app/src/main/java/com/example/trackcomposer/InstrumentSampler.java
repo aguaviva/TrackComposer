@@ -7,38 +7,48 @@ public class InstrumentSampler extends InstrumentBase {
 
     public String instrumentFilename = "none";
 
-    class Channel
+    class Channel extends ChannelStateBase
     {
-        int mNote = 0;
-        int mTimeInSamples = 0;
-        int mVolume = 0;
-        float mSpeed = 0;
+        float mSpeed;
     };
 
     Channel [] mChannels = new Channel[10];
 
-    Sample mSample;
+    Sample mSample = new Sample();
 
     public InstrumentSampler()
     {
         super();
+        SetSampleRate(44100);
+        instrumentName = "InstrumentSampler";
+
+        for(int c=0;c<mChannels.length;c++) {
+            mChannels[c] = new Channel();
+        }
     }
+
+    float freqOne = Misc.GetFrequency(40);
 
     short GetSample(int i) { return mSample.sampleData[i]; }
 
     @Override
-    public void playSample(int note, float speed) {
+    ChannelStateBase getNewChannelState() { return new Channel(); }
 
+    @Override
+    public void playSample(int note, float freq) {
         int channelId = GetAvailableChannel();
-
-        Channel channels = mChannels[channelId];
-        channels.mNote = note;
-        channels.mTimeInSamples = 0;
-        channels.mSpeed = speed;
+        if (channelId>=0) {
+            Channel channel = mChannels[channelId];
+            channel.mNote = note;
+            channel.mTimeInSamples = 0;
+            channel.mFreq = freq;
+            channel.mVolume = 1.0f;
+            channel.mSpeed = freq/freqOne;
+        }
     }
 
     @Override
-    public void playSample(Mixer.Channel foo, short[] chunk, int ini, int fin)
+    public void playSample(short[] chunk, int ini, int fin)
     {
         if (mSample.sampleData == null)
         {
@@ -55,15 +65,15 @@ public class InstrumentSampler extends InstrumentBase {
 
             for (int i = ini; i < fin; i += 2) {
                 int idx = (int) (t);
-                if (mTracks * idx >= mSample.sampleData.length) {
-                    StopChannel(i);
+                if (mSample.mTracks * idx >= mSample.sampleData.length) {
+                    StopChannel(c);
                     break;
                 }
 
-                if (mTracks == 2) {
+                if (mSample.mTracks == 2) {
                     chunk[i + 0] += (short) (channel.mVolume * mSample.sampleData[2 * idx + 0]);
                     chunk[i + 1] += (short) (channel.mVolume * mSample.sampleData[2 * idx + 1]);
-                } else if (mTracks == 1) {
+                } else if (mSample.mTracks == 1) {
                     chunk[i + 0] += (short) (channel.mVolume * mSample.sampleData[idx]);
                     chunk[i + 1] += (short) (channel.mVolume * mSample.sampleData[idx]);
                 }

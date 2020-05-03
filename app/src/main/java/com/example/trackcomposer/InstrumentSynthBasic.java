@@ -9,11 +9,8 @@ public class InstrumentSynthBasic extends InstrumentBase {
     float mTremoloFreq = 0, mTremoloAmplitude = 0.0f;
     float mVibratoFreq = 0, mVibratoAmplitude = 0.0f;
 
-    class Channel {
-        int mNote = 0;
-        int mTimeInSamples = 0;
-        int mVolume = 0;
-        float mSpeed = 0;
+    class Channel extends ChannelStateBase {
+
     }
 
     Channel[] mChannels = new Channel[10];
@@ -32,6 +29,9 @@ public class InstrumentSynthBasic extends InstrumentBase {
             mChannels[c] = new Channel();
         }
     }
+
+    @Override
+    ChannelStateBase getNewChannelState() { return new Channel(); }
 
     @Override
     public int getLengthInFrames() {
@@ -56,19 +56,20 @@ public class InstrumentSynthBasic extends InstrumentBase {
     }
 
     @Override
-    public void playSample(int note, float speed) {
+    public void playSample(int note, float freq) {
         int channelId = GetAvailableChannel();
-
-        Channel channels = mChannels[channelId];
-        channels.mNote = note;
-        channels.mTimeInSamples = 0;
-        channels.mSpeed = speed;
+        if (channelId>=0) {
+            Channel channel = mChannels[channelId];
+            channel.mNote = note;
+            channel.mTimeInSamples = 0;
+            channel.mFreq = freq;
+            channel.mVolume = 1.0f;
+        }
     }
 
     @Override
-    public void playSample(Mixer.Channel foo, short[] chunk, int ini, int fin)
+    public void playSample(short[] chunk, int ini, int fin)
     {
-        float freqN = (baseNoteFreq * TwoPi)  * GetInvSampleRate();
         float mTremoloFreqN = (mTremoloFreq * TwoPi)  * GetInvSampleRate();
         float mVibratoFreqN = (mVibratoFreq * TwoPi)  * GetInvSampleRate();
 
@@ -78,7 +79,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
             if (mPlayingChannels[c] == false)
                 continue;
 
-            float t = channel.mTimeInSamples * channel.mSpeed;
+            float freqN = (channel.mFreq * TwoPi)  * GetInvSampleRate();
             float timeInSeconds = channel.mTimeInSamples * GetInvSampleRate();
 
             for (int i = ini; i < fin; i += 2) {
@@ -88,7 +89,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
 
                 float envelope = adsr.getEnvelope(timeInSeconds);
 
-                float generator = mAmplitude * (float) Math.sin(freqN * t + vibrato);
+                float generator = mAmplitude * (float) Math.sin(freqN * channel.mTimeInSamples + vibrato);
 
                 short v = (short) (tremolo * channel.mVolume * envelope * generator);
 
@@ -100,7 +101,6 @@ public class InstrumentSynthBasic extends InstrumentBase {
                 chunk[i + 0] += v;
                 chunk[i + 1] += v;
 
-                t += channel.mSpeed;
                 channel.mTimeInSamples++;
                 timeInSeconds += GetInvSampleRate();
             }

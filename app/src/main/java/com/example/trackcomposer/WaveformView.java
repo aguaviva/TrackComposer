@@ -72,12 +72,9 @@ public class WaveformView extends View {
             return;
         }
 
-        Mixer.Channel channel = new Mixer.Channel();
-        channel.mEvent = new Event();
-        channel.mEvent.id = mGenerator.sampleId;
-        channel.mPlaying = true;
-        channel.volume = 1.0f;
-        channel.speed = 1.0f;
+        InstrumentBase.ChannelStateBase state = mGenerator.getNewChannelState();
+        mGenerator.reset();
+        mGenerator.playSample(40,0);
 
         short[] chunk = new short[1024];
 
@@ -89,7 +86,7 @@ public class WaveformView extends View {
                 chunk[i]=0;
             }
 
-            mGenerator.playSample(channel, chunk, 0, chunk.length);
+            mGenerator.playSample(chunk, 0, chunk.length);
 
             for (int i = 0; i < chunk.length; i+=2) {
 
@@ -104,7 +101,7 @@ public class WaveformView extends View {
                 mWaveformMin[x] = (short) Math.min(mWaveformMin[x], sample);
             }
 
-            if (channel.mPlaying == false)
+            if (mGenerator.isPlaying()==false)
                 break;
         }
     }

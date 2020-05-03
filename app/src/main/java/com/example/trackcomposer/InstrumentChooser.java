@@ -107,7 +107,7 @@ public class InstrumentChooser {
     void FillList(int currentId)
     {
         arrayList.clear();
-        for(int i=0;i<mAppState.instrumentList.mSamples.size();i++)
+        for(int i = 0; i<mAppState.instrumentList.instruments.size(); i++)
         {
             arrayList.add(mAppState.instrumentList.get(i).instrumentName);
             //adapter.add(mAppState.instrumentList.get(i).instrumentName);
@@ -125,8 +125,8 @@ public class InstrumentChooser {
 
     void Register(InstrumentBase gen, int currentId, InstrumentChooserListener instrumentChooserListener)
     {
-        int sampleId = InstrumentList.getInstance().register(gen, -1);
+        //int sampleId = InstrumentList.getInstance().register(gen, -1);
         instrumentChooserListener.GetSelectedInstrumentId(gen);
-        FillList(sampleId);
+        //FillList(sampleId);
     }
 }

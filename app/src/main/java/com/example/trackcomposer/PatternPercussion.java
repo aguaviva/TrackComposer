@@ -10,23 +10,24 @@ class PatternPercussion extends PatternBase
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
-        public void AddNote(Mixer.Channel ch){
+        public void AddNote(Event event){
 
             //float freq = Misc.GetFrequency(ch.mEvent.channel);
             //float freqBase = Misc.GetFrequency(InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId).baseNote);
-
+/*
             ch.speed = 1;
             ch.timeInSamples = 0;
             ch.volume = 0.5f;
             ch.mPlaying = true;
+ */
         }
 
         @Override
-        public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+        public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
             //Generator g = InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId);
-            InstrumentBase g = InstrumentList.getInstance().get(mChannels[ch.mEvent.channel]);
+            //InstrumentBase g = InstrumentList.getInstance().get(mChannels[ch.mEvent.channel]);
 
-            g.playSample(ch, chunk, ini, fin);
+            //g.playSample(chunk, ini, fin);
         }
     };
 
@@ -39,14 +40,13 @@ class PatternPercussion extends PatternBase
             mChannels[i] = -1;
         }
     }
-/*
-    @Override
-    public void Play(Mixer sp, int note, float volume)
+
+    public void play(Event event)
     {
-        if (mChannels[note]>=0)
-            sp.play(mChannels[note], 0, Misc.GetFrequency(40), volume);
+        //InstrumentBase g = InstrumentList.getInstance().get(sampleId);
+        //g.playSample(event.channel, Misc.GetFrequency(event.channel));
     }
-*/
+
 
     @Override
     Mixer.MixerListener GetMixerListener() { return mMixerListener; }

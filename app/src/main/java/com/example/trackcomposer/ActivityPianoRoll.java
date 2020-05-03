@@ -141,7 +141,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 }
 
                 if (patternPianoRoll.sampleId>=0) {
-                    mAppState.mLastPatternMixer.play(noteTouched, rowSelected, patternPianoRoll.ComputeSpeed(noteTouched), 1);
+                    patternPianoRoll.play(noteTouched);
                 }
                 mNoteView.invalidate();
                 return true;

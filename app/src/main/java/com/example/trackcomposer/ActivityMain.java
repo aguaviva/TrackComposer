@@ -1,8 +1,11 @@
 package com.example.trackcomposer;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -33,17 +36,35 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import static com.example.trackcomposer.ActivityMain.PatternType.*;
+import static com.example.trackcomposer.ActivityMain.PatternType.PianoRoll;
+
 public class ActivityMain extends AppCompatActivity {
     private static final String TAG = "TrackComposer";
     ApplicationClass mAppState;
     PatternBaseView masterView;
     Context mContext;
-    View[] trackControls;
-    TextView[] trackNames;
-    SeekBar[] trackVolumes;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
     int mNote=-1, mBeat=-1;
+
+    enum PatternType
+    {
+        none,
+        PianoRoll,
+        Percussion,
+        Chords
+    };
+
+    public class Track
+    {
+        PatternType patternType;
+        View trackControls;
+        TextView trackNames;
+        SeekBar trackVolumes;
+    }
+
+    Track [] mTracks;
 
     int mRowSelected;
     Event eventSelected;
@@ -242,15 +263,25 @@ public class ActivityMain extends AppCompatActivity {
         headers.removeAllViews();
         int channelCount = mAppState.mPatternMaster.GetChannelCount();
 
-        trackControls = new View[channelCount];
-        trackNames = new TextView[channelCount];
-        trackVolumes = new SeekBar[channelCount];
-        for(int i=0;i<channelCount;i++) {
-            final int finalI = i;
+        mTracks = new Track[channelCount];
 
-            trackControls[i] = getLayoutInflater().inflate(R.layout.track_header, null);
-            trackNames[i] = (TextView)trackControls[i].findViewById(R.id.instrumentName);
-            trackControls[i].setOnTouchListener(new TextView.OnTouchListener()
+        for(int i=0;i<mTracks.length;i++) {
+            final int finalI = i;
+            mTracks[i] = new Track();
+            mTracks[i].patternType = none;
+            mTracks[i].trackControls = getLayoutInflater().inflate(R.layout.track_header, null);
+
+            Button button = (Button)mTracks[i].trackControls.findViewById(R.id.set_instrument);
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    chooseTrackType(finalI);
+                }
+            });
+
+            mTracks[i].trackNames = (TextView)mTracks[i].trackControls.findViewById(R.id.instrumentName);
+            mTracks[i].trackNames.setText(String.valueOf(i));
+            mTracks[i].trackControls.setOnTouchListener(new TextView.OnTouchListener()
             {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -261,7 +292,7 @@ public class ActivityMain extends AppCompatActivity {
             });
 
             // mute
-            ToggleButton toggleMute = (ToggleButton)trackControls[i].findViewById(R.id.toggleMute);
+            ToggleButton toggleMute = (ToggleButton)mTracks[i].trackControls.findViewById(R.id.toggleMute);
             toggleMute.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
@@ -274,8 +305,8 @@ public class ActivityMain extends AppCompatActivity {
             });
 
             // volume
-            trackVolumes[i] = (SeekBar)trackControls[i].findViewById(R.id.seekBar);
-            trackVolumes[i].setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+            mTracks[i].trackVolumes = (SeekBar)mTracks[i].trackControls.findViewById(R.id.seekBar);
+            mTracks[i].trackVolumes.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
             {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
@@ -290,7 +321,7 @@ public class ActivityMain extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar){}
             });
 
-            headers.addView(trackControls[i], new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 0, 1.0f));
+            headers.addView(mTracks[i].trackControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 0, 1.0f));
         }
 
         setTrackNames();
@@ -299,12 +330,8 @@ public class ActivityMain extends AppCompatActivity {
 
     void setTrackNames()
     {
-        for(int i=0;i<trackNames.length;i++) {
-            trackNames[i].setText(String.valueOf(i));
-        }
-
-        for(int i=0;i<trackNames.length;i++) {
-            trackVolumes[i].setProgress((int)(100*mAppState.mPatternMaster.getVolume(i)), false);
+        for(int i=0;i<mTracks.length;i++) {
+            mTracks[i].trackVolumes.setProgress((int)(100*mAppState.mPatternMaster.getVolume(i)), false);
         }
     }
 
@@ -487,100 +514,156 @@ public class ActivityMain extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void addPattern(final int channel, final float time)
+    void chooseTrackType(final int track)
     {
-        final Dialog dialog = new Dialog(mContext);
-        dialog.setContentView(R.layout.new_pattern);
-        dialog.setTitle("Name your pattern");
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("Choose track type");
 
-        final EditText editTextKeywordToBlock = (EditText) dialog.findViewById(R.id.editTextKeywordsToBlock);
-        final String filename = editTextKeywordToBlock.getText().toString();
-
-        View.OnClickListener clickListener = new View.OnClickListener()
+        if (mTracks[track].patternType== none) {
+            String[] animals = {"\uD83C\uDFB9 Piano Roll", "\uD83E\uDD41 Percussion", "\uD83C\uDFB5 Chords"};
+            final PatternType[] patternTypes = {PianoRoll, Percussion, Chords};
+            builder.setItems(animals, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    mTracks[track].patternType = patternTypes[which];
+                    chooseInstrument(mTracks[track].patternType, track);
+                }
+            });
+            // create and show the alert dialog
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else
         {
+            chooseInstrument(mTracks[track].patternType, track);
+        }
+    }
+
+    void chooseInstrument(PatternType patternType, int track)
+    {
+        switch (patternType) {
+            case PianoRoll: choosePianoRollInstrument(track); break;
+            case Percussion: // cow
+            case Chords: // camel
+        }
+    }
+
+    void choosePianoRollInstrument(final int track)
+    {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setTitle("Choose instrument");
+
+        // add a list
+        String[] animals = {"Sampler", "Synth basic", "Karplus-Strong"};
+        builder.setItems(animals, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-
-                PatternBase pattern = null;
-                Intent intent = null;
-
-                switch (v.getId())
-                {
-                    case R.id.buttonNewPercussion:
-                        pattern = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
-                        intent = new Intent(mContext, ActivityPercussion.class);
-                        break;
-                    case R.id.buttonNewChord:
-                        pattern = new PatternChord(filename, mAppState.extStoreDir+ "/"+filename, 4*3, 16);
-                        intent = new Intent(mContext, ActivityChord.class);
-                        break;
-                    case R.id.buttonNewNote:
-                        pattern = new PatternPianoRoll(filename, mAppState.extStoreDir+ "/"+filename, 24, 16);
-                        intent = new Intent(mContext, ActivityPianoRoll.class);
-                        break;
-                    default:
-                        dialog.dismiss();
-                        return;
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0: createInstrumentSampler(track); break;
+                    case 1: createInstrumentSynthBasic(track); break;
+                    case 2: createInstrumentKarplusStrong(track); break;
                 }
 
-                int id = mAppState.mPatternMaster.mPatternDataBase.size();
-                mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
-                mAppState.mLastPatternAdded = pattern;
-                mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
-
-                Event note = new Event();
-                note.time = time;
-                note.channel = channel;
-                note.durantion = 16;
-                note.id = id;
-                mAppState.mPatternMaster.Set(note);
-                eventSelected = note;
-
-                dialog.dismiss();
-
-                startActivity(intent);
-                masterView.invalidate();
-            }
-        };
-
-        // Create Percussion
-        dialog.findViewById(R.id.buttonNewPercussion).setOnClickListener(clickListener);
-        dialog.findViewById(R.id.buttonNewChord).setOnClickListener(clickListener);
-        dialog.findViewById(R.id.buttonNewNote).setOnClickListener(clickListener);
-
-        // Cancel
-        Button btnCancel = (Button) dialog.findViewById(R.id.buttonCancelBlockKeyword);
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
                 dialog.dismiss();
             }
         });
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
         dialog.show();
     }
-/*
-    private void instrumentChooser(final int channel) {
 
-        if (mAppState.mPatternMaster.mChannels[channel]!=null)
-        {
-            mAppState.mLastPatternAdded = mAppState.mPatternMaster.mChannels[channel];
+    void createInstrumentSampler(final int track)
+    {
+        final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Load Sample");
+        filesChooser.setExtension("ogg");
+        filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
+            @Override
+            public void fileSelected(final String file) {
+            }  // we are loading the instrument on touch
 
-            Intent intent = null;
-
-            if (mAppState.mLastPatternAdded instanceof PatternPercussion) {
-                intent = new Intent(mContext, ActivityPercussion.class);
+            @Override
+            public void fileTouched(final String file) {
+                InstrumentSampler sample = new InstrumentSampler();
+                sample.mSample.load(file);
+                InstrumentList.getInstance().add(track, sample);
             }
-            else if (mAppState.mLastPatternAdded instanceof PatternNote) {
-                intent = new Intent(mContext, ActivityNote.class);
-            }
-            else if (mAppState.mLastPatternAdded instanceof PatternChord) {
-                intent = new Intent(mContext, ActivityChord.class);
-            }
+        });
 
-            startActivity(intent);
-        }
+        filesChooser.showDialog();
     }
-*/
+
+    void createInstrumentKarplusStrong(final int track)
+    {
+        InstrumentKarplusStrong sample = new InstrumentKarplusStrong();
+        InstrumentList.getInstance().add(track, sample);
+    }
+
+    void createInstrumentSynthBasic(final int track)
+    {
+        InstrumentSynthBasic sample = new InstrumentSynthBasic();
+        InstrumentList.getInstance().add(track, sample);
+    }
+
+    void CreatePianoRollActivity(final int track) {
+        String filename = "filename";
+
+        PatternPianoRoll pattern = new PatternPianoRoll(filename, mAppState.extStoreDir + "/" + filename, 24, 16);
+        pattern.sampleId = track;
+        int id = mAppState.mPatternMaster.mPatternDataBase.size();
+        mAppState.mPatternMaster.mPatternDataBase.put(id, pattern);
+        mAppState.mLastPatternAdded = pattern;
+        Intent intent = new Intent(mContext, ActivityPianoRoll.class);
+        startActivity(intent);
+    }
+
+
+    private void addPattern(final int channel, final float time)
+    {
+        String filename = "";
+        Intent intent = null;
+        PatternBase pattern = null;
+        switch(mTracks[channel].patternType)
+        {
+            case none:
+                break;
+            case Percussion:
+                pattern = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
+                intent = new Intent(mContext, ActivityPercussion.class);
+                break;
+            case Chords:
+                pattern = new PatternChord(filename, mAppState.extStoreDir+ "/"+filename, 4*3, 16);
+                intent = new Intent(mContext, ActivityChord.class);
+                break;
+            case PianoRoll:
+                PatternPianoRoll patternPianoRoll = new PatternPianoRoll(filename, mAppState.extStoreDir+ "/"+filename, 24, 16);
+                patternPianoRoll.sampleId = channel;
+                pattern = patternPianoRoll;
+                intent = new Intent(mContext, ActivityPianoRoll.class);
+                break;
+            default:
+                return;
+        }
+
+        int id = mAppState.mPatternMaster.mPatternDataBase.size();
+        mAppState.mPatternMaster.mPatternDataBase.put(id , pattern);
+        mAppState.mLastPatternAdded = pattern;
+        mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
+
+        Event note = new Event();
+        note.time = time;
+        note.channel = channel;
+        note.durantion = 16;
+        note.id = id;
+        mAppState.mPatternMaster.Set(note);
+        eventSelected = note;
+
+        startActivity(intent);
+        masterView.invalidate();
+    }
+
     public void generateIcons()
     {
         PatternBaseView pbv = new PatternBaseView(this);
@@ -622,6 +705,5 @@ public class ActivityMain extends AppCompatActivity {
             return false;
         }
         return true;
-
     }
 }

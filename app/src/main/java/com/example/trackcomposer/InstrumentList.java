@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class InstrumentList
 {
-    HashMap<Integer, InstrumentBase> mSamples = new HashMap<Integer, InstrumentBase>();
+    HashMap<Integer, InstrumentBase> instruments = new HashMap<Integer, InstrumentBase>();
 
     private static InstrumentList singleton = new InstrumentList( );
 
@@ -20,25 +20,17 @@ public class InstrumentList
 
     public InstrumentBase get(int i)
     {
-        return mSamples.get(i);
+        return instruments.get(i);
     }
 
     public void reset()
     {
-        mSamples.clear();
+        instruments.clear();
     }
 
 
-    public int register(InstrumentBase sample, int sampleId) {
-        if (sampleId == -1) {
-            sample.sampleId = mSamples.size();
-            mSamples.put(sample.sampleId, sample);
-            return sample.sampleId;
-        } else {
-            sample.sampleId = sampleId;
-            mSamples.put(sampleId, sample);
-            return sampleId;
-        }
+    public void add(int trackId, InstrumentBase sample) {
+            instruments.put(trackId, sample);
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -46,21 +38,21 @@ public class InstrumentList
         JSONObject jsonObjInstruments = new JSONObject();
 
         JSONArray jsonObjSamples = new JSONArray();
-        for(int i=0;i<mSamples.size();i++)
+        for(int i = 0; i< instruments.size(); i++)
         {
-            if (mSamples.get(i) instanceof InstrumentSampler) {
+            if (instruments.get(i) instanceof InstrumentSampler) {
                 JSONObject jsonObj2 = new JSONObject();
-                mSamples.get(i).serializeToJson(jsonObj2);
+                instruments.get(i).serializeToJson(jsonObj2);
                 jsonObjSamples.put(jsonObj2);
             }
         }
 
         JSONArray jsonObjSynths = new JSONArray();
-        for(int i=0;i<mSamples.size();i++)
+        for(int i = 0; i< instruments.size(); i++)
         {
-            if (mSamples.get(i) instanceof InstrumentSynthBasic) {
+            if (instruments.get(i) instanceof InstrumentSynthBasic) {
                 JSONObject jsonObj2 = new JSONObject();
-                mSamples.get(i).serializeToJson(jsonObj2);
+                instruments.get(i).serializeToJson(jsonObj2);
                 jsonObjSynths.put(jsonObj2);
             }
         }
@@ -85,7 +77,7 @@ public class InstrumentList
         {
             InstrumentBase gen = new InstrumentSynthBasic();
             gen.serializeFromJson(jsonObjSynths.getJSONObject(i));
-            mSamples.put(gen.sampleId, gen);
+            instruments.put(gen.sampleId, gen);
         }
 
         for(int i=0;i<jsonObjSamples.length();i++)
@@ -94,7 +86,7 @@ public class InstrumentList
             gen.serializeFromJson(jsonObjSamples.getJSONObject(i));
             //gen.mSample.instrumentFilename
             gen.mSample.load(gen.instrumentFilename);
-            mSamples.put(gen.sampleId, gen);
+            instruments.put(gen.sampleId, gen);
         }
     }
 }

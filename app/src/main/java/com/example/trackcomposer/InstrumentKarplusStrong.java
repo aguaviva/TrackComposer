@@ -2,19 +2,14 @@ package com.example.trackcomposer;
 
 public class InstrumentKarplusStrong extends InstrumentBase {
 
-    class Channel
+    class Channel extends ChannelStateBase
     {
-        int mNote = 0;
-        int mTimeInSamples = 0;
-        int mVolume = 0;
-        float mSpeed = 0;
-
         float [] delayLine;
-
         int startDelay, endDelay;
 
         Channel()
         {
+            super();
             delayLine = new float[44100]; //TODO: compute a better size
         }
 
@@ -64,19 +59,24 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     }
 
     @Override
-    public void playSample(int note, float speed) {
+    ChannelStateBase getNewChannelState() { return new Channel(); }
+
+    @Override
+    public void playSample(int note, float freq) {
 
         int channelId = GetAvailableChannel();
-
-        Channel channels = mChannels[channelId];
-        channels.mNote = note;
-        channels.mTimeInSamples = 0;
-        channels.mSpeed = speed;
-        channels.pluck((int)(44100.0f / (speed*110.0f)));
+        if (channelId>=0) {
+            Channel channel = mChannels[channelId];
+            channel.mNote = note;
+            channel.mVolume = 1.0f;
+            channel.mFreq = freq;
+            channel.mTimeInSamples = 0;
+            channel.pluck((int) (44100.0f / freq));
+        }
     }
 
     @Override
-    public void playSample(Mixer.Channel foo, short[] chunk, int ini, int fin) {
+    public void playSample(short[] chunk, int ini, int fin) {
 
         for(int c=0;c<mChannels.length;c++) {
 
@@ -91,8 +91,8 @@ public class InstrumentKarplusStrong extends InstrumentBase {
                 chunk[i + 0] += v;
                 chunk[i + 1] += v;
 
-                if (timeInSamples > 44100.0f / 1.0f) {
-                    StopChannel(i);
+                if (channel.mTimeInSamples > 44100.0f / 1.0f) {
+                    StopChannel(c);
                     break;
                 }
 
