@@ -111,7 +111,7 @@ public class ActivityPercussion extends AppCompatActivity {
         InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, mPattern.mChannels[channel], new InstrumentChooser.InstrumentChooserListener()
         {
             @Override
-            public void GetSelectedInstrumentId(Generator generator) {
+            public void GetSelectedInstrumentId(InstrumentBase generator) {
                 mPattern.mChannels[channel] = generator.sampleId;
             }
         });

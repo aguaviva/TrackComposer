@@ -52,37 +52,11 @@ class Mixer {
         //mParent.play(int sampleId, int channel, 1, 1);
     }
 
-    boolean render(short[] chunk, int ini, int fin, float volume)
-    {
-        boolean bStillPlaying = false;
-        // play channels
-        for (int c = 0; c < mChannel.length; c++) {
-            Channel ch = mChannel[c];
-            if (ch.mPlaying) {
-                if (ch.mEvent != null) {
-                    if (mMixerListener!=null){
-
-                        mMixerListener.PlayBeat(ch, chunk, ini, fin, ch.volume);
-                    }
-                }
-
-                if (ch.mPlaying)
-                {
-                    bStillPlaying = true;
-                }
-                else
-                {
-                    ch.mEvent = null;
-                };
-
-            }
-        }
-
-        return bStillPlaying;
-    }
-
     private boolean sequencer()
     {
+        if (iter==null)
+            return false;
+
         if (mNextTime <= mTime) {
 
             int notes = iter.getNotesCount();
@@ -149,7 +123,11 @@ class Mixer {
                 mid = Math.min(ini + 2 * deltaTime, fin);
             }
 
-            mStillPlaying = render(chunk, ini, mid, volume);
+            //mStillPlaying = render(chunk, ini, mid, volume);
+            if (mMixerListener!=null){
+
+                mMixerListener.PlayBeat(null, chunk, ini, fin, volume);
+            }
 
             mTime += (mid-ini)/2;
             ini = mid;

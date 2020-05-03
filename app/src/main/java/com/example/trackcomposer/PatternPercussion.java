@@ -24,7 +24,7 @@ class PatternPercussion extends PatternBase
         @Override
         public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
             //Generator g = InstrumentList.getInstance().get(ch.mEvent.mGen.sampleId);
-            Generator g = InstrumentList.getInstance().get(mChannels[ch.mEvent.channel]);
+            InstrumentBase g = InstrumentList.getInstance().get(mChannels[ch.mEvent.channel]);
 
             g.playSample(ch, chunk, ini, fin);
         }

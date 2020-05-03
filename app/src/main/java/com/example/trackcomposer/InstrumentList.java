@@ -4,12 +4,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class InstrumentList
 {
-    ArrayList<Generator> mSamples = new ArrayList<Generator>();
+    HashMap<Integer, InstrumentBase> mSamples = new HashMap<Integer, InstrumentBase>();
 
     private static InstrumentList singleton = new InstrumentList( );
 
@@ -19,7 +18,7 @@ public class InstrumentList
         return singleton;
     }
 
-    public Generator get(int i)
+    public InstrumentBase get(int i)
     {
         return mSamples.get(i);
     }
@@ -30,14 +29,14 @@ public class InstrumentList
     }
 
 
-    public int register(Generator sample, int sampleId) {
+    public int register(InstrumentBase sample, int sampleId) {
         if (sampleId == -1) {
-            mSamples.add(sample);
-            sample.sampleId = mSamples.size() - 1;
+            sample.sampleId = mSamples.size();
+            mSamples.put(sample.sampleId, sample);
             return sample.sampleId;
         } else {
             sample.sampleId = sampleId;
-            mSamples.set(sampleId, sample);
+            mSamples.put(sampleId, sample);
             return sampleId;
         }
     }
@@ -49,7 +48,7 @@ public class InstrumentList
         JSONArray jsonObjSamples = new JSONArray();
         for(int i=0;i<mSamples.size();i++)
         {
-            if (mSamples.get(i) instanceof GeneratorSample) {
+            if (mSamples.get(i) instanceof InstrumentSampler) {
                 JSONObject jsonObj2 = new JSONObject();
                 mSamples.get(i).serializeToJson(jsonObj2);
                 jsonObjSamples.put(jsonObj2);
@@ -59,7 +58,7 @@ public class InstrumentList
         JSONArray jsonObjSynths = new JSONArray();
         for(int i=0;i<mSamples.size();i++)
         {
-            if (mSamples.get(i) instanceof GeneratorSynth) {
+            if (mSamples.get(i) instanceof InstrumentSynthBasic) {
                 JSONObject jsonObj2 = new JSONObject();
                 mSamples.get(i).serializeToJson(jsonObj2);
                 jsonObjSynths.put(jsonObj2);
@@ -80,28 +79,22 @@ public class InstrumentList
 
         int count = jsonObjSynths.length()+ jsonObjSamples.length();
 
-
-        HashMap<Integer, Generator> mSampleMap = new HashMap<Integer, Generator>();
-
+        reset();
 
         for(int i=0;i<jsonObjSynths.length();i++)
         {
-            Generator gen = new GeneratorSynth();
+            InstrumentBase gen = new InstrumentSynthBasic();
             gen.serializeFromJson(jsonObjSynths.getJSONObject(i));
-            mSampleMap.put(gen.sampleId, gen);
+            mSamples.put(gen.sampleId, gen);
         }
 
         for(int i=0;i<jsonObjSamples.length();i++)
         {
-            GeneratorSample gen = new GeneratorSample();
+            InstrumentSampler gen = new InstrumentSampler();
             gen.serializeFromJson(jsonObjSamples.getJSONObject(i));
-            gen.load(gen.instrumentFilename);
-            mSampleMap.put(gen.sampleId, gen);
-        }
-
-        mSamples = new ArrayList<Generator>(count);
-        for(int i=0;i<mSampleMap.size();i++) {
-            mSamples.add(mSampleMap.get(i));
+            //gen.mSample.instrumentFilename
+            gen.mSample.load(gen.instrumentFilename);
+            mSamples.put(gen.sampleId, gen);
         }
     }
 }

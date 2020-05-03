@@ -181,7 +181,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
         //InstrumentChooser2 instrumentChooser = new InstrumentChooser2(this, mAppState.instrumentList, patternNote.sampleId, new InstrumentChooser2.InstrumentChooserListener()
         {
             @Override
-            public void GetSelectedInstrumentId(Generator generator) {
+            public void GetSelectedInstrumentId(InstrumentBase generator) {
                 patternPianoRoll.sampleId = generator.sampleId;
             }
         });

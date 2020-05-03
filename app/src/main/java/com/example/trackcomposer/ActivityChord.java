@@ -1,8 +1,6 @@
 package com.example.trackcomposer;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -104,7 +102,7 @@ public class ActivityChord extends AppCompatActivity {
         InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, patternChord.sampleId, new InstrumentChooser.InstrumentChooserListener()
         {
             @Override
-            public void GetSelectedInstrumentId(Generator generator) {
+            public void GetSelectedInstrumentId(InstrumentBase generator) {
                 patternChord.sampleId = generator.sampleId;
                 rigControls();
             }

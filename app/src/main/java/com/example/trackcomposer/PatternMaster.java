@@ -44,8 +44,13 @@ class PatternMaster extends PatternBase
 
             @Override
             public void PlayBeat(Mixer.Channel ch, short[] chunk, int ini, int fin, float volume) {
+/*
                 if (mChannel[ch.mEvent.channel].mVolume>0) {
                     mTracks[ch.mEvent.channel].renderChunk(chunk, ini, fin, mChannel[ch.mEvent.channel].mVolume);
+                }
+*/
+                for (int c = 0; c < mTracks.length; c++) {
+                    mTracks[c].renderChunk(chunk, ini, fin, 1);
                 }
             }
         };

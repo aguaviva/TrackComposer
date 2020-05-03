@@ -8,7 +8,10 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-public class Generator {
+public class InstrumentBase {
+
+    boolean [] mPlayingChannels = new boolean [10];
+
     public int sampleId = -1;
     public String instrumentName = "none";
     int timeInSamples= 0;
@@ -22,7 +25,7 @@ public class Generator {
 
     protected int mTracks = 0;
 
-    public Generator() {
+    public InstrumentBase() {
         baseNoteFreq = Misc.GetFrequency(baseNote);
     }
 
@@ -34,7 +37,26 @@ public class Generator {
         return -1;
     }
 
+    public void playSample(int channel, float velociy) {
+    }
+
     public void playSample(Mixer.Channel channel, short[] chunk, int ini, int fin) {
+    }
+
+    protected int GetAvailableChannel()
+    {
+        for(int i=0;i<10;i++) {
+            if (mPlayingChannels[i] == false) {
+                mPlayingChannels[i] = true;
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    protected void StopChannel(int i)
+    {
+        mPlayingChannels[i] = false;
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException {

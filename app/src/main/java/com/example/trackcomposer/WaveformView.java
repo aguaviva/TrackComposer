@@ -9,7 +9,7 @@ import android.view.View;
 
 public class WaveformView extends View {
 
-    Generator mGenerator;
+    InstrumentBase mGenerator;
 
     Paint black;
     Paint box;
@@ -51,7 +51,7 @@ public class WaveformView extends View {
     short[] mWaveformMax = null;
     short[] mWaveformMin = null;
 
-    void SetGeneratorSample(Generator generatorSample)
+    void SetGeneratorSample(InstrumentBase generatorSample)
     {
         mGenerator = generatorSample;
     }

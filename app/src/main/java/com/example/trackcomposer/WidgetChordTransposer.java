@@ -2,7 +2,6 @@ package com.example.trackcomposer;
 
 import android.app.Activity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.SeekBar;
 
@@ -39,7 +38,7 @@ public class WidgetChordTransposer {
         return noteControls;
     }
 
-    static View SynthEditor(Activity act, final GeneratorSynth synth)
+    static View SynthEditor(Activity act, final InstrumentSynthBasic synth)
     {
         View synthControls = act.getLayoutInflater().inflate(R.layout.synth_controls, null);
 
