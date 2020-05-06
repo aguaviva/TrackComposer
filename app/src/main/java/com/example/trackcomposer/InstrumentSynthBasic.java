@@ -148,4 +148,6 @@ public class InstrumentSynthBasic extends InstrumentBase {
             mVibratoAmplitude = (float)jsonObj2.getDouble("amplitude");
         }
     }
+
+    public static String GetInstrumentType() { return "InstrumentSynthBasic"; };
 }

@@ -34,5 +34,16 @@ class PatternPercussion extends PatternBase
 
     @Override
     Mixer.MixerListener GetMixerListener() { return mMixerListener; }
-    
+
+    @Override
+    void serializeToJson(JSONObject jsonObj) throws JSONException {
+        super.serializeToJson(jsonObj);
+        jsonObj.put("sampleId", sampleId);
+    }
+
+    @Override
+    void serializeFromJson(JSONObject jsonObj) throws JSONException {
+        super.serializeFromJson(jsonObj);
+        sampleId = jsonObj.getInt("sampleId");
+    }
 };

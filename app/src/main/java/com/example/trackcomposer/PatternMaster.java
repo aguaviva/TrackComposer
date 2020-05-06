@@ -102,8 +102,8 @@ class PatternMaster extends PatternBase
         jsonInfo.put("BPM", mBPM);
         jsonObj.put("info", jsonInfo);
 
-        JSONObject jsonPatterns = new JSONObject();
-        JSONObject jsonNotes = new JSONObject();
+        JSONObject jsonPercussion = new JSONObject();
+        JSONObject jsonPianoRoll = new JSONObject();
         JSONObject jsonChords = new JSONObject();
 
         for (Integer key : mPatternDataBase.keySet()) {
@@ -114,18 +114,19 @@ class PatternMaster extends PatternBase
                 channel.serializeToJson(jsonObj3);
 
                 if (channel instanceof PatternPercussion) {
-                    jsonPatterns.put(String.valueOf(key), jsonObj3);
+                    jsonPercussion.put(String.valueOf(key), jsonObj3);
                 }
                 else if (channel instanceof PatternPianoRoll) {
-                    jsonNotes.put(String.valueOf(key), jsonObj3);
+                    jsonPianoRoll.put(String.valueOf(key), jsonObj3);
                 }
                 else if (channel instanceof PatternChord) {
                     jsonChords.put(String.valueOf(key), jsonObj3);
                 }
+
             }
         }
-        jsonObj.put("patterns", jsonPatterns);
-        jsonObj.put("notes", jsonNotes);
+        jsonObj.put("percussion", jsonPercussion);
+        jsonObj.put("pianoRoll", jsonPianoRoll);
         jsonObj.put("chords", jsonChords);
 
         // put volumes
@@ -149,12 +150,12 @@ class PatternMaster extends PatternBase
         }
 
         {
-            JSONObject jsonObj2 = jsonObj.getJSONObject("patterns");
-            Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
+            JSONObject jsonPercussion = jsonObj.getJSONObject("percussion");
+            Iterator<String> iter = jsonPercussion.keys(); //This should be the iterator you want.
             while (iter.hasNext()) {
                 String key = iter.next();
                 int i = Integer.parseInt(key);
-                JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
+                JSONObject jsonObj3 = jsonPercussion.getJSONObject(key);
                 PatternPercussion pattern = new PatternPercussion("", "", 16, 16);
                 mPatternDataBase.put(i, pattern);
                 pattern.serializeFromJson(jsonObj3);
@@ -162,12 +163,12 @@ class PatternMaster extends PatternBase
         }
 
         {
-            JSONObject jsonObj2 = jsonObj.getJSONObject("notes");
-            Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
+            JSONObject jsonPianoRoll = jsonObj.getJSONObject("pianoRoll");
+            Iterator<String> iter = jsonPianoRoll.keys(); //This should be the iterator you want.
             while (iter.hasNext()) {
                 String key = iter.next();
                 int i = Integer.parseInt(key);
-                JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
+                JSONObject jsonObj3 = jsonPianoRoll.getJSONObject(key);
                 PatternPianoRoll pattern = new PatternPianoRoll("", "", 16, 16);
                 mPatternDataBase.put(i, pattern);
                 pattern.serializeFromJson(jsonObj3);
@@ -175,12 +176,12 @@ class PatternMaster extends PatternBase
         }
 
         {
-            JSONObject jsonObj2 = jsonObj.getJSONObject("chords");
-            Iterator<String> iter = jsonObj2.keys(); //This should be the iterator you want.
+            JSONObject jsonChords = jsonObj.getJSONObject("chords");
+            Iterator<String> iter = jsonChords.keys(); //This should be the iterator you want.
             while (iter.hasNext()) {
                 String key = iter.next();
                 int i = Integer.parseInt(key);
-                JSONObject jsonObj3 = jsonObj2.getJSONObject(key);
+                JSONObject jsonObj3 = jsonChords.getJSONObject(key);
                 PatternChord pattern = new PatternChord("", "", 16, 16);
                 mPatternDataBase.put(i, pattern);
                 pattern.serializeFromJson(jsonObj3);

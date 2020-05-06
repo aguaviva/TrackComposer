@@ -21,7 +21,7 @@ public class InstrumentBase {
     };
 
     public int sampleId = -1;
-    public String instrumentName = "none";
+    protected String instrumentName = "none";
     int timeInSamples= 0;
     boolean mPlaying = false;
     // will make this private at some point
@@ -40,11 +40,9 @@ public class InstrumentBase {
     void SetSampleRate(int sampleRate) { mSampleRate = sampleRate; mInvSampleRate = 1.0f/ (float)sampleRate; }
     int  GetSampleRate() { return mSampleRate; }
     float GetInvSampleRate() { return mInvSampleRate; }
-
     public int getLengthInFrames() {
         return -1;
     }
-
     ChannelStateBase getNewChannelState() { return new ChannelStateBase(); }
 
     public void reset() {

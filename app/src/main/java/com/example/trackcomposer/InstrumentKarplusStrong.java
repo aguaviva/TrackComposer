@@ -100,4 +100,6 @@ public class InstrumentKarplusStrong extends InstrumentBase {
             }
         }
     }
+
+    public static String GetInstrumentType() { return "InstrumentKarplusStrong"; };
 }

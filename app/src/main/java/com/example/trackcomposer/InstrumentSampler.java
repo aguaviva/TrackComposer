@@ -82,18 +82,15 @@ public class InstrumentSampler extends InstrumentBase {
     public void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         super.serializeToJson(jsonObj);
-        JSONObject jsonObj2 = new JSONObject();
-        jsonObj2.put("fileName", instrumentFilename);
-        jsonObj2.put("baseNote", baseNote);
-        jsonObj.put("sample", jsonObj2);
+        mSample.serializeFromJson(jsonObj);
     }
 
     @Override
     public void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
         super.serializeFromJson(jsonObj);
-        JSONObject jsonObj2 = jsonObj.getJSONObject("sample");
-        instrumentFilename = jsonObj2.getString("fileName");
-        baseNote = jsonObj2.getInt("baseNote");
+        mSample.serializeFromJson(jsonObj);
     }
+
+    public static String GetInstrumentType() { return "InstrumentSampler"; };
 }

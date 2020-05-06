@@ -96,7 +96,9 @@ public class InstrumentPercussion extends InstrumentBase {
         for(int c=0;c<jArr.length();c++) {
             JSONObject json = jArr.getJSONObject(c);
             int index = json.getInt("index");
-            mChannels[c].mSample.serializeToJson(json);
+            mChannels[c].mSample.serializeFromJson(json);
         }
     }
+
+    public static String GetInstrumentType() { return "InstrumentPercussion"; };
 }

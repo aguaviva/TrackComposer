@@ -58,7 +58,12 @@ public class ApplicationClass extends Application {
         return mPlaying;
     }
 
-    public void Load(String filename)
+    public interface EditorMetadata
+    {
+        public void Listener(JSONObject jsonObj) throws JSONException;
+    }
+
+    public void Load(String filename, EditorMetadata listener)
     {
         try {
             FileInputStream fileInputStream = new FileInputStream (new File(filename));
@@ -69,6 +74,10 @@ public class ApplicationClass extends Application {
             String lines = new String(buffer, "UTF-8");
 
             JSONObject jsonObj = new JSONObject(lines);
+
+            if (listener!=null) {
+                listener.Listener(jsonObj.getJSONObject("metadata"));
+            }
 
             instrumentList.reset();
             instrumentList.serializeFromJson(jsonObj);
@@ -85,10 +94,17 @@ public class ApplicationClass extends Application {
         }
     }
 
-    public void Save(String filename)
+    public void Save(String filename, EditorMetadata listener)
     {
         try {
             JSONObject jsonObj = new JSONObject();
+
+            if (listener!=null) {
+                JSONObject jsonMetadata = new JSONObject();
+                listener.Listener(jsonMetadata);
+                jsonObj.put("metadata", jsonMetadata);
+            }
+
             instrumentList.serializeToJson(jsonObj);
             mPatternMaster.serializeToJson(jsonObj);
             String str = jsonObj.toString();

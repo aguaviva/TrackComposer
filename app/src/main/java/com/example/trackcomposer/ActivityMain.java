@@ -36,6 +36,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import static com.example.trackcomposer.ActivityMain.PatternType.*;
 import static com.example.trackcomposer.ActivityMain.PatternType.PianoRoll;
 
@@ -441,7 +445,20 @@ public class ActivityMain extends AppCompatActivity {
                 @Override
                 public void fileSelected(String file)
                 {
-                    mAppState.Load(file);
+                    mAppState.Load(file, new ApplicationClass.EditorMetadata() {
+                        @Override
+                        public void Listener(JSONObject jsonObj) throws JSONException {
+                            //here we can load some metadata for the editor
+                            JSONArray jsonTracks = jsonObj.getJSONArray("tracks");
+                            for(int i=0;i<jsonTracks.length();i++)
+                            {
+                                JSONObject jsonTrack = jsonTracks.getJSONObject(i);
+                                String type = jsonTrack.getString("type");
+                                PatternType pt = PatternType.valueOf(type);
+                                mTracks[i].patternType = pt;
+                            }
+                        }
+                    });
                     mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
                     timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                     setTrackNames();
@@ -460,6 +477,23 @@ public class ActivityMain extends AppCompatActivity {
                             timeLineView.invalidate();
                         }
                     });
+
+
+                    InstrumentList instruments = InstrumentList.getInstance();
+                    for(int i=0;i<mTracks.length;i++) {
+                        InstrumentBase instrument = instruments.get(i);
+                        if (instrument!=null) {
+/*
+                            if (instrument instanceof InstrumentPercussion)
+                                mTracks[i].patternType = Percussion;
+                            else if (instrument instanceof InstrumentSampler)
+                                mTracks[i].patternType = PianoRoll;
+                            else if (instrument instanceof PatternChord)
+                                mTracks[i].patternType = Chords;
+*/
+                            mTracks[i].trackNames.setText(instrument.instrumentName);
+                        }
+                    }
                 }
 
                 @Override
@@ -474,7 +508,22 @@ public class ActivityMain extends AppCompatActivity {
             final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Save Song");
             filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                 @Override
-                public void fileSelected(String file) { mAppState.Save(file); }
+                public void fileSelected(String file) {
+                    mAppState.Save(file, new ApplicationClass.EditorMetadata() {
+                        @Override
+                        public void Listener(JSONObject jsonObj) throws JSONException {
+                            //here we can save some metadata for the editor
+                            JSONArray jsonTracks = new JSONArray();
+                            for(int i=0;i<mTracks.length;i++)
+                            {
+                                JSONObject jsonTrack = new JSONObject();
+                                jsonTrack.put("type", mTracks[i].patternType);
+                                jsonTracks.put(jsonTrack);
+                            }
+                            jsonObj.put("tracks", jsonTracks);
+                        }
+                    });
+                }
 
                 @Override
                 public void fileTouched(String file) {}

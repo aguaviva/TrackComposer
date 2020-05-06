@@ -30,7 +30,8 @@ public class InstrumentList
 
 
     public void add(int trackId, InstrumentBase sample) {
-            instruments.put(trackId, sample);
+        sample.sampleId = trackId;
+        instruments.put(trackId, sample);
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -40,25 +41,30 @@ public class InstrumentList
         JSONArray jsonObjSamples = new JSONArray();
         for(int i = 0; i< instruments.size(); i++)
         {
-            if (instruments.get(i) instanceof InstrumentSampler) {
-                JSONObject jsonObj2 = new JSONObject();
-                instruments.get(i).serializeToJson(jsonObj2);
-                jsonObjSamples.put(jsonObj2);
-            }
-        }
+            JSONObject jsonObj2 = new JSONObject();
 
-        JSONArray jsonObjSynths = new JSONArray();
-        for(int i = 0; i< instruments.size(); i++)
-        {
-            if (instruments.get(i) instanceof InstrumentSynthBasic) {
-                JSONObject jsonObj2 = new JSONObject();
-                instruments.get(i).serializeToJson(jsonObj2);
-                jsonObjSynths.put(jsonObj2);
+            InstrumentBase instBase = instruments.get(i);
+            String type = "";
+            if (instBase instanceof InstrumentPercussion) {
+                InstrumentPercussion inst = new InstrumentPercussion();
+                type = inst.GetInstrumentType();
+            } else if (instBase instanceof InstrumentSynthBasic) {
+                InstrumentSynthBasic inst = new InstrumentSynthBasic();
+                type = inst.GetInstrumentType();
+            } else if (instBase instanceof InstrumentSampler) {
+                InstrumentSampler inst = new InstrumentSampler();
+                type = inst.GetInstrumentType();
+            } else if (instBase instanceof InstrumentKarplusStrong) {
+                InstrumentKarplusStrong inst = new InstrumentKarplusStrong();
+                type = inst.GetInstrumentType();
             }
-        }
+            jsonObj2.put("type", type);
+            instBase.serializeToJson(jsonObj2);
 
-        jsonObjInstruments.put("samples", jsonObjSamples);
-        jsonObjInstruments.put("synths", jsonObjSynths);
+            jsonObjSamples.put(jsonObj2);
+        }
+        jsonObjInstruments.put("list", jsonObjSamples);
+
         jsonObj.put("instruments", jsonObjInstruments);
     }
 
@@ -66,27 +72,24 @@ public class InstrumentList
     {
         JSONObject jsonObjInstruments = jsonObj.getJSONObject("instruments");
 
-        JSONArray jsonObjSynths = jsonObjInstruments.getJSONArray("synths");
-        JSONArray jsonObjSamples = jsonObjInstruments.getJSONArray("samples");
-
-        int count = jsonObjSynths.length()+ jsonObjSamples.length();
-
         reset();
 
-        for(int i=0;i<jsonObjSynths.length();i++)
-        {
-            InstrumentBase gen = new InstrumentSynthBasic();
-            gen.serializeFromJson(jsonObjSynths.getJSONObject(i));
-            instruments.put(gen.sampleId, gen);
-        }
-
-        for(int i=0;i<jsonObjSamples.length();i++)
-        {
-            InstrumentSampler gen = new InstrumentSampler();
-            gen.serializeFromJson(jsonObjSamples.getJSONObject(i));
-            //gen.mSample.instrumentFilename
-            gen.mSample.load(gen.instrumentFilename);
-            instruments.put(gen.sampleId, gen);
+        JSONArray list = jsonObjInstruments.getJSONArray("list");
+        for(int i=0;i<list.length();i++) {
+            JSONObject jsonObj2 = list.getJSONObject(i);
+            String type = jsonObj2.getString("type");
+            InstrumentBase inst = null;
+            if (type.equals(InstrumentPercussion.GetInstrumentType())) {
+                inst = new InstrumentPercussion();
+            } else if (type.equals(InstrumentSynthBasic.GetInstrumentType())) {
+                inst = new InstrumentSynthBasic();
+            } else if (type.equals(InstrumentSampler.GetInstrumentType())) {
+                inst = new InstrumentSampler();
+            } else if (type.equals(InstrumentKarplusStrong.GetInstrumentType())) {
+                inst = new InstrumentKarplusStrong();
+            }
+            inst.serializeFromJson(jsonObj2);
+            instruments.put(inst.sampleId, inst);
         }
     }
 }
