@@ -56,27 +56,21 @@ public class InstrumentSampler extends InstrumentBase {
         }
 
         for(int c=0;c<mChannels.length;c++) {
-
-            Channel channel = mChannels[c];
             if (mPlayingChannels[c]==false)
                 continue;
+
+            Channel channel = mChannels[c];
 
             float t = channel.mTimeInSamples * channel.mSpeed;
 
             for (int i = ini; i < fin; i += 2) {
                 int idx = (int) (t);
-                if (mSample.mTracks * idx >= mSample.sampleData.length) {
+                if (idx >= mSample.getLengthInFrames()) {
                     StopChannel(c);
                     break;
                 }
 
-                if (mSample.mTracks == 2) {
-                    chunk[i + 0] += (short) (channel.mVolume * mSample.sampleData[2 * idx + 0]);
-                    chunk[i + 1] += (short) (channel.mVolume * mSample.sampleData[2 * idx + 1]);
-                } else if (mSample.mTracks == 1) {
-                    chunk[i + 0] += (short) (channel.mVolume * mSample.sampleData[idx]);
-                    chunk[i + 1] += (short) (channel.mVolume * mSample.sampleData[idx]);
-                }
+                mSample.copyFrame(i, chunk, idx, channel.mVolume);
 
                 t += channel.mSpeed;
                 channel.mTimeInSamples++;

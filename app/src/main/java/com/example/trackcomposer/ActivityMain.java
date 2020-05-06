@@ -544,10 +544,16 @@ public class ActivityMain extends AppCompatActivity {
     {
         switch (patternType) {
             case PianoRoll: choosePianoRollInstrument(track); break;
-            case Percussion: // cow
+            case Percussion: choosePercussionInstrument(track); break;
             case Chords: // camel
         }
     }
+
+    void choosePercussionInstrument(final int track) {
+        InstrumentPercussion sample = new InstrumentPercussion();
+        InstrumentList.getInstance().add(track, sample);
+    }
+
 
     void choosePianoRollInstrument(final int track)
     {
@@ -630,7 +636,9 @@ public class ActivityMain extends AppCompatActivity {
             case none:
                 break;
             case Percussion:
-                pattern = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
+                PatternPercussion patternPercussion = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
+                patternPercussion.sampleId = channel;
+                pattern = patternPercussion;
                 intent = new Intent(mContext, ActivityPercussion.class);
                 break;
             case Chords:

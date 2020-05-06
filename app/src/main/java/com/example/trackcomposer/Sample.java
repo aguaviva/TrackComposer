@@ -5,6 +5,9 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,6 +42,17 @@ public class Sample {
         }
 
         return true;
+    }
+
+    void copyFrame(int bufferOffset, short []buffer, int sampleIndex, float factor)
+    {
+        if (mTracks == 2) {
+            buffer[bufferOffset + 0] += (short) (factor * sampleData[2 * sampleIndex + 0]);
+            buffer[bufferOffset + 1] += (short) (factor * sampleData[2 * sampleIndex + 1]);
+        } else if (mTracks == 1) {
+            buffer[bufferOffset + 0] += (short) (factor * sampleData[sampleIndex]);
+            buffer[bufferOffset + 1] += (short) (factor * sampleData[sampleIndex]);
+        }
     }
 
     public boolean loadAndDecode(String filename)
@@ -178,4 +192,16 @@ public class Sample {
 
         return true;
     }
+
+    public void serializeToJson(JSONObject jsonObj) throws JSONException
+    {
+        jsonObj.put("instrumentFilename", instrumentFilename);
+    }
+
+    public void serializeFromJson(JSONObject jsonObj) throws JSONException
+    {
+        instrumentFilename = jsonObj.getString("instrumentFilename");
+        load(instrumentFilename);
+    }
+
 }

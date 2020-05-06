@@ -59,9 +59,10 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public String getInstrumentName(int channel)
             {
-                int sampleId = mPattern.mChannels[channel];
-                if (sampleId>=0)
-                    return mAppState.instrumentList.get(sampleId).instrumentName;
+                if (mPattern.sampleId>=0) {
+                    InstrumentPercussion p = (InstrumentPercussion)mAppState.instrumentList.get(mPattern.sampleId);
+                    return p.GetChannelName(channel);
+                }
                 return "none";
             }
         });
@@ -91,15 +92,15 @@ public class ActivityPercussion extends AppCompatActivity {
                     noteTouched.time = time;
                     noteTouched.channel = rowSelected;
                     noteTouched.durantion = 1;
-                    noteTouched.id = mPattern.mChannels[rowSelected];
+                    noteTouched.id = -1;
                     mPattern.Set(noteTouched);
                 }
                 else {
                     mPattern.Clear(rowSelected, time);
                 }
 
-                if (mPattern.mChannels[rowSelected]>=0) {
-                    mAppState.mLastPatternMixer.play(noteTouched, rowSelected, 1, 1);
+                if (rowSelected>=0) {
+                    mPattern.play(noteTouched);
                 }
                 mDrumTracker.invalidate();
                 return true;}
@@ -108,12 +109,20 @@ public class ActivityPercussion extends AppCompatActivity {
 
     private void instrumentChooser(final int channel)
     {
-        InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, mPattern.mChannels[channel], new InstrumentChooser.InstrumentChooserListener()
-        {
+        final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Load Sample");
+        filesChooser.setExtension("ogg");
+        filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
             @Override
-            public void GetSelectedInstrumentId(InstrumentBase generator) {
-                mPattern.mChannels[channel] = generator.sampleId;
+            public void fileSelected(final String file) {
+            }  // we are loading the instrument on touch
+
+            @Override
+            public void fileTouched(final String file) {
+                InstrumentPercussion g = (InstrumentPercussion)InstrumentList.getInstance().get(mPattern.sampleId);
+                g.loadSample(channel, file);
             }
         });
+
+        filesChooser.showDialog();
     }
 }
