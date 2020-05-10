@@ -13,16 +13,16 @@ public class SortedListOfNotes
 {
     public class State {
         private int mIndex = 0;
-        private SortedListOfNotes iter;
+        private SortedListOfNotes events;
 
         public State(SortedListOfNotes sln)
         {
-            iter=sln;
+            events =sln;
         }
 
         public void setTime(float time) {
-            for(int i=0;i<myList.size();) {
-                int notes = iter.getNotesCount(i);
+            for(int i=0;i<events.size();) {
+                int notes = events.getNotesCount(i);
                 for(int n=0;n<notes;n++) {
                     Event note = myList.get(i+n);
                     if (time >= note.time  && time< note.time + note.durantion) {
@@ -37,24 +37,31 @@ public class SortedListOfNotes
                 i+= notes;
             }
 
+            // set index at the end
+            mIndex = events.size();
         }
 
         public int getNotesCount() {
-            return iter.getNotesCount(mIndex);
+            return events.getNotesCount(mIndex);
         }
 
         public Event GetNote()
         {
-            return iter.GetNoteByIndex(mIndex);
+            return events.GetNoteByIndex(mIndex);
         }
 
-        public float GetTimeOfNextNote()
+        public float getStartTimeOfCurrentNote()
         {
             Event event = GetNote();
             if (event!=null)
                 return event.time;
             else
-                return iter.mLength;
+                return events.mLength;
+        }
+
+        public boolean AreNotesLeft()
+        {
+            return mIndex<events.size();
         }
 
         public void nextNote()
@@ -63,7 +70,7 @@ public class SortedListOfNotes
         }
     };
 
-    private List<Event> myList = new ArrayList<>();
+    protected List<Event> myList = new ArrayList<>();
     public float mLength = 0;
 
     public SortedListOfNotes.State getIter() {
@@ -117,7 +124,7 @@ public class SortedListOfNotes
         return (a.get(start).time == key) ? start : -1;
     }
 
-    private void sortNotes()
+    public void sortNotes()
     {
         Collections.sort(myList, new Comparator<Event>() {
             @Override
@@ -126,6 +133,11 @@ public class SortedListOfNotes
                 return lhs.time < rhs.time ? -1 : (lhs.time > rhs.time) ? 1 : 0;
             }
         });
+    }
+
+    private int size()
+    {
+        return myList.size();
     }
 
     private int getNotesCount(int index)

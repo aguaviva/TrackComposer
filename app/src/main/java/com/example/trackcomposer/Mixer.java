@@ -32,7 +32,7 @@ class Mixer {
         if (iter==null)
             return false;
 
-        if (mNextTime <= mTime) {
+        if (mTime >= mNextTime) {
 
             int notes = iter.getNotesCount();
             if (notes<=0) {
@@ -48,13 +48,13 @@ class Mixer {
 
                 if (mMixerListener!=null)
                 {
-                    mMixerListener.AddNote(event);
+                    mMixerListener.AddNote(((float)mTime/(float)mTempoInSamples) - event.time, event);
                 }
 
                 iter.nextNote();
             }
 
-            float time = iter.GetTimeOfNextNote();
+            float time = iter.getStartTimeOfCurrentNote();
             mNextTime = (int)(time * mTempoInSamples);
         }
 
@@ -96,13 +96,19 @@ class Mixer {
     }
 
     public void setTime(float time) {
+
         iter.setTime(time);
         mTime = (int)(time * mTempoInSamples);
         mNextTime = mTime;
 
         Event event = iter.GetNote();
         if (event!=null) {
-            mNextTime = (int) (event.time * mTempoInSamples);
+            int timeEvent = (int)(event.time * mTempoInSamples);
+            if (timeEvent>=mTime)
+            {
+                //the event happens in the future, wait for it
+                mNextTime = timeEvent;
+            }
         }
     }
 
@@ -114,7 +120,7 @@ class Mixer {
 
     public interface MixerListener
     {
-        public void AddNote(Event event);
+        public void AddNote(float time, Event event);
         public void PlayBeat(short[] chunk, int ini, int fin, float volume);
     }
 

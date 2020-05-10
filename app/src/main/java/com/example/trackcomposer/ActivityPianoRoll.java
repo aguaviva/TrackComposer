@@ -123,7 +123,10 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
             @Override
             public void longPress(int rowSelected, float time) {}
-
+            @Override
+            public boolean onDoubleTap(int rowSelected, float time) {
+                return false;
+            }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
 

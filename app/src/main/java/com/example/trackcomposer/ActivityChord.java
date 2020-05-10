@@ -69,6 +69,10 @@ public class ActivityChord extends AppCompatActivity {
                 return false;
             }
             @Override
+            public boolean onDoubleTap(int rowSelected, float time) {
+                return false;
+            }
+            @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }
             @Override

@@ -29,8 +29,6 @@ public class InstrumentSampler extends InstrumentBase {
 
     float freqOne = Misc.GetFrequency(40);
 
-    //short GetSample(int i) { return mSample.mSampleData[i]; }
-
     @Override
     ChannelStateBase getNewChannelState() { return new Channel(); }
 

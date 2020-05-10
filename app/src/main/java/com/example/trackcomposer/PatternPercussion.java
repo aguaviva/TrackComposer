@@ -10,7 +10,7 @@ class PatternPercussion extends PatternBase
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
-        public void AddNote(Event event){
+        public void AddNote(float noteTime, Event event){
             play(event);
         }
 

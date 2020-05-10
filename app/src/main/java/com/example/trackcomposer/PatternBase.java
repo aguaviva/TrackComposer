@@ -34,6 +34,7 @@ public class PatternBase {
     public SortedListOfNotes.State getIter() {
         return mNotes.getIter();
     }
+    public void sortEvents() { mNotes.sortNotes(); }
 
     void Set(Event note) {
         mNotes.Set(note);

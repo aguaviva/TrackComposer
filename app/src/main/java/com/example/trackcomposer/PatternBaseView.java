@@ -436,6 +436,21 @@ public class PatternBaseView extends View {
         }
 
         @Override
+        public boolean onDoubleTap (MotionEvent event)
+        {
+            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
+            row = indexToNote(row);
+
+            if (instrumentListener!=null) {
+                return instrumentListener.onDoubleTap(row, thumbTime);
+            }
+
+            return false;
+        }
+
+
+        @Override
         public void onLongPress (MotionEvent event)
         {
             float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
@@ -513,6 +528,7 @@ public class PatternBaseView extends View {
         boolean onTouchEvent(MotionEvent event);
         boolean noteTouched(int rowSelected, float time);
         void longPress(int rowSelected, float time);
+        boolean onDoubleTap(int rowSelected, float time);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }
     public void  setInstrumentListener(InstrumentListener instrumentTouched) {

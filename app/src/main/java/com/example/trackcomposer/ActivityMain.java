@@ -181,6 +181,7 @@ public class ActivityMain extends AppCompatActivity {
                     if (noteDown!=null)
                     {
                         noteDown.time = event.getX() - d;
+                        mAppState.mPatternMaster.sortEvents();
                         masterView.invalidate();
                         return true;
                     }
@@ -209,6 +210,12 @@ public class ActivityMain extends AppCompatActivity {
                 mRowSelected = rowSelected;
                 createPopUpMenu(new PointF());
 
+            }
+            @Override
+            public boolean onDoubleTap(int rowSelected, float time) {
+                Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
+                editPattern(noteTouched);
+                return noteTouched!=null;
             }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
