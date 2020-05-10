@@ -29,7 +29,7 @@ public class InstrumentSampler extends InstrumentBase {
 
     float freqOne = Misc.GetFrequency(40);
 
-    short GetSample(int i) { return mSample.sampleData[i]; }
+    //short GetSample(int i) { return mSample.mSampleData[i]; }
 
     @Override
     ChannelStateBase getNewChannelState() { return new Channel(); }
@@ -50,13 +50,13 @@ public class InstrumentSampler extends InstrumentBase {
     @Override
     public void playSample(short[] chunk, int ini, int fin)
     {
-        if (mSample.sampleData == null)
+        if (mSample.isSampleValid() == false)
         {
             return;
         }
 
         for(int c=0;c<mChannels.length;c++) {
-            if (mPlayingChannels[c]==false)
+            if (isChannelPlaying(c)==false)
                 continue;
 
             Channel channel = mChannels[c];

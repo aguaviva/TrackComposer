@@ -74,7 +74,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
         float mVibratoFreqN = (mVibratoFreq * TwoPi)  * GetInvSampleRate();
 
         for(int c=0;c<mChannels.length;c++) {
-            if (mPlayingChannels[c] == false)
+            if (isChannelPlaying(c)==false)
                 continue;
 
             Channel channel = mChannels[c];

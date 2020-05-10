@@ -39,7 +39,7 @@ public class InstrumentPercussion extends InstrumentBase {
     }
 
     String GetChannelName(int channel){
-        return mChannels[channel].mSample.instrumentFilename;
+        return mChannels[channel].mSample.getName();
     }
 
     @Override
@@ -49,15 +49,15 @@ public class InstrumentPercussion extends InstrumentBase {
         channel.mTimeInSamples = 0;
         channel.mFreq = 0;
         channel.mVolume = 1.0f;
-        mPlayingChannels[note]=true;
+        //mPlayingChannels[note]=true;
     }
 
     @Override
     public void playSample(short[] chunk, int ini, int fin)
     {
         for(int c=0;c<mChannels.length;c++) {
-            if (mPlayingChannels[c]==false)
-                continue;
+            //if (isChannelPlaying(c)==false)
+            //    continue;
 
             if (mChannels[c].playSample(chunk, ini, fin)) {
                 StopChannel(c);

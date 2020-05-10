@@ -10,7 +10,7 @@ import java.io.File;
 
 public class InstrumentBase {
 
-    boolean [] mPlayingChannels = new boolean [10];
+    private boolean [] mPlayingChannels = new boolean [10];
 
     class ChannelStateBase
     {
@@ -31,8 +31,6 @@ public class InstrumentBase {
     private int mSampleRate = 0;
     private float mInvSampleRate = 0;
 
-    //protected int mTracks = 0;
-
     public InstrumentBase() {
         baseNoteFreq = Misc.GetFrequency(baseNote);
     }
@@ -44,6 +42,12 @@ public class InstrumentBase {
         return -1;
     }
     ChannelStateBase getNewChannelState() { return new ChannelStateBase(); }
+
+    public void playSample(int channel, float velociy) {
+    }
+
+    public void playSample(short[] chunk, int ini, int fin) {
+    }
 
     public void reset() {
         for(int i=0;i<mPlayingChannels.length;i++) {
@@ -59,11 +63,8 @@ public class InstrumentBase {
         return false;
     }
 
-
-    public void playSample(int channel, float velociy) {
-    }
-
-    public void playSample(short[] chunk, int ini, int fin) {
+    public boolean isChannelPlaying(int channel) {
+        return mPlayingChannels[channel];
     }
 
     protected int GetAvailableChannel()
@@ -77,9 +78,9 @@ public class InstrumentBase {
         return -1;
     }
 
-    protected void StopChannel(int i)
+    protected void StopChannel(int channel)
     {
-        mPlayingChannels[i] = false;
+        mPlayingChannels[channel] = false;
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException {

@@ -79,10 +79,10 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     public void playSample(short[] chunk, int ini, int fin) {
 
         for(int c=0;c<mChannels.length;c++) {
+            if (isChannelPlaying(c)==false)
+                continue;
 
             Channel channel = mChannels[c];
-            if (mPlayingChannels[c] == false)
-                continue;
 
             for (int i = ini; i < fin; i += 2) {
 

@@ -14,30 +14,35 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 public class Sample {
-    public short[] sampleData = null;
-    public String instrumentFilename = "none";
+    private short[] mSampleData = null;
+    private String mInstrumentName = "none";
+    private String mInstrumentFilename = "none";
     public int mTracks = 0;
     private int mSampleRate = 0;
 
     public int getLengthInFrames() {
-        if (sampleData==null)
+        if (mSampleData ==null)
             return -1;
-        return sampleData.length/mTracks;
+        return mSampleData.length/mTracks;
     }
+
+    public String getName() { return mInstrumentName; }
+    public boolean isSampleValid() { return mSampleData != null; }
 
     public boolean load(String path) {
         File f = new File(path);
-        String fileName = f.getName();
-        int pos = fileName.lastIndexOf(".");
+        String name = f.getName();
+        int pos = name.lastIndexOf(".");
         if (pos != -1) {
-            fileName = fileName.substring(0, pos);
+            name = name.substring(0, pos);
         }
+        mInstrumentName = name;
 
-        instrumentFilename = path;
+        mInstrumentFilename = path;
 
         if (loadAndDecode(path)==false)
         {
-            sampleData = null;
+            mSampleData = null;
             return false;
         }
 
@@ -47,11 +52,11 @@ public class Sample {
     void copyFrame(int bufferOffset, short []buffer, int sampleIndex, float factor)
     {
         if (mTracks == 2) {
-            buffer[bufferOffset + 0] += (short) (factor * sampleData[2 * sampleIndex + 0]);
-            buffer[bufferOffset + 1] += (short) (factor * sampleData[2 * sampleIndex + 1]);
+            buffer[bufferOffset + 0] += (short) (factor * mSampleData[2 * sampleIndex + 0]);
+            buffer[bufferOffset + 1] += (short) (factor * mSampleData[2 * sampleIndex + 1]);
         } else if (mTracks == 1) {
-            buffer[bufferOffset + 0] += (short) (factor * sampleData[sampleIndex]);
-            buffer[bufferOffset + 1] += (short) (factor * sampleData[sampleIndex]);
+            buffer[bufferOffset + 0] += (short) (factor * mSampleData[sampleIndex]);
+            buffer[bufferOffset + 1] += (short) (factor * mSampleData[sampleIndex]);
         }
     }
 
@@ -171,12 +176,12 @@ public class Sample {
             }
 
             int index = 0;
-            sampleData = new short[sampleSize];
+            mSampleData = new short[sampleSize];
             {
                 for (int i = 0; i < blocks.size(); i++) {
                     short[] chunk = blocks.get(i);
                     for (int b = 0; b < chunk.length; b++) {
-                        sampleData[index++] = chunk[b];
+                        mSampleData[index++] = chunk[b];
                     }
                 }
             }
@@ -195,13 +200,13 @@ public class Sample {
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException
     {
-        jsonObj.put("instrumentFilename", instrumentFilename);
+        jsonObj.put("instrumentFilename", mInstrumentFilename);
     }
 
     public void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
-        instrumentFilename = jsonObj.getString("instrumentFilename");
-        load(instrumentFilename);
+        mInstrumentFilename = jsonObj.getString("instrumentFilename");
+        load(mInstrumentFilename);
     }
 
 }
