@@ -9,27 +9,27 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SortedListOfNotes
+class SortedListOfEvents
 {
     public class State {
         private int mIndex = 0;
-        private SortedListOfNotes events;
+        private SortedListOfEvents mEvents;
 
-        public State(SortedListOfNotes sln)
+        public State(SortedListOfEvents sln)
         {
-            events =sln;
+            mEvents =sln;
         }
 
         public void setTime(float time) {
-            for(int i=0;i<events.size();) {
-                int notes = events.getNotesCount(i);
+            for(int i=0;i< mEvents.size();) {
+                int notes = mEvents.getEventsCount(i);
                 for(int n=0;n<notes;n++) {
                     Event note = myList.get(i+n);
-                    if (time >= note.time  && time< note.time + note.durantion) {
+                    if (time >= note.mTime && time< note.mTime + note.mDuration) {
                         mIndex = i;
                         return;
                     }
-                    if (time <= note.time) {
+                    if (time <= note.mTime) {
                         mIndex = i;
                         return;
                     }
@@ -38,69 +38,70 @@ public class SortedListOfNotes
             }
 
             // set index at the end
-            mIndex = events.size();
+            mIndex = mEvents.size();
         }
 
-        public int getNotesCount() {
-            return events.getNotesCount(mIndex);
+        public int getEventCount() {
+            return mEvents.getEventsCount(mIndex);
         }
 
-        public Event GetNote()
+        public Event GetEvent()
         {
-            return events.GetNoteByIndex(mIndex);
+            return mEvents.GetEventByIndex(mIndex);
         }
 
-        public float getStartTimeOfCurrentNote()
+        public float getStartTimeOfCurrentEvent()
         {
-            Event event = GetNote();
+            Event event = GetEvent();
             if (event!=null)
-                return event.time;
+                return event.mTime;
             else
-                return events.mLength;
+                return mEvents.mLength;
         }
 
-        public boolean AreNotesLeft()
+        public boolean AreEventsLeft()
         {
-            return mIndex<events.size();
+            return mIndex< mEvents.size();
         }
 
-        public void nextNote()
+        public void nextEvent()
         {
             mIndex++;
         }
     };
 
+
     protected List<Event> myList = new ArrayList<>();
     public float mLength = 0;
 
-    public SortedListOfNotes.State getIter() {
-        return new SortedListOfNotes.State(this);
+    public SortedListOfEvents.State getIter() {
+        return new SortedListOfEvents.State(this);
     }
 
-    public Event GetNoteByIndex(int index)
+    public Event GetEventByIndex(int index)
     {
         if (index<myList.size())
             return myList.get(index);
         return null;
     }
 
-    int GetNextNoteIndexByTime(float time)
+    int GetNextEventIndexByTime(float time)
     {
         for(int i=0;i<myList.size();i++)
         {
             Event n = myList.get(i);
-            if (time<=n.time)
+            if (time<=n.mTime)
                 return i;
         }
         return -1;
     }
 
-    public Event GetNoteBy(int row, float time)
+    public Event GetEventBy(int row, float time)
     {
         for(int i=0;i<myList.size();i++)
         {
             Event n = myList.get(i);
-            if (time>=n.time && time<(n.time + n.durantion) && row == n.channel)
+            if (time>=n.mTime && time<(n.mTime + n.mDuration) && row == n.mChannel)
                 return n;
         }
         return null;
@@ -114,23 +115,23 @@ public class SortedListOfNotes
         while(start < end){
             int mid = start + (end - start) / 2;
 
-            if(a.get(mid).time >= key){
+            if(a.get(mid).mTime >= key){
                 end = mid;
             }
             else{
                 start = mid + 1;
             }
         }
-        return (a.get(start).time == key) ? start : -1;
+        return (a.get(start).mTime == key) ? start : -1;
     }
 
-    public void sortNotes()
+    public void sortEvents()
     {
         Collections.sort(myList, new Comparator<Event>() {
             @Override
             public int compare(Event lhs, Event rhs) {
                 // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
-                return lhs.time < rhs.time ? -1 : (lhs.time > rhs.time) ? 1 : 0;
+                return lhs.mTime < rhs.mTime ? -1 : (lhs.mTime > rhs.mTime) ? 1 : 0;
             }
         });
     }
@@ -140,7 +141,7 @@ public class SortedListOfNotes
         return myList.size();
     }
 
-    private int getNotesCount(int index)
+    private int getEventsCount(int index)
     {
         if (myList==null)
             return 0;
@@ -149,10 +150,10 @@ public class SortedListOfNotes
             return 0;
 
         int notesCount = 0;
-        float time = myList.get(index).time;
+        float time = myList.get(index).mTime;
         for(int i=index;i<myList.size();i++)
         {
-            if (myList.get(i).time!=time)
+            if (myList.get(i).mTime !=time)
                 return notesCount;
             notesCount++;
         }
@@ -170,16 +171,16 @@ public class SortedListOfNotes
 
     public void Set(Event gen)
     {
-        Clear(gen.channel, gen.time);
+        Clear(gen.mChannel, gen.mTime);
         myList.add(gen);
-        sortNotes();
+        sortEvents();
     }
 
     public boolean Clear(int channel, float time)
     {
         for(int i=0;i<myList.size();i++)
         {
-            if (myList.get(i).channel==channel && myList.get(i).time == time) {
+            if (myList.get(i).mChannel ==channel && myList.get(i).mTime == time) {
                 myList.remove(i);
                 return true;
             }

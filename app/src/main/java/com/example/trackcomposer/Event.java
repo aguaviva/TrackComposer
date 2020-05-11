@@ -1,28 +1,27 @@
 package com.example.trackcomposer;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Event {
-    float time;
-    float durantion;
-    int channel;
-    int id;
+    float mTime;
+    float mDuration;
+    int mChannel;
+    int mId;
 
     void serializeToJson(JSONObject json) throws JSONException
     {
-        json.put("time", time);
-        json.put("channel", channel);
-        json.put("durantion", durantion);
-        json.put("sampleId", id);
+        json.put("time", mTime);
+        json.put("channel", mChannel);
+        json.put("durantion", mDuration);
+        json.put("sampleId", mId);
     }
 
     void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
-        time = jsonObj.getInt("time");
-        channel = jsonObj.getInt("channel");
-        durantion = jsonObj.getInt("durantion");
-        id = jsonObj.getInt("sampleId");
+        mTime = jsonObj.getInt("time");
+        mChannel = jsonObj.getInt("channel");
+        mDuration = jsonObj.getInt("durantion");
+        mId = jsonObj.getInt("sampleId");
     }
 }

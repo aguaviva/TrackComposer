@@ -30,7 +30,7 @@ public class InstrumentPercussion extends InstrumentBase {
     {
         super();
         SetSampleRate(44100);
-        instrumentName = "InstrumentPercussion";
+        mInstrumentName = "InstrumentPercussion";
 
         mChannels = new Channel[10];
         for(int c=0;c<mChannels.length;c++) {

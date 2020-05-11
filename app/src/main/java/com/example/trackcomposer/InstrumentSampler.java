@@ -20,7 +20,7 @@ public class InstrumentSampler extends InstrumentBase {
     {
         super();
         SetSampleRate(44100);
-        instrumentName = "InstrumentSampler";
+        mInstrumentName = "InstrumentSampler";
 
         for(int c=0;c<mChannels.length;c++) {
             mChannels[c] = new Channel();

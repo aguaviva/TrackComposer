@@ -1,12 +1,7 @@
 package com.example.trackcomposer;
 
-import android.app.Activity;
-import android.os.Environment;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
 
 public class InstrumentBase {
 
@@ -20,19 +15,18 @@ public class InstrumentBase {
         float mFreq = 0;
     };
 
-    public int sampleId = -1;
-    protected String instrumentName = "none";
-    int timeInSamples= 0;
+    public int mInstrumentId = -1;
+    protected String mInstrumentName = "none";
     boolean mPlaying = false;
     // will make this private at some point
-    public int baseNote = 40;
-    public float baseNoteFreq = 0.0f;
+    public int mBaseNote = 40;
+    public float mBaseNoteFreq = 0.0f;
 
     private int mSampleRate = 0;
     private float mInvSampleRate = 0;
 
     public InstrumentBase() {
-        baseNoteFreq = Misc.GetFrequency(baseNote);
+        mBaseNoteFreq = Misc.GetFrequency(mBaseNote);
     }
 
     void SetSampleRate(int sampleRate) { mSampleRate = sampleRate; mInvSampleRate = 1.0f/ (float)sampleRate; }
@@ -84,10 +78,10 @@ public class InstrumentBase {
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException {
-        jsonObj.put("sampleId", sampleId);
+        jsonObj.put("sampleId", mInstrumentId);
     }
 
     public void serializeFromJson(JSONObject jsonObj) throws JSONException {
-        sampleId = jsonObj.getInt("sampleId");
+        mInstrumentId = jsonObj.getInt("sampleId");
     }
 }

@@ -5,8 +5,8 @@ import org.json.JSONObject;
 
 class PatternPianoRoll extends PatternBase
 {
-    int sampleId = -1;
-    int baseNote = 40; //c4 - 261.6256
+    int mInstrumentId = -1;
+    int mBaseNote = 40; //c4 - 261.6256
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
@@ -16,7 +16,7 @@ class PatternPianoRoll extends PatternBase
 
         @Override
         public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
-            InstrumentBase g = InstrumentList.getInstance().get(sampleId);
+            InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
             g.playSample(chunk, ini, fin);
         }
     };
@@ -28,8 +28,8 @@ class PatternPianoRoll extends PatternBase
 
     public void play(Event event)
     {
-        InstrumentBase g = InstrumentList.getInstance().get(sampleId);
-        g.playSample(event.channel, Misc.GetFrequency(event.channel));
+        InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
+        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel));
     }
 
     @Override
@@ -38,14 +38,14 @@ class PatternPianoRoll extends PatternBase
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException {
         super.serializeToJson(jsonObj);
-        jsonObj.put("sampleId", sampleId);
-        jsonObj.put("baseNote", baseNote);
+        jsonObj.put("sampleId", mInstrumentId);
+        jsonObj.put("baseNote", mBaseNote);
     }
 
     @Override
     void serializeFromJson(JSONObject jsonObj) throws JSONException {
         super.serializeFromJson(jsonObj);
-        sampleId = jsonObj.getInt("sampleId");
-        baseNote = jsonObj.getInt("baseNote");
+        mInstrumentId = jsonObj.getInt("sampleId");
+        mBaseNote = jsonObj.getInt("baseNote");
     }
 };

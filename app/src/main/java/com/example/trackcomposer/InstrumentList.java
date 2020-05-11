@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class InstrumentList
 {
-    HashMap<Integer, InstrumentBase> instruments = new HashMap<Integer, InstrumentBase>();
+    HashMap<Integer, InstrumentBase> mInstruments = new HashMap<Integer, InstrumentBase>();
 
     private static InstrumentList singleton = new InstrumentList( );
 
@@ -20,18 +20,18 @@ public class InstrumentList
 
     public InstrumentBase get(int i)
     {
-        return instruments.get(i);
+        return mInstruments.get(i);
     }
 
     public void reset()
     {
-        instruments.clear();
+        mInstruments.clear();
     }
 
 
     public void add(int trackId, InstrumentBase sample) {
-        sample.sampleId = trackId;
-        instruments.put(trackId, sample);
+        sample.mInstrumentId = trackId;
+        mInstruments.put(trackId, sample);
     }
 
     public void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -39,11 +39,11 @@ public class InstrumentList
         JSONObject jsonObjInstruments = new JSONObject();
 
         JSONArray jsonObjSamples = new JSONArray();
-        for(int i = 0; i< instruments.size(); i++)
+        for(int i = 0; i< mInstruments.size(); i++)
         {
             JSONObject jsonObj2 = new JSONObject();
 
-            InstrumentBase instBase = instruments.get(i);
+            InstrumentBase instBase = mInstruments.get(i);
             String type = "";
             if (instBase instanceof InstrumentPercussion) {
                 InstrumentPercussion inst = new InstrumentPercussion();
@@ -89,7 +89,7 @@ public class InstrumentList
                 inst = new InstrumentKarplusStrong();
             }
             inst.serializeFromJson(jsonObj2);
-            instruments.put(inst.sampleId, inst);
+            mInstruments.put(inst.mInstrumentId, inst);
         }
     }
 }

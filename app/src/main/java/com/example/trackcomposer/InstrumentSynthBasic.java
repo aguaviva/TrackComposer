@@ -23,7 +23,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
         SetSampleRate(44100);
         adsr.setTimings(.1f,1.0f,.1f,.8f,0.3f);
         adsr.setSustainTime(.5f);
-        instrumentName = "GeneratorSynth";
+        mInstrumentName = "GeneratorSynth";
 
         for(int c=0;c<mChannels.length;c++) {
             mChannels[c] = new Channel();

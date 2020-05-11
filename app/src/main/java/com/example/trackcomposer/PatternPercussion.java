@@ -1,12 +1,11 @@
 package com.example.trackcomposer;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 class PatternPercussion extends PatternBase
 {
-    int sampleId = -1;
+    int mInstrumentId = -1;
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
@@ -16,7 +15,7 @@ class PatternPercussion extends PatternBase
 
         @Override
         public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
-            InstrumentBase g = InstrumentList.getInstance().get(sampleId);
+            InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
             g.playSample(chunk, ini, fin);
         }
     };
@@ -28,8 +27,8 @@ class PatternPercussion extends PatternBase
 
     public void play(Event event)
     {
-        InstrumentBase g = InstrumentList.getInstance().get(sampleId);
-        g.playSample(event.channel, 0);
+        InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
+        g.playSample(event.mChannel, 0);
     }
 
     @Override
@@ -38,12 +37,12 @@ class PatternPercussion extends PatternBase
     @Override
     void serializeToJson(JSONObject jsonObj) throws JSONException {
         super.serializeToJson(jsonObj);
-        jsonObj.put("sampleId", sampleId);
+        jsonObj.put("sampleId", mInstrumentId);
     }
 
     @Override
     void serializeFromJson(JSONObject jsonObj) throws JSONException {
         super.serializeFromJson(jsonObj);
-        sampleId = jsonObj.getInt("sampleId");
+        mInstrumentId = jsonObj.getInt("sampleId");
     }
 };

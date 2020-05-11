@@ -4,12 +4,12 @@ import android.util.Log;
 
 class Mixer {
     int mTempoInSamples = 44100/4;
-    public int mTime = 0, mNextTime = 0;
+    private int mTime = 0, mNextTime = 0;
 
     boolean mStillNotes = false;
     boolean mStillPlaying = false;
 
-    private SortedListOfNotes.State iter = null;
+    private SortedListOfEvents.State iter = null;
 
     Mixer()
     {
@@ -17,7 +17,7 @@ class Mixer {
         mNextTime = 0;
     }
 
-    public void SetState(SortedListOfNotes.State state)
+    public void SetState(SortedListOfEvents.State state)
     {
         iter = state;
     }
@@ -34,7 +34,7 @@ class Mixer {
 
         if (mTime >= mNextTime) {
 
-            int notes = iter.getNotesCount();
+            int notes = iter.getEventCount();
             if (notes<=0) {
                 mNextTime = mTime;
                 return false;
@@ -42,19 +42,19 @@ class Mixer {
 
             Event event = null;
             for (int i = 0; i < notes; i++) {
-                event = iter.GetNote();
+                event = iter.GetEvent();
 
-                Log.i("TC", String.format("  - time %f %d",(float)mTime/(float)mTempoInSamples, event.channel));
+                Log.i("TC", String.format("  - time %f %d",(float)mTime/(float)mTempoInSamples, event.mChannel));
 
                 if (mMixerListener!=null)
                 {
-                    mMixerListener.AddNote(((float)mTime/(float)mTempoInSamples) - event.time, event);
+                    mMixerListener.AddNote(((float)mTime/(float)mTempoInSamples) - event.mTime, event);
                 }
 
-                iter.nextNote();
+                iter.nextEvent();
             }
 
-            float time = iter.getStartTimeOfCurrentNote();
+            float time = iter.getStartTimeOfCurrentEvent();
             mNextTime = (int)(time * mTempoInSamples);
         }
 
@@ -101,9 +101,9 @@ class Mixer {
         mTime = (int)(time * mTempoInSamples);
         mNextTime = mTime;
 
-        Event event = iter.GetNote();
+        Event event = iter.GetEvent();
         if (event!=null) {
-            int timeEvent = (int)(event.time * mTempoInSamples);
+            int timeEvent = (int)(event.mTime * mTempoInSamples);
             if (timeEvent>=mTime)
             {
                 //the event happens in the future, wait for it

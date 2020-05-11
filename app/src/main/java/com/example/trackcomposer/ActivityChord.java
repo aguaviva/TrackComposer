@@ -34,7 +34,7 @@ public class ActivityChord extends AppCompatActivity {
         mTimeLine.init(patternChord, 1);
 
         chordNames = (PatternHeaderView)findViewById(R.id.chordNames);
-        chordNames.SetPattern(mTimeLine, patternChord.channels/3, patternChord.GetLength(),true);
+        chordNames.SetPattern(mTimeLine, patternChord.mChannels /3, patternChord.GetLength(),true);
         chordNames.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -48,7 +48,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         patternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        patternHeaderView.SetPattern(mTimeLine, patternChord.channels, patternChord.GetLength(),true);
+        patternHeaderView.SetPattern(mTimeLine, patternChord.mChannels, patternChord.GetLength(),true);
         patternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
@@ -107,7 +107,7 @@ public class ActivityChord extends AppCompatActivity {
         {
             @Override
             public void GetSelectedInstrumentId(InstrumentBase generator) {
-                patternChord.sampleId = generator.sampleId;
+                patternChord.sampleId = generator.mInstrumentId;
                 rigControls();
             }
         });

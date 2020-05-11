@@ -50,7 +50,7 @@ public class ActivityPercussion extends AppCompatActivity {
         });
 
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        mPatternHeaderView.SetPattern(mTimeLine, mPattern.channels, mPattern.GetLength(),false);
+        mPatternHeaderView.SetPattern(mTimeLine, mPattern.mChannels, mPattern.GetLength(),false);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) { instrumentChooser(note); }
@@ -59,8 +59,8 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public String getInstrumentName(int channel)
             {
-                if (mPattern.sampleId>=0) {
-                    InstrumentPercussion p = (InstrumentPercussion)mAppState.instrumentList.get(mPattern.sampleId);
+                if (mPattern.mInstrumentId >=0) {
+                    InstrumentPercussion p = (InstrumentPercussion)mAppState.instrumentList.get(mPattern.mInstrumentId);
                     return p.GetChannelName(channel);
                 }
                 return "none";
@@ -93,10 +93,10 @@ public class ActivityPercussion extends AppCompatActivity {
                 Event noteTouched = mPattern.get(rowSelected, time);
                 if (noteTouched==null) {
                     noteTouched = new Event();
-                    noteTouched.time = time;
-                    noteTouched.channel = rowSelected;
-                    noteTouched.durantion = 1;
-                    noteTouched.id = -1;
+                    noteTouched.mTime = time;
+                    noteTouched.mChannel = rowSelected;
+                    noteTouched.mDuration = 1;
+                    noteTouched.mId = -1;
                     mPattern.Set(noteTouched);
                 }
                 else {
@@ -122,7 +122,7 @@ public class ActivityPercussion extends AppCompatActivity {
 
             @Override
             public void fileTouched(final String file) {
-                InstrumentPercussion g = (InstrumentPercussion)InstrumentList.getInstance().get(mPattern.sampleId);
+                InstrumentPercussion g = (InstrumentPercussion)InstrumentList.getInstance().get(mPattern.mInstrumentId);
                 g.loadSample(channel, file);
             }
         });

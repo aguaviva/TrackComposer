@@ -1,9 +1,7 @@
 package com.example.trackcomposer;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,7 +25,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -169,7 +166,7 @@ public class ActivityMain extends AppCompatActivity {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
-                        d = event.getX() - noteDown.time;
+                        d = event.getX() - noteDown.mTime;
 
                         masterView.selectedNote = noteDown;
                         eventSelected = noteDown;
@@ -180,7 +177,7 @@ public class ActivityMain extends AppCompatActivity {
                 {
                     if (noteDown!=null)
                     {
-                        noteDown.time = event.getX() - d;
+                        noteDown.mTime = event.getX() - d;
                         mAppState.mPatternMaster.sortEvents();
                         masterView.invalidate();
                         return true;
@@ -262,7 +259,7 @@ public class ActivityMain extends AppCompatActivity {
 
         if (eventSelected!=null)
         {
-            eventSelected.durantion = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.id).GetLength();
+            eventSelected.mDuration = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.mId).GetLength();
         }
 
         generateIcons();
@@ -378,10 +375,10 @@ public class ActivityMain extends AppCompatActivity {
                 case R.id.btnPaste: {
                     if (copiedEvent != null) {
                         Event note = new Event();
-                        note.time = mTimeLine.getTime();
-                        note.channel = mRowSelected;
-                        note.durantion = copiedEvent.durantion;
-                        note.id = copiedEvent.id;
+                        note.mTime = mTimeLine.getTime();
+                        note.mChannel = mRowSelected;
+                        note.mDuration = copiedEvent.mDuration;
+                        note.mId = copiedEvent.mId;
 
                         mAppState.mPatternMaster.Set(note);
                         break;
@@ -394,7 +391,7 @@ public class ActivityMain extends AppCompatActivity {
                 }
                 case R.id.btnDelete:
                     if (eventSelected!=null) {
-                        mAppState.mPatternMaster.Clear(eventSelected.channel, eventSelected.time);
+                        mAppState.mPatternMaster.Clear(eventSelected.mChannel, eventSelected.mTime);
                         masterView.selectedNote = null;
                         eventSelected = null;
                     } else {
@@ -498,7 +495,7 @@ public class ActivityMain extends AppCompatActivity {
                             else if (instrument instanceof PatternChord)
                                 mTracks[i].patternType = Chords;
 */
-                            mTracks[i].trackNames.setText(instrument.instrumentName);
+                            mTracks[i].trackNames.setText(instrument.mInstrumentName);
                         }
                     }
                 }
@@ -551,7 +548,7 @@ public class ActivityMain extends AppCompatActivity {
             return;
         }
 
-        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.id);
+        PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(event.mId);
         mAppState.mLastPatternAdded = pattern;
         mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
@@ -673,7 +670,7 @@ public class ActivityMain extends AppCompatActivity {
         String filename = "filename";
 
         PatternPianoRoll pattern = new PatternPianoRoll(filename, mAppState.extStoreDir + "/" + filename, 24, 16);
-        pattern.sampleId = track;
+        pattern.mInstrumentId = track;
         int id = mAppState.mPatternMaster.mPatternDataBase.size();
         mAppState.mPatternMaster.mPatternDataBase.put(id, pattern);
         mAppState.mLastPatternAdded = pattern;
@@ -693,7 +690,7 @@ public class ActivityMain extends AppCompatActivity {
                 break;
             case Percussion:
                 PatternPercussion patternPercussion = new PatternPercussion(filename, mAppState.extStoreDir+ "/"+filename, 16, 16);
-                patternPercussion.sampleId = channel;
+                patternPercussion.mInstrumentId = channel;
                 pattern = patternPercussion;
                 intent = new Intent(mContext, ActivityPercussion.class);
                 break;
@@ -703,7 +700,7 @@ public class ActivityMain extends AppCompatActivity {
                 break;
             case PianoRoll:
                 PatternPianoRoll patternPianoRoll = new PatternPianoRoll(filename, mAppState.extStoreDir+ "/"+filename, 24, 16);
-                patternPianoRoll.sampleId = channel;
+                patternPianoRoll.mInstrumentId = channel;
                 pattern = patternPianoRoll;
                 intent = new Intent(mContext, ActivityPianoRoll.class);
                 break;
@@ -717,10 +714,10 @@ public class ActivityMain extends AppCompatActivity {
         mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
         Event note = new Event();
-        note.time = time;
-        note.channel = channel;
-        note.durantion = 16;
-        note.id = id;
+        note.mTime = time;
+        note.mChannel = channel;
+        note.mDuration = 16;
+        note.mId = id;
         mAppState.mPatternMaster.Set(note);
         eventSelected = note;
 
@@ -738,7 +735,7 @@ public class ActivityMain extends AppCompatActivity {
 
             timeLine.init(pattern, 1);
             pbv.SetPattern(pattern, timeLine,false, PatternBaseView.ViewMode.PIANO);
-            Bitmap b = pbv.getBitmapFromView((int)(25 * pattern.GetLength()), 3 * pattern.channels);
+            Bitmap b = pbv.getBitmapFromView((int)(25 * pattern.GetLength()), 3 * pattern.mChannels);
             mAppState.mPatternImgDataBase.put(key, b);
         }
     }

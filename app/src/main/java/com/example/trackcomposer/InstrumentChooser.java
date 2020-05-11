@@ -107,9 +107,9 @@ public class InstrumentChooser {
     void FillList(int currentId)
     {
         arrayList.clear();
-        for(int i = 0; i<mAppState.instrumentList.instruments.size(); i++)
+        for(int i = 0; i<mAppState.instrumentList.mInstruments.size(); i++)
         {
-            arrayList.add(mAppState.instrumentList.get(i).instrumentName);
+            arrayList.add(mAppState.instrumentList.get(i).mInstrumentName);
             //adapter.add(mAppState.instrumentList.get(i).instrumentName);
         }
         adapter.notifyDataSetChanged();

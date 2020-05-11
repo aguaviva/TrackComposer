@@ -17,7 +17,7 @@ public class Sample {
     private short[] mSampleData = null;
     private String mInstrumentName = "none";
     private String mInstrumentFilename = "none";
-    public int mTracks = 0;
+    private int mTracks = 0;
     private int mSampleRate = 0;
 
     public int getLengthInFrames() {

@@ -55,15 +55,15 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         //
         mPatternHeaderView = (PatternHeaderView)findViewById(R.id.patternHeaderView);
-        mPatternHeaderView.SetPattern(mTimeLine, patternPianoRoll.channels, patternPianoRoll.GetLength(),true);
+        mPatternHeaderView.SetPattern(mTimeLine, patternPianoRoll.mChannels, patternPianoRoll.GetLength(),true);
         mPatternHeaderView.setInstrumentListener(new PatternHeaderView.InstrumentListener() {
             @Override
             public void noteTouched(int note) {}
             @Override
             public void actionMove(int y)
             {
-                patternPianoRoll.baseNote+=y;
-                mNoteView.setBaseNote(patternPianoRoll.baseNote);
+                patternPianoRoll.mBaseNote +=y;
+                mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
                 mNoteView.invalidate();
             }
             @Override
@@ -76,7 +76,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
         mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
-        mNoteView.setBaseNote(patternPianoRoll.baseNote);
+        mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             Event noteDown;
             float dx = 0, dy = 0;
@@ -86,8 +86,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
-                        dx = event.getX() - noteDown.time;
-                        dy = event.getY() - noteDown.channel;
+                        dx = event.getX() - noteDown.mTime;
+                        dy = event.getY() - noteDown.mChannel;
 
                         mNoteView.selectedNote = noteDown;
                         //eventSelected = noteDown;
@@ -98,8 +98,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 {
                     if (noteDown!=null)
                     {
-                        noteDown.time = event.getX() - dx;
-                        noteDown.channel = (int)(event.getY() - dy);
+                        noteDown.mTime = event.getX() - dx;
+                        noteDown.mChannel = (int)(event.getY() - dy);
                         //if ()
                         mNoteView.invalidate();
                         return true;
@@ -133,17 +133,17 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 Event noteTouched = patternPianoRoll.get(rowSelected, time);
                 if (noteTouched==null) {
                     noteTouched = new Event();
-                    noteTouched.time = time;
-                    noteTouched.channel = rowSelected;
-                    noteTouched.durantion = 1;
-                    noteTouched.id = patternPianoRoll.sampleId;
+                    noteTouched.mTime = time;
+                    noteTouched.mChannel = rowSelected;
+                    noteTouched.mDuration = 1;
+                    noteTouched.mId = patternPianoRoll.mInstrumentId;
                     patternPianoRoll.Set(noteTouched);
                 }
                 else {
                     patternPianoRoll.Clear(rowSelected, time);
                 }
 
-                if (patternPianoRoll.sampleId>=0) {
+                if (patternPianoRoll.mInstrumentId >=0) {
                     patternPianoRoll.play(noteTouched);
                 }
                 mNoteView.invalidate();
@@ -180,12 +180,12 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
     private void instrumentChooser()
     {
-        InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, patternPianoRoll.sampleId, new InstrumentChooser.InstrumentChooserListener()
+        InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, patternPianoRoll.mInstrumentId, new InstrumentChooser.InstrumentChooserListener()
         //InstrumentChooser2 instrumentChooser = new InstrumentChooser2(this, mAppState.instrumentList, patternNote.sampleId, new InstrumentChooser2.InstrumentChooserListener()
         {
             @Override
             public void GetSelectedInstrumentId(InstrumentBase generator) {
-                patternPianoRoll.sampleId = generator.sampleId;
+                patternPianoRoll.mInstrumentId = generator.mInstrumentId;
             }
         });
     }
@@ -195,13 +195,13 @@ public class ActivityPianoRoll extends AppCompatActivity {
         //headers.removeAllViews();
         //Toolbar headers = findViewById(R.id.toolbar);
 
-        View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(patternPianoRoll.baseNote), new WidgetNoteTransposer.Listener() {
+        View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(patternPianoRoll.mBaseNote), new WidgetNoteTransposer.Listener() {
             @Override
             public String update(int inc) {
-                        patternPianoRoll.baseNote+=inc;
+                        patternPianoRoll.mBaseNote +=inc;
                         mNoteView.invalidate();
                         mPatternHeaderView.invalidate();
-                        return String.valueOf(patternPianoRoll.baseNote);
+                        return String.valueOf(patternPianoRoll.mBaseNote);
             }
         });
         headers.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));

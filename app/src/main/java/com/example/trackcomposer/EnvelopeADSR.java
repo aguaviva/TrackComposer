@@ -3,7 +3,7 @@ package com.example.trackcomposer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class EnvelopeADSR {
+class EnvelopeADSR {
     float mAttackTime = 0;
     float mAttackVolume = 1;
     float mDecayTime = 0;
@@ -64,7 +64,7 @@ public class EnvelopeADSR {
         return 0;
     }
 
-    void serializeToJson(JSONObject jsonObj) throws JSONException
+    public void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         JSONObject json = new JSONObject();
         json.put("attackTime", mAttackTime);
@@ -77,7 +77,7 @@ public class EnvelopeADSR {
         json.put("ADSR",json);
     }
 
-    void serializeFromJson(JSONObject jsonObj) throws JSONException
+    public void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
         if (jsonObj.has("ADSR"))
         {

@@ -211,10 +211,10 @@ public class PatternBaseView extends View {
             Event note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
-            if (note.channel>max)
-                max = note.channel;
-            if (note.channel<min)
-                min = note.channel;
+            if (note.mChannel >max)
+                max = note.mChannel;
+            if (note.mChannel <min)
+                min = note.mChannel;
         }
 
 
@@ -311,15 +311,18 @@ public class PatternBaseView extends View {
 
             //show selected block
             if (mSelectable && selectedNote!=null) {
-                float x = selectedNote.time;
-                float y = indexToNote(selectedNote.channel);
+                float x = selectedNote.mTime;
+                float y = indexToNote(selectedNote.mChannel);
 
                 RectF rf = new RectF();
-                rf.left = selectedNote.time*mColumnWidth;
-                rf.right = (selectedNote.time + selectedNote.durantion)*mColumnWidth;
+                rf.left = selectedNote.mTime *mColumnWidth;
+                rf.right = (selectedNote.mTime + selectedNote.mDuration)*mColumnWidth;
                 rf.top = y * mRowHeight;
                 rf.bottom = (y + 1) * mRowHeight;
                 canvas.drawRect(rf, selectedColor);
+
+                float diff = (rf.bottom- rf.top)/4;
+                canvas.drawCircle(rf.right+diff*1.1f, (rf.top+rf.bottom)/2,diff, white) ;
             }
 
             //vertical lines
@@ -348,10 +351,10 @@ public class PatternBaseView extends View {
             if (note==null)
                 break;
             //*ticksPerColumn;
-            float x1 = note.time*(mTimeLine.getTickWidth());
-            float x2 = (note.time + note.durantion)*(mTimeLine.getTickWidth());
+            float x1 = note.mTime *(mTimeLine.getTickWidth());
+            float x2 = (note.mTime + note.mDuration)*(mTimeLine.getTickWidth());
 
-            int y = indexToNote(note.channel);
+            int y = indexToNote(note.mChannel);
 
             int padTL = (mLOD==0)?2:1;
             int padDR = (mLOD==0)?2:1;
@@ -362,7 +365,7 @@ public class PatternBaseView extends View {
             rf.right = x2 - padDR;
             rf.bottom = (y+1)* mRowHeight - padDR;
 
-            Integer id = note.id;
+            Integer id = note.mId;
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {

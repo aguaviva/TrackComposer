@@ -4,37 +4,37 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PatternBase {
-    String type, name, fileName;
-    int channels;
-    private SortedListOfNotes mNotes = new SortedListOfNotes();
+    String type, mName, mFileName;
+    int mChannels;
+    private SortedListOfEvents mNotes = new SortedListOfEvents();
 
     public PatternBase(String name, String fileName, int channels, float length)
     {
-        this.name=name;
-        this.fileName = fileName;
-        this.channels = channels;
+        mName =name;
+        mFileName = fileName;
+        mChannels = channels;
         SetLength(length);
     }
 
-    String GetName() { return name;}
+    String GetName() { return mName;}
     float GetLength() { return mNotes.mLength; }
     void SetLength(float length) { mNotes.mLength = length; }
-    int GetChannelCount() { return channels; }
-    Event GetNoteByIndex(int index) { return mNotes.GetNoteByIndex(index); }
+    int GetChannelCount() { return mChannels; }
+    Event GetNoteByIndex(int index) { return mNotes.GetEventByIndex(index); }
     Event Get(int channel, float time)
     {
-        return mNotes.GetNoteBy(channel, time);
+        return mNotes.GetEventBy(channel, time);
     }
     Mixer.MixerListener GetMixerListener() { return null; }
 
     public Event get(int row, float time) {
-        return mNotes.GetNoteBy(row, time);
+        return mNotes.GetEventBy(row, time);
     }
 
-    public SortedListOfNotes.State getIter() {
+    public SortedListOfEvents.State getIter() {
         return mNotes.getIter();
     }
-    public void sortEvents() { mNotes.sortNotes(); }
+    public void sortEvents() { mNotes.sortEvents(); }
 
     void Set(Event note) {
         mNotes.Set(note);
@@ -55,18 +55,18 @@ public class PatternBase {
 
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
-        jsonObj.put("name", name);
-        jsonObj.put("channels", channels);
+        jsonObj.put("name", mName);
+        jsonObj.put("channels", mChannels);
 
         mNotes.serializeToJson(jsonObj);
     }
 
     void serializeFromJson(JSONObject jsonObj) throws JSONException
     {
-        name = jsonObj.getString("name");
-        channels = jsonObj.getInt("channels");
+        mName = jsonObj.getString("name");
+        mChannels = jsonObj.getInt("channels");
 
-        mNotes = new SortedListOfNotes();
+        mNotes = new SortedListOfEvents();
         mNotes.serializeFromJson(jsonObj);
         //ScaleTime(16);
     }

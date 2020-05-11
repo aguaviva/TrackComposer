@@ -15,7 +15,7 @@ public class InstrumentKarplusStrong extends InstrumentBase {
 
         void pluck(int length)
         {
-            timeInSamples = 0;
+            mTimeInSamples = 0;
             mPlaying = true;
             length = Math.min(length, delayLine.length);
 
@@ -51,7 +51,7 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     InstrumentKarplusStrong()
     {
         SetSampleRate(44100);
-        instrumentName = "GeneratorKarplusStrong";
+        mInstrumentName = "GeneratorKarplusStrong";
 
         for(int c=0;c<mChannels.length;c++) {
             mChannels[c] = new Channel();
