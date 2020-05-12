@@ -45,6 +45,14 @@ public class Viewport {
         return (y - mPosY) / mScaleY;
     }
 
+    public void applyPosScaleRect(RectF rect)
+    {
+        rect.left = applyPosScaleX(rect.left);
+        rect.right = applyPosScaleX(rect.right);
+        rect.top = applyPosScaleY(rect.top);
+        rect.bottom = applyPosScaleY(rect.bottom);
+    }
+
     public void onDrag(float distanceX, float distanceY) {
 
         mVelX = 0; mVelY = 0;
@@ -80,7 +88,7 @@ public class Viewport {
         mPosX = focusX - dxSc;
         mPosY = focusY - dySc;
 
-        mLod = (float)Math.pow(2, Math.floor(Math.log(mScaleX)/Math.log(2)));
+        mLod = (float)Math.pow(2, Math.floor(Math.log(mScaleX)/Math.log(2)+0.5f));
 
         updateViewport();
     }
