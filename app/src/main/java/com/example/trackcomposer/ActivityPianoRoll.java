@@ -79,28 +79,34 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             Event noteDown;
-            float dx = 0, dy = 0;
+            float orgTime = 0, orgChannel = 0;
             boolean bMoved=false;
             @Override
             public boolean onTouchEvent(MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
+                    noteDown = patternPianoRoll.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
-                        dx = event.getX() - noteDown.mTime;
-                        dy = event.getY() - noteDown.mChannel;
+                        orgTime = event.getX();
+                        orgChannel = event.getY();
 
                         mNoteView.selectedNote = noteDown;
-                        //eventSelected = noteDown;
-                        //mRowSelected = (int)event.getY();
                     }
                 }
                 else if (event.getAction() == MotionEvent.ACTION_MOVE)
                 {
                     if (noteDown!=null)
                     {
-                        noteDown.mTime = event.getX() - dx;
-                        noteDown.mChannel = (int)(event.getY() - dy);
-                        //if ()
+                        noteDown.mTime += event.getX() - orgTime;
+                        orgTime = event.getX();
+
+                        int deltaChannel = (int)(event.getY() - orgChannel);
+                        orgChannel = event.getY();
+                        
+                        noteDown.mChannel += deltaChannel;
+
+                        if (deltaChannel!=0) {
+                            patternPianoRoll.play(noteDown);
+                        }
                         mNoteView.invalidate();
                         return true;
                     }
@@ -129,6 +135,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
+
+
 
                 Event noteTouched = patternPianoRoll.get(rowSelected, time);
                 if (noteTouched==null) {
