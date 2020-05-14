@@ -160,30 +160,34 @@ public class ActivityMain extends AppCompatActivity {
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
 
             Event noteDown;
-            float d = 0;
+            float orgTime = 0;
             @Override
-            public boolean onTouchEvent(MotionEvent event) {
+            public boolean onDragEvent(MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
-                        d = event.getX() - noteDown.mTime;
-
-                        masterView.selectedNote = noteDown;
+                        orgTime = event.getX();
                         eventSelected = noteDown;
                         mRowSelected = (int)event.getY();
+                        return true;
                     }
                 }
                 else if (event.getAction() == MotionEvent.ACTION_MOVE)
                 {
                     if (noteDown!=null)
                     {
-                        noteDown.mTime = event.getX() - d;
-                        mAppState.mPatternMaster.sortEvents();
+                        if (masterView.selectItemCount()==0) {
+                            masterView.selectSingleEvent(noteDown);
+                        }
+                        float deltaTime = event.getX() - orgTime;
+                        masterView.selectMove(deltaTime, 0);
+                        orgTime = event.getX();
                         masterView.invalidate();
                         return true;
                     }
-                } if (event.getAction() == MotionEvent.ACTION_UP) {
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     noteDown = null;
+                    return true;
                 }
 
                 return false;
@@ -194,18 +198,18 @@ public class ActivityMain extends AppCompatActivity {
                 timeLineView.invalidate();
             }
             @Override
-            public void longPress(int rowSelected, float time)
+            public boolean longPress(int rowSelected, float time)
             {
-/*
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 if (noteTouched!=null) {
                     eventSelected = noteTouched;
                     mRowSelected = rowSelected;
                     createPopUpMenu(new PointF());
                 }
-*/
-                mRowSelected = rowSelected;
-                createPopUpMenu(new PointF());
+
+                //mRowSelected = rowSelected;
+                //createPopUpMenu(new PointF());
+                return false;
 
             }
             @Override
@@ -218,11 +222,12 @@ public class ActivityMain extends AppCompatActivity {
             public boolean noteTouched(int rowSelected, float time) {
 
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
-                masterView.selectedNote = noteTouched;
-                eventSelected = noteTouched;
-                mRowSelected = rowSelected;
+                if (noteTouched!=null) {
+                    masterView.selectSingleEvent(noteTouched);
+                    eventSelected = noteTouched;
+                    mRowSelected = rowSelected;
+                }
                 masterView.invalidate();
-
                 return true;
             }
         });
@@ -392,7 +397,7 @@ public class ActivityMain extends AppCompatActivity {
                 case R.id.btnDelete:
                     if (eventSelected!=null) {
                         mAppState.mPatternMaster.Clear(eventSelected.mChannel, eventSelected.mTime);
-                        masterView.selectedNote = null;
+                        masterView.selectClear();
                         eventSelected = null;
                     } else {
                         Toast.makeText(mContext, "Nothing to delete", Toast.LENGTH_SHORT).show();

@@ -50,6 +50,13 @@ public class TimeLine {
     public float getTimeFromScreen(float x)
     {
         x = mViewport.removePosScaleX(x);
+        return x / getTickWidth();
+    }
+
+
+    public float getRoundedTimeFromScreen(float x)
+    {
+        x = mViewport.removePosScaleX(x);
         return (float)Math.floor(x / ((getTickWidth()/mViewport.getLod())))/mViewport.getLod();
     }
 

@@ -65,7 +65,7 @@ public class ActivityChord extends AppCompatActivity {
         mNoteView.SetPattern(patternChord, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
-            public boolean onTouchEvent(MotionEvent event) {
+            public boolean onDragEvent(MotionEvent event) {
                 return false;
             }
             @Override
@@ -76,7 +76,7 @@ public class ActivityChord extends AppCompatActivity {
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }
             @Override
-            public void longPress(int rowSelected, float time) {}
+            public boolean longPress(int rowSelected, float time) { return false; }
             @Override
             public boolean noteTouched(int rowSelected, float time) {
                 //patternChord.Play(mAppState.mixer, noteTouched.channel, 1);

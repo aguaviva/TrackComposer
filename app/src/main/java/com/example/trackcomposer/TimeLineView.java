@@ -126,7 +126,7 @@ public class TimeLineView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         int eventAction = event.getAction();
 
-        float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+        float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
 
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:

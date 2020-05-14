@@ -14,6 +14,7 @@ class SortedListOfEvents
     public class State {
         private int mIndex = 0;
         private SortedListOfEvents mEvents;
+        private boolean mEOS = true;
 
         public State(SortedListOfEvents sln)
         {
@@ -21,6 +22,7 @@ class SortedListOfEvents
         }
 
         public void setTime(float time) {
+            mEOS = false;
             for(int i=0;i< mEvents.size();) {
                 int notes = mEvents.getEventsCount(i);
                 for(int n=0;n<notes;n++) {
@@ -37,13 +39,11 @@ class SortedListOfEvents
                 i+= notes;
             }
 
-            // set index at the end
-            mIndex = mEvents.size();
+            // no events, flag EndOfStream
+            mEOS = true;
         }
 
-        public int getEventCount() {
-            return mEvents.getEventsCount(mIndex);
-        }
+        public int getEventCount() { return mEvents.getEventsCount(mIndex); }
 
         public Event GetEvent()
         {
@@ -59,9 +59,9 @@ class SortedListOfEvents
                 return mEvents.mLength;
         }
 
-        public boolean AreEventsLeft()
+        public boolean reachedEndOfStream()
         {
-            return mIndex< mEvents.size();
+            return mEOS;
         }
 
         public void nextEvent()

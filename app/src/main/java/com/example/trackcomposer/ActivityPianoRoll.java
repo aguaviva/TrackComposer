@@ -82,35 +82,44 @@ public class ActivityPianoRoll extends AppCompatActivity {
             float orgTime = 0, orgChannel = 0;
             boolean bMoved=false;
             @Override
-            public boolean onTouchEvent(MotionEvent event) {
+            public boolean onDragEvent(MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = patternPianoRoll.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
                         orgTime = event.getX();
                         orgChannel = event.getY();
-
-                        mNoteView.selectedNote = noteDown;
+                        return true;
+                    }
+                    else
+                    {
+                        if (mNoteView.selectItemCount()==0) {
+                            mNoteView.selectClear();
+                        }
                     }
                 }
-                else if (event.getAction() == MotionEvent.ACTION_MOVE)
-                {
+                else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     if (noteDown!=null)
                     {
-                        noteDown.mTime += event.getX() - orgTime;
-                        orgTime = event.getX();
+                        if (mNoteView.selectItemCount()==0) {
+                            mNoteView.selectSingleEvent(noteDown);
+                        }
 
+                        float deltaTime = event.getX() - orgTime;
                         int deltaChannel = (int)(event.getY() - orgChannel);
+
+                        mNoteView.selectMove(deltaTime, deltaChannel);
+
+                        orgTime = event.getX();
                         orgChannel = event.getY();
-                        
-                        noteDown.mChannel += deltaChannel;
 
                         if (deltaChannel!=0) {
                             patternPianoRoll.play(noteDown);
                         }
                         mNoteView.invalidate();
+                        bMoved = true;
                         return true;
                     }
-                } if (event.getAction() == MotionEvent.ACTION_UP) {
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     noteDown = null;
                     if (bMoved)
                         return true; //prevent other handlers from using this motion
@@ -128,7 +137,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 mPatternHeaderView.invalidate();
             }
             @Override
-            public void longPress(int rowSelected, float time) {}
+            public boolean longPress(int rowSelected, float time) { return false; }
             @Override
             public boolean onDoubleTap(int rowSelected, float time) {
                 return false;

@@ -16,6 +16,7 @@ import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -33,6 +34,7 @@ public class PatternBaseView extends View {
     Paint green, greenFill;
     Paint selectedColor;
     Paint bitmapPaint;
+    Paint selectionLine;
     private float mCurrentBeat = 0;
 
     private TextPaint mTextPaint;
@@ -46,7 +48,7 @@ public class PatternBaseView extends View {
 
     boolean mSelectable = false;
 
-    public Event selectedNote = null;
+    private ArrayList<Event> mSelectedNotes = new ArrayList<Event>();
 
     float mRowHeight = 0;
     float mColumnWidth = 0;
@@ -80,6 +82,8 @@ public class PatternBaseView extends View {
         mSelectable = selectable;
 
         mPattern = pattern;
+
+        mSelectedNotes.clear();
 
         if (mViewMode == ViewMode.PIANO)
         {
@@ -146,6 +150,11 @@ public class PatternBaseView extends View {
         selectedColor = new Paint();
         selectedColor.setColor(Color.BLUE);
         selectedColor.setStyle(Paint.Style.FILL);
+
+        selectionLine = new Paint();
+        selectionLine.setColor(ContextCompat.getColor(getContext(), R.color.selectionLine));
+        selectionLine.setStyle(Paint.Style.STROKE);
+        selectionLine.setStrokeWidth(2);
 
         bitmapPaint = new Paint();
         bitmapPaint.setFilterBitmap(false);
@@ -257,6 +266,22 @@ public class PatternBaseView extends View {
         }
     }
 
+
+    void EventToRect(Event event, RectF rf, float padding)
+    {
+        float x1 = event.mTime * (mTimeLine.getTickWidth());
+        float x2 = (event.mTime + event.mDuration) * (mTimeLine.getTickWidth());
+
+        int y = indexToNote(event.mChannel);
+
+        rf.left = x1 + padding;
+        rf.top = y * mRowHeight + padding;
+        rf.right = x2 - padding;
+        rf.bottom = (y + 1) * mRowHeight - padding;
+        mViewport.applyPosScaleRect(rf);
+    }
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -335,67 +360,48 @@ public class PatternBaseView extends View {
         canvas.restore();
 
         //show selected block
-        if (mLOD==0 && mSelectable && selectedNote!=null) {
-            float x = selectedNote.mTime;
-            float y = indexToNote(selectedNote.mChannel);
-
-            RectF rf = new RectF();
-            rf.left = selectedNote.mTime *mColumnWidth;
-            rf.right = (selectedNote.mTime + selectedNote.mDuration)*mColumnWidth;
-            rf.top = y * mRowHeight;
-            rf.bottom = (y + 1) * mRowHeight;
-
-            mViewport.applyPosScaleRect(rf);
-
-            canvas.drawRect(rf, selectedColor);
-
+        //if (mLOD==0 && mSelectable) {
+        if (mLOD==0) {
+            for(Event selectedNote : mSelectedNotes) {
+                RectF rf = new RectF();
+                EventToRect(selectedNote, rf, 0);
+                canvas.drawRect(rf, selectedColor);
+            }
+/*
             //draw disk
             diskRadius = (rf.bottom- rf.top)/4;
             diskX = rf.right+diskRadius*1.1f;
             diskY = (rf.top+rf.bottom)/2;
 
             canvas.drawCircle(diskX ,diskY, diskRadius, white) ;
+ */
         }
 
-
-        // show blocks
+        // draw events
         for(int i=0;;i++) {
             Event note = mPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
-            //*ticksPerColumn;
-            float x1 = note.mTime *(mTimeLine.getTickWidth());
-            float x2 = (note.mTime + note.mDuration)*(mTimeLine.getTickWidth());
-
-            int y = indexToNote(note.mChannel);
-
-            int padTL = (mLOD==0)?2:1;
-            int padDR = (mLOD==0)?2:1;
 
             RectF rf = new RectF();
-            rf.left = x1 + padTL;
-            rf.top = y* mRowHeight + padTL;
-            rf.right = x2 - padDR;
-            rf.bottom = (y+1)* mRowHeight - padDR;
-            mViewport.applyPosScaleRect(rf);
-
             Integer id = note.mId;
             if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
                 Bitmap bmp = mPatternImgDataBase.get(id);
                 if (bmp!=null) {
-                    rf.left = x1;
-                    rf.top =  y* mRowHeight;
-                    rf.right = x2;
-                    rf.bottom = (y+1)* mRowHeight;
-                    mViewport.applyPosScaleRect(rf);
-
+                    EventToRect(note, rf, 0);
                     canvas.drawBitmap(bmp, null, rf, bitmapPaint);
                     canvas.drawRoundRect( rf, 10,10, green);
                 }
             }
             else {
+
+                EventToRect(note, rf, (mLOD==0)?2:1);
                 canvas.drawRect(rf, greenFill);
             }
+        }
+
+        if (boxSelectingInProgress) {
+            canvas.drawRect(boxSelectionSorted, selectionLine);
         }
 
         // spring to center the track
@@ -409,34 +415,156 @@ public class PatternBaseView extends View {
         }
     }
 
+    //--------------------------------selection
+
+    public void selectClear() {
+        mSelectedNotes.clear();
+    }
+
+    public void selectSingleEvent(Event event) {
+        selectClear();
+        mSelectedNotes.add(event);
+    }
+
+    public int  selectItemCount() {
+        return mSelectedNotes.size();
+    }
+
+    public void selectRect(RectF rectSelection) {
+        mSelectedNotes.clear();
+
+        for (int i = 0; ; i++) {
+            Event note = mPattern.GetNoteByIndex(i);
+            if (note == null)
+                break;
+            //*ticksPerColumn;
+            RectF rf = new RectF();
+            EventToRect(note, rf, 0);
+
+            if (RectF.intersects(rectSelection, rf)) {
+                mSelectedNotes.add(note);
+            }
+        }
+    }
+
+    public void selectMove(float x, int y) {
+        for(Event selectedNote : mSelectedNotes) {
+            selectedNote.mTime += x;
+            selectedNote.mChannel += y;
+        }
+        mPattern.sortEvents();
+    }
+
+    // --------------------------------------------
     float eventDuration;
-    public boolean onDuskTouchedEvent(MotionEvent event) {
+    boolean boxDraggingDiskInProgress = false;
+    public boolean onDiskDraggedEvent(MotionEvent event, boolean bInit) {
 
-        if (selectedNote==null)
-            return false;
-
-        float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            boolean diskTouched = (Math.pow((event.getX() - diskX), 2) + Math.pow((event.getY() - diskY), 2)) <= diskRadius * diskRadius;
-            if (diskTouched) {
-                eventDuration = thumbTime;
-                return true;
+            if (bInit==true) {
+                float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
+                boolean diskTouched = (Math.pow((event.getX() - diskX), 2) + Math.pow((event.getY() - diskY), 2)) <= diskRadius * diskRadius;
+                if (diskTouched) {
+                    eventDuration = thumbTime;
+                    boxDraggingDiskInProgress = true;
+                    return true;
+                }
             }
         }
         else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (eventDuration>0) {
-                float duration = selectedNote.mDuration + (thumbTime - eventDuration);
-                if (duration>0) {
-                    selectedNote.mDuration = duration;
-                    eventDuration = thumbTime;
+            if (boxDraggingDiskInProgress) {
+                float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
+                for(Event selectedNote : mSelectedNotes) {
+                    float duration = selectedNote.mDuration + (thumbTime - eventDuration);
+                    if (duration > 0) {
+                        selectedNote.mDuration = duration;
+                        eventDuration = thumbTime;
+                    }
                 }
                 invalidate();
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (eventDuration>0) {
-                eventDuration = -1;
+            if (boxDraggingDiskInProgress) {
+                boxDraggingDiskInProgress = false;
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    // -------------------------------------------- update selection box
+    RectF boxSelection = new RectF();
+    RectF boxSelectionSorted = new RectF();
+    boolean boxSelectingInProgress = false;
+    public boolean onBoxSelection(MotionEvent event, boolean bInit) {
+        float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (bInit==true) {
+                boxSelectingInProgress = true;
+                boxSelection.top = event.getY();
+                boxSelection.left = event.getX();
+                boxSelection.bottom = event.getY() + 10;
+                boxSelection.right = event.getX() + 10;
+                boxSelectionSorted.set(boxSelection);
+                boxSelectionSorted.sort();
+                selectRect(boxSelectionSorted);
+                invalidate();
+                return true;
+            }
+        }
+        else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            if (boxSelectingInProgress) {
+                boxSelection.bottom = event.getY();
+                boxSelection.right = event.getX();
+                boxSelectionSorted.set(boxSelection);
+                boxSelectionSorted.sort();
+                selectRect(boxSelectionSorted);
+                invalidate();
+                return true;
+            }
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            if (boxSelectingInProgress) {
+                boxSelectingInProgress = false;
+                invalidate();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // -------------------------------------------- drag notes
+    boolean boxDraggingEventsInProgress = false;
+    public boolean onDragEvents(MotionEvent event, boolean bInit) {
+
+        if (instrumentListener != null) {
+            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
+            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
+            row = indexToNote(row);
+            MotionEvent ev2 = MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
+
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                if (bInit==true) {
+                    if (instrumentListener.onDragEvent(ev2)) {
+                        boxDraggingEventsInProgress = true;
+                        return true;
+                    }
+                }
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                if (boxDraggingEventsInProgress==true) {
+                    if (instrumentListener.onDragEvent(ev2)) {
+                        return true;
+                    }
+                }
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (boxDraggingEventsInProgress==true) {
+                    if (instrumentListener.onDragEvent(ev2)) {
+                        boxDraggingEventsInProgress = false;
+                        return true;
+                    }
+                }
             }
         }
 
@@ -445,21 +573,21 @@ public class PatternBaseView extends View {
 
     public boolean onTouchEvent(MotionEvent event) {
 
-         if (onDuskTouchedEvent(event)) {
-            return true;
-         }
-
-        if (instrumentListener != null) {
-            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
-            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-            row = indexToNote(row);
-            MotionEvent ev2 = MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
-            if (instrumentListener.onTouchEvent(ev2))
-                return true;
-
+        // dragging disk
+        if (onDiskDraggedEvent(event, false)) {
+           return true;
         }
 
+        // LongPress enables box selection
+        if (onBoxSelection(event, false)) {
+            return true;
+        }
 
+        if (onDragEvents(event, false)) {
+            return true;
+        }
+
+        //  no other handlers, then drag & scale
         boolean b1 =  mScaleGestureDetector.onTouchEvent(event);
         boolean b2 = mGestureDetector.onTouchEvent(event);
         return b1 || b2;
@@ -479,7 +607,9 @@ public class PatternBaseView extends View {
         @Override
         public boolean onSingleTapUp (MotionEvent event)
         {
-            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            selectClear();
+
+            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
             int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
             row = indexToNote(row);
 
@@ -493,7 +623,7 @@ public class PatternBaseView extends View {
         @Override
         public boolean onDoubleTap (MotionEvent event)
         {
-            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
             int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
             row = indexToNote(row);
 
@@ -504,16 +634,20 @@ public class PatternBaseView extends View {
             return false;
         }
 
-
         @Override
         public void onLongPress (MotionEvent event)
         {
-            float thumbTime = mTimeLine.getTimeFromScreen(event.getX());
+            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
             int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
             row = indexToNote(row);
 
             if (instrumentListener!=null) {
-                instrumentListener.longPress(row, thumbTime);
+                if (instrumentListener.longPress(row, thumbTime))
+                    return;
+            }
+
+            if (onBoxSelection(event, true)) {
+                return;
             }
         }
 
@@ -532,6 +666,15 @@ public class PatternBaseView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+
+            /*
+            if (onDiskDraggedEvent(e1, true)) {
+                return true;
+            }
+            */
+            if (onDragEvents(e1, true)) {
+                return true;
+            }
 
             mViewport.onDrag(distanceX, distanceY);
 
@@ -580,9 +723,9 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
-        boolean onTouchEvent(MotionEvent event);
+        boolean onDragEvent(MotionEvent event);
         boolean noteTouched(int rowSelected, float time);
-        void longPress(int rowSelected, float time);
+        boolean longPress(int rowSelected, float time);
         boolean onDoubleTap(int rowSelected, float time);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }

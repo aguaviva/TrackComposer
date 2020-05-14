@@ -71,7 +71,7 @@ public class ActivityPercussion extends AppCompatActivity {
         mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
-            public boolean onTouchEvent(MotionEvent event) {
+            public boolean onDragEvent(MotionEvent event) {
                 return false;
             }
             @Override
@@ -83,7 +83,7 @@ public class ActivityPercussion extends AppCompatActivity {
                 mPatternHeaderView.invalidate();
             }
             @Override
-            public void longPress(int rowSelected, float time) {}
+            public boolean longPress(int rowSelected, float time) { return false; }
             @Override
             public boolean onDoubleTap(int rowSelected, float time) {
                 return false;
