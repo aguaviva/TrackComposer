@@ -65,20 +65,20 @@ public class ActivityChord extends AppCompatActivity {
         mNoteView.SetPattern(patternChord, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
-            public boolean onDragEvent(MotionEvent event) {
+            public boolean onMoveSelectedEvents(MotionEvent event) {
                 return false;
             }
             @Override
-            public boolean onDoubleTap(int rowSelected, float time) {
+            public boolean onDoubleTap(MotionEvent event) {
                 return false;
             }
             @Override
             public void scaling(float x, float y, float scale, float mTrackHeight) {
             }
             @Override
-            public boolean longPress(int rowSelected, float time) { return false; }
+            public boolean longPress(MotionEvent event) { return false; }
             @Override
-            public boolean noteTouched(int rowSelected, float time) {
+            public boolean noteTouched(MotionEvent event) {
                 //patternChord.Play(mAppState.mixer, noteTouched.channel, 1);
                 return true; // keep on processing
             }

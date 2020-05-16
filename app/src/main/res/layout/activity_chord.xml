@@ -22,7 +22,7 @@
             android:layout_gravity="center"
             android:backgroundTint="#E91E63"
             android:text="Departure"
-            tools:src="@android:drawable/ic_media_play" />
+            android:src="@android:drawable/ic_media_play" />
     </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout

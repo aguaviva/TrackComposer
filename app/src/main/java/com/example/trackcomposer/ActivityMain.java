@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -69,6 +70,7 @@ public class ActivityMain extends AppCompatActivity {
 
     int mRowSelected;
     Event eventSelected;
+    CheckBox mPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,13 +108,11 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        final ImageButton fab2 = (ImageButton)findViewById(R.id.play);
-        fab2.setImageResource(android.R.drawable.ic_media_play);
-        fab2.setOnClickListener(new View.OnClickListener() {
+        mPlay = (CheckBox)findViewById(R.id.play);
+        mPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean playing = mAppState.PlayPause();
-                fab2.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
+                mAppState.playing(mPlay.isChecked());
             }
         });
 
@@ -162,7 +162,7 @@ public class ActivityMain extends AppCompatActivity {
             Event noteDown;
             float orgTime = 0;
             @Override
-            public boolean onDragEvent(MotionEvent event) {
+            public boolean onMoveSelectedEvents(MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
                     if (noteDown!=null) {
@@ -198,8 +198,10 @@ public class ActivityMain extends AppCompatActivity {
                 timeLineView.invalidate();
             }
             @Override
-            public boolean longPress(int rowSelected, float time)
+            public boolean longPress(MotionEvent event)
             {
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 if (noteTouched!=null) {
                     eventSelected = noteTouched;
@@ -213,14 +215,17 @@ public class ActivityMain extends AppCompatActivity {
 
             }
             @Override
-            public boolean onDoubleTap(int rowSelected, float time) {
+            public boolean onDoubleTap(MotionEvent event) {
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 editPattern(noteTouched);
                 return noteTouched!=null;
             }
             @Override
-            public boolean noteTouched(int rowSelected, float time) {
-
+            public boolean noteTouched(MotionEvent event) {
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 if (noteTouched!=null) {
                     masterView.selectSingleEvent(noteTouched);
@@ -261,6 +266,7 @@ public class ActivityMain extends AppCompatActivity {
         super.onResume();
 
         //mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
+        mPlay.setChecked(mAppState.isPlaying());
 
         if (eventSelected!=null)
         {

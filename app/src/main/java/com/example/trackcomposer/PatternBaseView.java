@@ -48,7 +48,7 @@ public class PatternBaseView extends View {
 
     boolean mSelectable = false;
 
-    private ArrayList<Event> mSelectedNotes = new ArrayList<Event>();
+    private ArrayList<Event> mSelectedEvents = new ArrayList<Event>();
 
     float mRowHeight = 0;
     float mColumnWidth = 0;
@@ -83,7 +83,7 @@ public class PatternBaseView extends View {
 
         mPattern = pattern;
 
-        mSelectedNotes.clear();
+        mSelectedEvents.clear();
 
         if (mViewMode == ViewMode.PIANO)
         {
@@ -362,7 +362,7 @@ public class PatternBaseView extends View {
         //show selected block
         //if (mLOD==0 && mSelectable) {
         if (mLOD==0) {
-            for(Event selectedNote : mSelectedNotes) {
+            for(Event selectedNote : mSelectedEvents) {
                 RectF rf = new RectF();
                 EventToRect(selectedNote, rf, 0);
                 canvas.drawRect(rf, selectedColor);
@@ -415,23 +415,39 @@ public class PatternBaseView extends View {
         }
     }
 
+    private MotionEvent TranslateEvent(MotionEvent event) {
+        float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
+        int row = (int) (mViewport.removePosScaleY(event.getY()) / mRowHeight);
+        row = indexToNote(row);
+        return MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
+    }
+
     //--------------------------------selection
 
     public void selectClear() {
-        mSelectedNotes.clear();
+        mSelectedEvents.clear();
     }
 
     public void selectSingleEvent(Event event) {
         selectClear();
-        mSelectedNotes.add(event);
+        mSelectedEvents.add(event);
     }
 
+    public boolean isEventSelected(Event event) {
+        for(Event selectedEvent : mSelectedEvents) {
+            if (selectedEvent==event)
+                return true;
+        }
+        return false;
+    }
+
+
     public int  selectItemCount() {
-        return mSelectedNotes.size();
+        return mSelectedEvents.size();
     }
 
     public void selectRect(RectF rectSelection) {
-        mSelectedNotes.clear();
+        mSelectedEvents.clear();
 
         for (int i = 0; ; i++) {
             Event note = mPattern.GetNoteByIndex(i);
@@ -442,13 +458,13 @@ public class PatternBaseView extends View {
             EventToRect(note, rf, 0);
 
             if (RectF.intersects(rectSelection, rf)) {
-                mSelectedNotes.add(note);
+                mSelectedEvents.add(note);
             }
         }
     }
 
     public void selectMove(float x, int y) {
-        for(Event selectedNote : mSelectedNotes) {
+        for(Event selectedNote : mSelectedEvents) {
             selectedNote.mTime += x;
             selectedNote.mChannel += y;
         }
@@ -456,6 +472,7 @@ public class PatternBaseView extends View {
     }
 
     // --------------------------------------------
+
     float eventDuration;
     boolean boxDraggingDiskInProgress = false;
     public boolean onDiskDraggedEvent(MotionEvent event, boolean bInit) {
@@ -474,7 +491,7 @@ public class PatternBaseView extends View {
         else if (event.getAction() == MotionEvent.ACTION_MOVE) {
             if (boxDraggingDiskInProgress) {
                 float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-                for(Event selectedNote : mSelectedNotes) {
+                for(Event selectedNote : mSelectedEvents) {
                     float duration = selectedNote.mDuration + (thumbTime - eventDuration);
                     if (duration > 0) {
                         selectedNote.mDuration = duration;
@@ -540,27 +557,24 @@ public class PatternBaseView extends View {
     public boolean onDragEvents(MotionEvent event, boolean bInit) {
 
         if (instrumentListener != null) {
-            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-            row = indexToNote(row);
-            MotionEvent ev2 = MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
+            MotionEvent ev2 = TranslateEvent(event);
 
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 if (bInit==true) {
-                    if (instrumentListener.onDragEvent(ev2)) {
+                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
                         boxDraggingEventsInProgress = true;
                         return true;
                     }
                 }
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 if (boxDraggingEventsInProgress==true) {
-                    if (instrumentListener.onDragEvent(ev2)) {
+                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
                         return true;
                     }
                 }
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 if (boxDraggingEventsInProgress==true) {
-                    if (instrumentListener.onDragEvent(ev2)) {
+                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
                         boxDraggingEventsInProgress = false;
                         return true;
                     }
@@ -609,12 +623,10 @@ public class PatternBaseView extends View {
         {
             selectClear();
 
-            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-            row = indexToNote(row);
+            MotionEvent ev = TranslateEvent(event);
 
             if (instrumentListener!=null) {
-                return instrumentListener.noteTouched(row, thumbTime);
+                return instrumentListener.noteTouched(ev);
             }
 
             return false;
@@ -623,12 +635,10 @@ public class PatternBaseView extends View {
         @Override
         public boolean onDoubleTap (MotionEvent event)
         {
-            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-            row = indexToNote(row);
+            MotionEvent ev = TranslateEvent(event);
 
             if (instrumentListener!=null) {
-                return instrumentListener.onDoubleTap(row, thumbTime);
+                return instrumentListener.onDoubleTap(ev);
             }
 
             return false;
@@ -637,12 +647,10 @@ public class PatternBaseView extends View {
         @Override
         public void onLongPress (MotionEvent event)
         {
-            float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-            int row = (int)(mViewport.removePosScaleY(event.getY())/mRowHeight);
-            row = indexToNote(row);
+            MotionEvent ev = TranslateEvent(event);
 
             if (instrumentListener!=null) {
-                if (instrumentListener.longPress(row, thumbTime))
+                if (instrumentListener.longPress(ev))
                     return;
             }
 
@@ -723,10 +731,10 @@ public class PatternBaseView extends View {
     // instrument touched listener
     //
     public interface InstrumentListener {
-        boolean onDragEvent(MotionEvent event);
-        boolean noteTouched(int rowSelected, float time);
-        boolean longPress(int rowSelected, float time);
-        boolean onDoubleTap(int rowSelected, float time);
+        boolean onMoveSelectedEvents(MotionEvent event);
+        boolean noteTouched(MotionEvent event);
+        boolean longPress(MotionEvent event);
+        boolean onDoubleTap(MotionEvent event);
         void scaling(float x, float y, float scale, float mTrackHeight);
     }
     public void  setInstrumentListener(InstrumentListener instrumentTouched) {

@@ -6,8 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -16,14 +14,19 @@
             android:minHeight="?attr/actionBarSize"
             android:theme="?attr/actionBarTheme">
 
-            <ImageButton
+            <CheckBox
+                android:id="@+id/edit_events"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@drawable/edit_selector"/>
+
+            <CheckBox
                 android:id="@+id/play"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:backgroundTint="#E91E63"
-                android:text="Departure"
-                tools:src="@android:drawable/ic_media_play" />
+                android:background="#E91E63"
+                android:button="@drawable/play_pause_selector"/>
         </androidx.appcompat.widget.Toolbar>
 
     <LinearLayout
@@ -64,5 +67,7 @@
             app:layout_anchor="@+id/include"
             app:layout_anchorGravity="center" />
     </LinearLayout>
+
+
 
 </LinearLayout>

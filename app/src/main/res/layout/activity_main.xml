@@ -14,7 +14,7 @@
         android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" >
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -33,17 +33,17 @@
             android:background="#FFFFFF"
             android:contentDescription="@string/previous"
             app:backgroundTint="@color/colorAccent"
-            tools:src="@android:drawable/ic_media_previous" />
+            android:src="@android:drawable/ic_media_previous" />
 
-        <ImageButton
+
+
+        <CheckBox
             android:id="@+id/play"
-            android:layout_width="0dp "
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#FFFFFF"
-            android:contentDescription="@string/play"
-            app:backgroundTint="@color/colorAccent"
-            tools:src="@android:drawable/ic_media_play" />
+            android:layout_gravity="center"
+            android:background="#E91E63"
+            android:button="@drawable/play_pause_selector"/>
 
         <ImageButton
             android:id="@+id/add"
@@ -52,8 +52,9 @@
             android:background="#FFFFFF"
             android:contentDescription="@string/play_loop"
             app:backgroundTint="@color/colorAccent"
-            tools:src="@android:drawable/ic_menu_add" />
+            android:src="@android:drawable/ic_menu_add" />
     </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
 
     <TextView
         android:id="@+id/textView3"

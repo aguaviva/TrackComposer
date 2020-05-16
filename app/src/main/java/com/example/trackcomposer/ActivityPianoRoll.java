@@ -6,7 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +20,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
     PatternPianoRoll patternPianoRoll;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
+    CheckBox mPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,50 +80,46 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             Event noteDown;
-            float orgTime = 0, orgChannel = 0;
-            boolean bMoved=false;
+            float orgTime = 0;
+            int orgChannel = 0;
             @Override
-            public boolean onDragEvent(MotionEvent event) {
+            public boolean onMoveSelectedEvents(MotionEvent event) {
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
+
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    noteDown = patternPianoRoll.get((int)event.getY(), event.getX());
+                    noteDown = patternPianoRoll.get(rowSelected, time);
                     if (noteDown!=null) {
-                        orgTime = event.getX();
-                        orgChannel = event.getY();
-                        return true;
-                    }
-                    else
-                    {
-                        if (mNoteView.selectItemCount()==0) {
+                        if (mNoteView.isEventSelected(noteDown)) {
+                            orgTime = time;
+                            orgChannel = rowSelected;
+                        } else {
                             mNoteView.selectClear();
+                            mNoteView.selectSingleEvent(noteDown);
                         }
+                        return true;
                     }
                 }
                 else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                     if (noteDown!=null)
                     {
-                        if (mNoteView.selectItemCount()==0) {
-                            mNoteView.selectSingleEvent(noteDown);
-                        }
-
-                        float deltaTime = event.getX() - orgTime;
-                        int deltaChannel = (int)(event.getY() - orgChannel);
+                        float deltaTime = time - orgTime;
+                        int deltaChannel = rowSelected - orgChannel;
 
                         mNoteView.selectMove(deltaTime, deltaChannel);
 
-                        orgTime = event.getX();
-                        orgChannel = event.getY();
+                        orgTime = time;
+                        orgChannel = rowSelected;
 
                         if (deltaChannel!=0) {
                             patternPianoRoll.play(noteDown);
                         }
                         mNoteView.invalidate();
-                        bMoved = true;
                         return true;
                     }
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
                     noteDown = null;
-                    if (bMoved)
-                        return true; //prevent other handlers from using this motion
+                    return true; //prevent other handlers from using this motion
                 }
 
                 return false;
@@ -137,15 +134,16 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 mPatternHeaderView.invalidate();
             }
             @Override
-            public boolean longPress(int rowSelected, float time) { return false; }
+            public boolean longPress(MotionEvent event) { return false; }
             @Override
-            public boolean onDoubleTap(int rowSelected, float time) {
+            public boolean onDoubleTap(MotionEvent event) {
                 return false;
             }
             @Override
-            public boolean noteTouched(int rowSelected, float time) {
+            public boolean noteTouched(MotionEvent event) {
 
-
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
 
                 Event noteTouched = patternPianoRoll.get(rowSelected, time);
                 if (noteTouched==null) {
@@ -168,16 +166,30 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
-        final ImageButton fab = (ImageButton)findViewById(R.id.play);
-        fab.setImageResource(android.R.drawable.ic_media_play);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        mPlay = (CheckBox)findViewById(R.id.play);
+        mPlay.setChecked(mAppState.isPlaying());
+        final CheckBox editEvents = (CheckBox)findViewById(R.id.edit_events);
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean playing = mAppState.PlayPause();
-                fab.setImageResource(playing?android.R.drawable.ic_media_pause:android.R.drawable.ic_media_play);
-            }
-        });
+                switch(view.getId()) {
 
+                    case R.id.play: {
+                        mAppState.playing(mPlay.isChecked());
+                        break;
+                    }
+
+                    case R.id.edit_events: {
+                        break;
+                    }
+                }
+            }
+        };
+
+        mPlay.setOnClickListener(clickListener);
+        editEvents.setOnClickListener(clickListener);
 
         // set note controls up in the toolbar
         //View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, mNoteView, patternPianoRoll);

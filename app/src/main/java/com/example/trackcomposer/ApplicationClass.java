@@ -46,15 +46,17 @@ public class ApplicationClass extends Application {
         }
     }
 
-    boolean PlayPause()
-    {
-        mPlaying=!mPlaying;
+    void playing(boolean playing) {
+        mPlaying = playing;
 
         if (mPlaying)
             soundPool.play();
         else
             soundPool.pause();
+    }
 
+    boolean isPlaying()
+    {
         return mPlaying;
     }
 
