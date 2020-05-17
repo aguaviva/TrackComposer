@@ -89,9 +89,10 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = patternPianoRoll.get(rowSelected, time);
                     if (noteDown!=null) {
+                        orgTime = time;
+                        orgChannel = rowSelected;
+
                         if (mNoteView.isEventSelected(noteDown)) {
-                            orgTime = time;
-                            orgChannel = rowSelected;
                         } else {
                             mNoteView.selectClear();
                             mNoteView.selectSingleEvent(noteDown);
