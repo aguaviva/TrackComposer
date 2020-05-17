@@ -20,8 +20,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
     PatternPianoRoll patternPianoRoll;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
-    CheckBox mPlay;
-
+    WidgetVcrControl mWidgetVcrControl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +73,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
-
+        //
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
         mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
         mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
@@ -166,35 +165,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             }
         });
 
-
-        mPlay = (CheckBox)findViewById(R.id.play);
-        mPlay.setChecked(mAppState.isPlaying());
-        final CheckBox editEvents = (CheckBox)findViewById(R.id.edit_events);
-
-        View.OnClickListener clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                switch(view.getId()) {
-
-                    case R.id.play: {
-                        mAppState.playing(mPlay.isChecked());
-                        break;
-                    }
-
-                    case R.id.edit_events: {
-                        break;
-                    }
-                }
-            }
-        };
-
-        mPlay.setOnClickListener(clickListener);
-        editEvents.setOnClickListener(clickListener);
-
-        // set note controls up in the toolbar
-        //View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, mNoteView, patternPianoRoll);
-        //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
-
+        //
         Button chooseInstrument = new Button(this);
         chooseInstrument.setText("Instrument");
         chooseInstrument.setOnClickListener( new Button.OnClickListener() {
@@ -202,10 +173,20 @@ public class ActivityPianoRoll extends AppCompatActivity {
             public void onClick(View view) {
                 instrumentChooser();
             }
-
         });
+
         toolbar.addView(chooseInstrument, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
+
+        mWidgetVcrControl = new WidgetVcrControl(toolbar, this, mAppState);
     }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        mWidgetVcrControl.onResume(mTimeLine, timeLineView);
+    }
+
 
     private void instrumentChooser()
     {
@@ -217,24 +198,5 @@ public class ActivityPianoRoll extends AppCompatActivity {
                 patternPianoRoll.mInstrumentId = generator.mInstrumentId;
             }
         });
-    }
-
-    void rigControls(ViewGroup headers) {
-        //LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
-        //headers.removeAllViews();
-        //Toolbar headers = findViewById(R.id.toolbar);
-
-        View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(patternPianoRoll.mBaseNote), new WidgetNoteTransposer.Listener() {
-            @Override
-            public String update(int inc) {
-                        patternPianoRoll.mBaseNote +=inc;
-                        mNoteView.invalidate();
-                        mPatternHeaderView.invalidate();
-                        return String.valueOf(patternPianoRoll.mBaseNote);
-            }
-        });
-        headers.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
-
-        //headers.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
     }
 }

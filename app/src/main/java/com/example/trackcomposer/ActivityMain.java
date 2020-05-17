@@ -1,6 +1,7 @@
 package com.example.trackcomposer;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -49,7 +50,7 @@ public class ActivityMain extends AppCompatActivity {
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
     int mNote=-1, mBeat=-1;
-
+    WidgetVcrControl mWidgetVcrControl;
     enum PatternType
     {
         none,
@@ -95,36 +96,6 @@ public class ActivityMain extends AppCompatActivity {
         //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         rigControls();
-
-        final ImageButton fab = (ImageButton)findViewById(R.id.previous);
-        fab.setImageResource(android.R.drawable.ic_media_previous);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //mAppState.setLoop((int) 0, (int) (1 * 16 * 16));
-                mTimeLine.setTime(0);
-                mAppState.mPatternMaster.setTime(0);
-                timeLineView.invalidate();
-            }
-        });
-
-        mPlay = (CheckBox)findViewById(R.id.play);
-        mPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mAppState.playing(mPlay.isChecked());
-            }
-        });
-
-        final ImageButton fab3 = (ImageButton)findViewById(R.id.add);
-        fab3.setImageResource(android.R.drawable.ic_menu_revert);
-        fab3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float ini = timeLineView.getSelection();
-                addPattern(mRowSelected, mTimeLine.getTime());
-            }
-        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -195,6 +166,7 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
                 timeLineView.init(mAppState.mPatternMaster, mTimeLine);
+
                 timeLineView.invalidate();
             }
             @Override
@@ -259,14 +231,17 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
         toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
+
+        mWidgetVcrControl = new WidgetVcrControl(toolbar, this, mAppState);
     }
+
 
     @Override
     public void onResume(){
         super.onResume();
 
         //mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
-        mPlay.setChecked(mAppState.isPlaying());
+        mWidgetVcrControl.onResume(mTimeLine, timeLineView);
 
         if (eventSelected!=null)
         {
