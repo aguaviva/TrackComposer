@@ -7,23 +7,9 @@
     android:layout_height="match_parent">
 
 
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme">
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:backgroundTint="#E91E63"
-            android:text="Departure"
-            android:src="@android:drawable/ic_media_play" />
-    </androidx.appcompat.widget.Toolbar>
+    <include
+        android:id="@+id/toolbar2"
+        layout="@layout/main_toolbar" />
 
     <LinearLayout
         android:layout_width="match_parent"

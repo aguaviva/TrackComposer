@@ -15,6 +15,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 
 import android.util.Log;
@@ -71,14 +72,17 @@ public class ActivityMain extends AppCompatActivity {
 
     int mRowSelected;
     Event eventSelected;
-    CheckBox mPlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //main_toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setSubtitle("Test Subtitle");
+        toolbar.inflateMenu(R.menu.menu_main);
 
         mContext = this;
 
@@ -89,11 +93,9 @@ public class ActivityMain extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         mAppState.Init();
 
-        toolbar.setSubtitle("Test Subtitle");
-        toolbar.inflateMenu(R.menu.menu_main);
 
         //View noteControls = getLayoutInflater().inflate(R.layout.note_controls, null);
-        //toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
+        //main_toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         rigControls();
 
@@ -239,7 +241,7 @@ public class ActivityMain extends AppCompatActivity {
         });
         toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
 
-        mWidgetVcrControl = new WidgetVcrControl(toolbar, this, mAppState);
+        mWidgetVcrControl = new WidgetVcrControl(toolbar, mAppState);
     }
 
 

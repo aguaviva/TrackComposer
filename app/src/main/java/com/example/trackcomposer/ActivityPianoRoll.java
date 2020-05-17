@@ -178,7 +178,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         toolbar.addView(chooseInstrument, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
 
-        mWidgetVcrControl = new WidgetVcrControl(toolbar, this, mAppState);
+        mWidgetVcrControl = new WidgetVcrControl(toolbar, mAppState);
     }
 
     @Override

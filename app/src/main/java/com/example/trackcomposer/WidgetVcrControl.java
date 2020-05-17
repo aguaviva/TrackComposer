@@ -15,13 +15,11 @@ class WidgetVcrControl {
     TimeLineView mTimeLineView;
     ApplicationClass mAppState;
 
-    public WidgetVcrControl(Toolbar toolbar, Activity act, ApplicationClass appState)
+    public WidgetVcrControl(Toolbar toolbar, ApplicationClass appState)
     {
         mAppState = appState;
 
-        View vcrControls = act.getLayoutInflater().inflate(R.layout.vcr_controls, null);
-
-        final ImageButton fab = (ImageButton)vcrControls.findViewById(R.id.previous);
+        final ImageButton fab = (ImageButton)toolbar.findViewById(R.id.previous);
         fab.setImageResource(android.R.drawable.ic_media_previous);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,7 +31,7 @@ class WidgetVcrControl {
             }
         });
 
-        mPlay = (CheckBox)vcrControls.findViewById(R.id.play);
+        mPlay = (CheckBox)toolbar.findViewById(R.id.play);
         mPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -41,7 +39,7 @@ class WidgetVcrControl {
             }
         });
 
-        final ImageButton fab3 = (ImageButton)vcrControls.findViewById(R.id.add);
+        final ImageButton fab3 = (ImageButton)toolbar.findViewById(R.id.add);
         fab3.setImageResource(android.R.drawable.ic_menu_revert);
         fab3.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,12 +48,6 @@ class WidgetVcrControl {
                 //addPattern(mRowSelected, mTimeLine.getTime());
             }
         });
-
-        LinearLayout.LayoutParams params =new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT);
-        params.gravity = Gravity.CENTER;
-        params.weight = 1.0f;
-        vcrControls.setLayoutParams(params);
-        toolbar.addView(vcrControls);
     }
 
     public void onResume(TimeLine timeLine, TimeLineView timeLineView){
