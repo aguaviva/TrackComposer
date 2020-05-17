@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,12 +20,18 @@ public class ActivityPianoRoll extends AppCompatActivity {
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
     WidgetVcrControl mWidgetVcrControl;
+    CheckBox mCanEdit;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pianoroll);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+
+        LinearLayout linearLayout = (LinearLayout)findViewById(R.id.left_side);
+        linearLayout.addView(getLayoutInflater().inflate(R.layout.edit_checkbox, null));
+        mCanEdit = (CheckBox) findViewById(R.id.edit_checkbox);
 
         mContext = getApplicationContext();
 
@@ -142,18 +149,19 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
                 int rowSelected = (int)event.getY();
                 float time = event.getX();
-
                 Event noteTouched = patternPianoRoll.get(rowSelected, time);
-                if (noteTouched==null) {
-                    noteTouched = new Event();
-                    noteTouched.mTime = time;
-                    noteTouched.mChannel = rowSelected;
-                    noteTouched.mDuration = 1;
-                    noteTouched.mId = patternPianoRoll.mInstrumentId;
-                    patternPianoRoll.Set(noteTouched);
-                }
-                else {
-                    patternPianoRoll.Clear(rowSelected, time);
+
+                if (mCanEdit.isChecked()) {
+                    if (noteTouched == null) {
+                        noteTouched = new Event();
+                        noteTouched.mTime = time;
+                        noteTouched.mChannel = rowSelected;
+                        noteTouched.mDuration = 1;
+                        noteTouched.mId = patternPianoRoll.mInstrumentId;
+                        patternPianoRoll.Set(noteTouched);
+                    } else {
+                        patternPianoRoll.Clear(rowSelected, time);
+                    }
                 }
 
                 if (patternPianoRoll.mInstrumentId >=0) {
