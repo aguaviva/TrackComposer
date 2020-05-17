@@ -134,12 +134,19 @@ public class ActivityMain extends AppCompatActivity {
             float orgTime = 0;
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {
+                int rowSelected = (int)event.getY();
+                float time = event.getX();
+
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    noteDown = mAppState.mPatternMaster.get((int)event.getY(), event.getX());
+                    noteDown = mAppState.mPatternMaster.get(rowSelected, time);
                     if (noteDown!=null) {
-                        orgTime = event.getX();
-                        eventSelected = noteDown;
-                        mRowSelected = (int)event.getY();
+                        orgTime = time;
+
+                        if (masterView.isEventSelected(noteDown)) {
+                        } else {
+                            masterView.selectClear();
+                            masterView.selectSingleEvent(noteDown);
+                        }
                         return true;
                     }
                 }
@@ -147,12 +154,12 @@ public class ActivityMain extends AppCompatActivity {
                 {
                     if (noteDown!=null)
                     {
-                        if (masterView.selectItemCount()==0) {
-                            masterView.selectSingleEvent(noteDown);
-                        }
-                        float deltaTime = event.getX() - orgTime;
+                        float deltaTime = time - orgTime;
+
                         masterView.selectMove(deltaTime, 0);
-                        orgTime = event.getX();
+
+                        orgTime = time;
+
                         masterView.invalidate();
                         return true;
                     }
