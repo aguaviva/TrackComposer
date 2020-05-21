@@ -8,7 +8,6 @@ class EnvelopeADSR {
     float mAttackVolume = 1;
     float mDecayTime = 0;
     float mSustainVolume = 1;
-    float mSustainTime = 0;
     float mReleaseTime = 0;
 
     float unmap(float val, float minIn, float maxIn)
@@ -37,12 +36,7 @@ class EnvelopeADSR {
         mSustainVolume = sustainVolume;
     }
 
-    public void setSustainTime(float sustainTime)
-    {
-        mSustainTime = sustainTime;
-    }
-
-    public float getEnvelope(float time)
+    public float getEnvelope(float time, float sustainTime)
     {
         if (time<mAttackTime)
         {
@@ -52,13 +46,13 @@ class EnvelopeADSR {
         {
             return  map(time, mAttackTime,mAttackTime+mDecayTime, mAttackVolume, mSustainVolume);
         }
-        else if (time<(mAttackTime + mDecayTime + mSustainTime))
+        else if (time<(mAttackTime + mDecayTime + sustainTime))
         {
             return mSustainVolume;
         }
-        else if (time<(mAttackTime + mDecayTime + mSustainTime + mReleaseTime))
+        else if (time<(mAttackTime + mDecayTime + sustainTime + mReleaseTime))
         {
-            return  map(time, (mAttackTime + mDecayTime + mSustainTime),(mAttackTime + mDecayTime + mSustainTime + mReleaseTime), mSustainVolume,0);
+            return  map(time, (mAttackTime + mDecayTime + sustainTime),(mAttackTime + mDecayTime + sustainTime + mReleaseTime), mSustainVolume,0);
         }
 
         return 0;
@@ -92,8 +86,8 @@ class EnvelopeADSR {
 
     }
 
-    public float getEnvelopeDurationInSeconds() {
-        return (mAttackTime + mDecayTime + mSustainTime + mReleaseTime);
+    public float getEnvelopeDurationInSeconds(float sustainTime) {
+        return (mAttackTime + mDecayTime + sustainTime + mReleaseTime);
     }
 
 }

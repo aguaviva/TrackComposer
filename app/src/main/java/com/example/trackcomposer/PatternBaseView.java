@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -66,6 +67,17 @@ public class PatternBaseView extends View {
         CHORDS,
         DRUMS
     };
+
+    enum GentureInProgress
+    {
+        idle,
+        eventDragging,
+        boxSelecting,
+        diskDragging,
+        patternPanning
+    };
+
+    GentureInProgress gestureInProgress = GentureInProgress.idle;
 
     ViewMode mViewMode;
 
@@ -228,8 +240,6 @@ public class PatternBaseView extends View {
                 min = note.mChannel;
         }
 
-
-
         if (mViewMode == ViewMode.PIANO) {
 
             mChannels = max - min +1;
@@ -367,14 +377,20 @@ public class PatternBaseView extends View {
                 EventToRect(selectedNote, rf, 0);
                 canvas.drawRect(rf, selectedColor);
             }
-/*
-            //draw disk
-            diskRadius = (rf.bottom- rf.top)/4;
-            diskX = rf.right+diskRadius*1.1f;
-            diskY = (rf.top+rf.bottom)/2;
 
-            canvas.drawCircle(diskX ,diskY, diskRadius, white) ;
- */
+            if (mSelectedEvents.size()==1) {
+
+                RectF rf = new RectF();
+                EventToRect(mSelectedEvents.get(0), rf, 0);
+
+                //draw disk
+                diskRadius = (rf.bottom - rf.top) / 4;
+                diskX = rf.right + diskRadius * 1.1f;
+                diskY = (rf.top + rf.bottom) / 2;
+
+                canvas.drawCircle(diskX, diskY, diskRadius, white);
+            }
+
         }
 
         // draw events
@@ -400,7 +416,7 @@ public class PatternBaseView extends View {
             }
         }
 
-        if (boxSelectingInProgress) {
+        if (gestureInProgress==GentureInProgress.boxSelecting) {
             canvas.drawRect(boxSelectionSorted, selectionLine);
         }
 
@@ -474,22 +490,21 @@ public class PatternBaseView extends View {
     // --------------------------------------------
 
     float eventDuration;
-    boolean boxDraggingDiskInProgress = false;
     public boolean onDiskDraggedEvent(MotionEvent event, boolean bInit) {
 
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (bInit==true) {
+            if (gestureInProgress == GentureInProgress.idle && bInit==true) {
                 float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
                 boolean diskTouched = (Math.pow((event.getX() - diskX), 2) + Math.pow((event.getY() - diskY), 2)) <= diskRadius * diskRadius;
                 if (diskTouched) {
                     eventDuration = thumbTime;
-                    boxDraggingDiskInProgress = true;
+                    gestureInProgress = GentureInProgress.diskDragging;
                     return true;
                 }
             }
         }
         else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (boxDraggingDiskInProgress) {
+            if (gestureInProgress == GentureInProgress.diskDragging) {
                 float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
                 for(Event selectedNote : mSelectedEvents) {
                     float duration = selectedNote.mDuration + (thumbTime - eventDuration);
@@ -502,8 +517,8 @@ public class PatternBaseView extends View {
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (boxDraggingDiskInProgress) {
-                boxDraggingDiskInProgress = false;
+            if (gestureInProgress == GentureInProgress.diskDragging) {
+                gestureInProgress = GentureInProgress.idle;
                 return true;
             }
         }
@@ -514,12 +529,11 @@ public class PatternBaseView extends View {
     // -------------------------------------------- update selection box
     RectF boxSelection = new RectF();
     RectF boxSelectionSorted = new RectF();
-    boolean boxSelectingInProgress = false;
     public boolean onBoxSelection(MotionEvent event, boolean bInit) {
         float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (bInit==true) {
-                boxSelectingInProgress = true;
+            if (gestureInProgress == GentureInProgress.idle && bInit==true) {
+                gestureInProgress = GentureInProgress.boxSelecting;
                 boxSelection.top = event.getY();
                 boxSelection.left = event.getX();
                 boxSelection.bottom = event.getY() + 10;
@@ -532,7 +546,7 @@ public class PatternBaseView extends View {
             }
         }
         else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (boxSelectingInProgress) {
+            if (gestureInProgress == GentureInProgress.boxSelecting) {
                 boxSelection.bottom = event.getY();
                 boxSelection.right = event.getX();
                 boxSelectionSorted.set(boxSelection);
@@ -542,8 +556,8 @@ public class PatternBaseView extends View {
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
-            if (boxSelectingInProgress) {
-                boxSelectingInProgress = false;
+            if (gestureInProgress == GentureInProgress.boxSelecting) {
+                gestureInProgress = GentureInProgress.idle;
                 invalidate();
                 return true;
             }
@@ -553,31 +567,38 @@ public class PatternBaseView extends View {
     }
 
     // -------------------------------------------- drag notes
-    boolean boxDraggingEventsInProgress = false;
     public boolean onDragEvents(MotionEvent event, boolean bInit) {
 
         if (instrumentListener != null) {
             MotionEvent ev2 = TranslateEvent(event);
+            switch(event.getAction())
+            {
+                case  MotionEvent.ACTION_DOWN: {
+                    if (gestureInProgress == GentureInProgress.idle && bInit == true) {
+                        if (instrumentListener.onMoveSelectedEvents(ev2)) {
+                            gestureInProgress = GentureInProgress.eventDragging;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case MotionEvent.ACTION_MOVE: {
+                    if (gestureInProgress == GentureInProgress.eventDragging) {
+                        if (instrumentListener.onMoveSelectedEvents(ev2)) {
+                            return true;
+                        }
+                    }
+                    break;
+                }
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                if (bInit==true) {
-                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
-                        boxDraggingEventsInProgress = true;
-                        return true;
+                case MotionEvent.ACTION_UP: {
+                    if (gestureInProgress == GentureInProgress.eventDragging) {
+                        if (instrumentListener.onMoveSelectedEvents(ev2)) {
+                            gestureInProgress = GentureInProgress.idle;
+                            return true;
+                        }
                     }
-                }
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                if (boxDraggingEventsInProgress==true) {
-                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
-                        return true;
-                    }
-                }
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (boxDraggingEventsInProgress==true) {
-                    if (instrumentListener.onMoveSelectedEvents(ev2)) {
-                        boxDraggingEventsInProgress = false;
-                        return true;
-                    }
+                    break;
                 }
             }
         }
@@ -585,20 +606,87 @@ public class PatternBaseView extends View {
         return false;
     }
 
+    // -------------------------------------------- drag notes
+/*
+    float distanceX, distanceY;
+    public boolean onDragBackGround(MotionEvent event, boolean bInit) {
+
+        //Log.d("MouseEvent", ""+MotionEvent.ACTION_DOWN);
+        switch(event.getAction()) {
+            case MotionEvent.ACTION_DOWN: {
+                if (gestureInProgress == GentureInProgress.idle && bInit == true) {
+                    gestureInProgress = GentureInProgress.patternPanning;
+
+                    distanceX = event.getX();
+                    distanceY = event.getY();
+                    mViewport.onDrag(0, 0);
+
+                    if (instrumentListener != null) {
+                        instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                    }
+                    return true;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_MOVE: {
+                if (gestureInProgress == GentureInProgress.patternPanning) {
+                    distanceX = distanceX - event.getX();
+                    distanceY = distanceY - event.getY();
+                    mViewport.onDrag(distanceX, distanceY);
+                    distanceX = event.getX();
+                    distanceY = event.getY();
+
+                    if (instrumentListener != null) {
+                        instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                    }
+                    return true;
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP: {
+                if (gestureInProgress == GentureInProgress.patternPanning) {
+                    gestureInProgress = GentureInProgress.idle;
+
+                    distanceX = distanceX - event.getX();
+                    distanceY = distanceY - event.getY();
+                    mViewport.onDrag(distanceX, distanceY);
+
+                    if (instrumentListener != null) {
+                        instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                    }
+                    return true;
+                }
+                break;
+            }
+        }
+
+        return false;
+    }
+*/
+
     public boolean onTouchEvent(MotionEvent event) {
 
         // dragging disk
         if (onDiskDraggedEvent(event, false)) {
+            invalidate();
            return true;
         }
 
         // LongPress enables box selection
         if (onBoxSelection(event, false)) {
+            invalidate();
             return true;
         }
 
         if (onDragEvents(event, false)) {
+            invalidate();
             return true;
+        }
+
+        if (event.getAction() ==  MotionEvent.ACTION_UP) {
+            if (gestureInProgress == GentureInProgress.patternPanning) {
+                gestureInProgress = GentureInProgress.idle;
+            }
         }
 
         //  no other handlers, then drag & scale
@@ -649,19 +737,23 @@ public class PatternBaseView extends View {
         {
             MotionEvent ev = TranslateEvent(event);
 
+            // long press on background -> square selection
+            if (mPattern.get((int)ev.getY(), ev.getX())==null) {
+                if (onBoxSelection(event, true)) {
+                    return;
+                }
+            }
+
+            //otherwise pass to activity
             if (instrumentListener!=null) {
                 if (instrumentListener.longPress(ev))
                     return;
             }
-
-            if (onBoxSelection(event, true)) {
-                return;
-            }
         }
 
         @Override
-        public boolean onDown(MotionEvent e) {
-            mViewport.onDown(e);
+        public boolean onDown(MotionEvent event) {
+            mViewport.onDown(event);
             return true;
         }
 
@@ -675,18 +767,20 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 
-            /*
             if (onDiskDraggedEvent(e1, true)) {
+                invalidate();
                 return true;
             }
-            */
+
             if (onDragEvents(e1, true)) {
+                invalidate();
                 return true;
             }
 
+            //background panning
+            gestureInProgress = GentureInProgress.patternPanning;
             mViewport.onDrag(distanceX, distanceY);
-
-            if (instrumentListener!=null) {
+            if (instrumentListener != null) {
                 instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
             }
 
@@ -716,7 +810,6 @@ public class PatternBaseView extends View {
                 scaleY=1;
 
             mViewport.onScale(detector.getFocusX(), detector.getFocusY(), scaleX, scaleY);
-
             if (instrumentListener!=null) {
                 instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
             }

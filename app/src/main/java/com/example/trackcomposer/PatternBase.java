@@ -21,10 +21,6 @@ public class PatternBase {
     void SetLength(float length) { mNotes.mLength = length; }
     int GetChannelCount() { return mChannels; }
     Event GetNoteByIndex(int index) { return mNotes.GetEventByIndex(index); }
-    Event Get(int channel, float time)
-    {
-        return mNotes.GetEventBy(channel, time);
-    }
     Mixer.MixerListener GetMixerListener() { return null; }
 
     public Event get(int row, float time) {
@@ -42,6 +38,9 @@ public class PatternBase {
 
     void Clear(int channel, float time) {
         mNotes.Clear(channel, time);
+    }
+    void Clear(Event event) {
+        mNotes.Clear(event);
     }
 
     public interface BeatListener { public void beat(float currentBeat); }

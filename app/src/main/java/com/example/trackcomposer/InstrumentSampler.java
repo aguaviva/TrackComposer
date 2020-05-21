@@ -33,15 +33,15 @@ public class InstrumentSampler extends InstrumentBase {
     ChannelStateBase getNewChannelState() { return new Channel(); }
 
     @Override
-    public void playSample(int note, float freq) {
+    public void playSample(int note, float frequency, float duration) {
         int channelId = GetAvailableChannel();
         if (channelId>=0) {
             Channel channel = mChannels[channelId];
             channel.mNote = note;
             channel.mTimeInSamples = 0;
-            channel.mFreq = freq;
+            channel.mFreq = frequency;
             channel.mVolume = 1.0f;
-            channel.mSpeed = freq/freqOne;
+            channel.mSpeed = frequency/freqOne;
         }
     }
 

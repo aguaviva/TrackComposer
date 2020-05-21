@@ -14,7 +14,6 @@ public class InstrumentSynthBasic extends InstrumentBase {
     }
 
     Channel[] mChannels = new Channel[10];
-
     EnvelopeADSR adsr = new EnvelopeADSR();
 
     public InstrumentSynthBasic()
@@ -22,7 +21,6 @@ public class InstrumentSynthBasic extends InstrumentBase {
         super();
         SetSampleRate(44100);
         adsr.setTimings(.1f,1.0f,.1f,.8f,0.3f);
-        adsr.setSustainTime(.5f);
         mInstrumentName = "GeneratorSynth";
 
         for(int c=0;c<mChannels.length;c++) {
@@ -35,7 +33,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
 
     @Override
     public int getLengthInFrames() {
-        return (int)(adsr.getEnvelopeDurationInSeconds()*GetSampleRate());
+        return 0;//(int)(adsr.getEnvelopeDurationInSeconds()*GetSampleRate());
     }
 
     public void setTremoloFreq(float freq)
@@ -56,13 +54,14 @@ public class InstrumentSynthBasic extends InstrumentBase {
     }
 
     @Override
-    public void playSample(int note, float freq) {
+    public void playSample(int note, float frequency, float duration) {
         int channelId = GetAvailableChannel();
         if (channelId>=0) {
             Channel channel = mChannels[channelId];
             channel.mNote = note;
             channel.mTimeInSamples = 0;
-            channel.mFreq = freq;
+            channel.mDuration = duration;
+            channel.mFreq = frequency;
             channel.mVolume = 1.0f;
         }
     }
@@ -82,18 +81,22 @@ public class InstrumentSynthBasic extends InstrumentBase {
             float freqN = (channel.mFreq * TwoPi)  * GetInvSampleRate();
             float timeInSeconds = channel.mTimeInSamples * GetInvSampleRate();
 
+            float duration = adsr.getEnvelopeDurationInSeconds(channel.mDuration);
+
             for (int i = ini; i < fin; i += 2) {
                 // tremolo
                 float tremolo = (1.0f + mTremoloAmplitude * (float) Math.abs(Math.sin(mTremoloFreqN * channel.mTimeInSamples)));
                 float vibrato = mVibratoAmplitude * (float) (Math.sin(mVibratoFreqN * channel.mTimeInSamples) / TwoPi);
 
-                float envelope = adsr.getEnvelope(timeInSeconds);
+                float envelope = adsr.getEnvelope(timeInSeconds, channel.mDuration);
 
-                float generator = mAmplitude * (float) Math.sin(freqN * channel.mTimeInSamples + vibrato);
+                float generator = (float) Math.sin(freqN * channel.mTimeInSamples + vibrato);
 
-                short v = (short) (tremolo * channel.mVolume * envelope * generator);
+                generator = Math.signum(generator); //square
 
-                if (timeInSeconds >= 1.0f) {
+                short v = (short) (tremolo * channel.mVolume * envelope * mAmplitude * generator);
+
+                if (timeInSeconds >= duration) {
                     StopChannel(c);
                     break;
                 }

@@ -28,7 +28,7 @@ class PatternPercussion extends PatternBase
     public void play(Event event)
     {
         InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, 0);
+        g.playSample(event.mChannel, 0,0);
     }
 
     @Override

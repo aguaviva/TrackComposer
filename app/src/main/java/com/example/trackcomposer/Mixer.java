@@ -61,16 +61,8 @@ class Mixer {
         return true;
     }
 
-    public boolean IsStillPlaying()
-    {
-        return mStillNotes==false && mStillPlaying==false;
-    }
-
     void renderChunk(short[] chunk, int ini, int fin, float volume)
     {
-        //if (IsStillPlaying() == false)
-        //    return;
-
         while(ini<fin) {
 
             int mid = fin;

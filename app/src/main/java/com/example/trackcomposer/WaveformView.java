@@ -74,7 +74,7 @@ public class WaveformView extends View {
 
         InstrumentBase.ChannelStateBase state = mGenerator.getNewChannelState();
         mGenerator.reset();
-        mGenerator.playSample(40,0);
+        mGenerator.playSample(40,0,0);
 
         short[] chunk = new short[1024];
 

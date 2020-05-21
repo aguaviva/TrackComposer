@@ -29,7 +29,7 @@ class PatternPianoRoll extends PatternBase
     public void play(Event event)
     {
         InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel));
+        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4);
     }
 
     @Override

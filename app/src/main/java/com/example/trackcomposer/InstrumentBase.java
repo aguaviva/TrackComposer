@@ -11,6 +11,7 @@ public class InstrumentBase {
     {
         int mNote = 0;
         int mTimeInSamples = 0;
+        float mDuration = 0;
         float mVolume = 0;
         float mFreq = 0;
     };
@@ -37,7 +38,7 @@ public class InstrumentBase {
     }
     ChannelStateBase getNewChannelState() { return new ChannelStateBase(); }
 
-    public void playSample(int channel, float velociy) {
+    public void playSample(int channel, float frequency, float duration) {
     }
 
     public void playSample(short[] chunk, int ini, int fin) {

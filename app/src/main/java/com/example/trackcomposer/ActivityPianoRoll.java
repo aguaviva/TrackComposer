@@ -28,7 +28,6 @@ public class ActivityPianoRoll extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         LinearLayout linearLayout = (LinearLayout)findViewById(R.id.left_side);
         linearLayout.addView(getLayoutInflater().inflate(R.layout.edit_checkbox, null));
         mCanEdit = (CheckBox) findViewById(R.id.edit_checkbox);
@@ -160,13 +159,19 @@ public class ActivityPianoRoll extends AppCompatActivity {
                         noteTouched.mId = patternPianoRoll.mInstrumentId;
                         patternPianoRoll.Set(noteTouched);
                     } else {
-                        patternPianoRoll.Clear(rowSelected, time);
+                        patternPianoRoll.Clear(noteTouched);
+                    }
+
+                    if (patternPianoRoll.mInstrumentId >=0) {
+                        patternPianoRoll.play(noteTouched);
+                    }
+                } else {
+                    if (noteTouched != null) {
+                        mNoteView.selectClear();
+                        mNoteView.selectSingleEvent(noteTouched);
                     }
                 }
 
-                if (patternPianoRoll.mInstrumentId >=0) {
-                    patternPianoRoll.play(noteTouched);
-                }
                 mNoteView.invalidate();
                 return true;
             }

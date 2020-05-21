@@ -6,11 +6,13 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     {
         float [] delayLine;
         int startDelay, endDelay;
+        int mSilentSamples = 0;
 
         Channel()
         {
             super();
             delayLine = new float[44100]; //TODO: compute a better size
+
         }
 
         void pluck(int length)
@@ -62,7 +64,7 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     ChannelStateBase getNewChannelState() { return new Channel(); }
 
     @Override
-    public void playSample(int note, float freq) {
+    public void playSample(int note, float freq, float duration) {
 
         int channelId = GetAvailableChannel();
         if (channelId>=0) {
@@ -91,10 +93,15 @@ public class InstrumentKarplusStrong extends InstrumentBase {
                 chunk[i + 0] += v;
                 chunk[i + 1] += v;
 
-                if (channel.mTimeInSamples > 44100.0f / 1.0f) {
-                    StopChannel(c);
-                    break;
+                if (Math.abs(v)<20) {
+                    channel.mSilentSamples++;
+                    if (channel.mTimeInSamples > 44100.0f * 1f) {
+                        StopChannel(c);
+                        break;
+                    }
                 }
+                else
+                    channel.mSilentSamples = 0;
 
                 channel.mTimeInSamples++;
             }
