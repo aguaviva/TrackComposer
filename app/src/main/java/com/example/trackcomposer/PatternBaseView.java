@@ -6,10 +6,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -56,6 +56,7 @@ public class PatternBaseView extends View {
     int mChannels = 0;
     float mLength = 0;
 
+    PatternMaster mMasterPattern = null;
     PatternBase mPattern = null;
 
     float diskX,diskY, diskRadius;
@@ -80,21 +81,19 @@ public class PatternBaseView extends View {
     GentureInProgress gestureInProgress = GentureInProgress.idle;
 
     ViewMode mViewMode;
-
-    PatternBase GetPattern() {
-        return mPattern;
-    }
+    int mChannel = -1;
+    PatternBase GetPattern() {return mMasterPattern;    }
 
     Viewport mViewport;
     TimeLine mTimeLine;
-    void SetPattern(PatternBase pattern, TimeLine timeLine, boolean selectable, ViewMode viewMode) {
+    void SetPattern(PatternMaster pattern, int channel, TimeLine timeLine, boolean selectable, ViewMode viewMode) {
         mViewMode = viewMode;
         mTimeLine = timeLine;
         mViewport = mTimeLine.mViewport;
         mSelectable = selectable;
 
-        mPattern = pattern;
-
+        mMasterPattern = pattern;
+        mChannel = channel;
         mSelectedEvents.clear();
 
         if (mViewMode == ViewMode.PIANO)
@@ -131,7 +130,7 @@ public class PatternBaseView extends View {
             timeLine.init(pattern, 64);
             timeLine.setViewSize(getWidth(), getHeight());
 
-            SetPattern(pattern, timeLine,false, ViewMode.PIANO);
+            SetPattern(null, 0, timeLine,false, ViewMode.PIANO);
         }
 
         init(attrs, 0);
@@ -222,7 +221,7 @@ public class PatternBaseView extends View {
 
             centerViewInNotes();
 
-            mTimeLine.mViewport.updateViewport();
+            //mTimeLine.mViewport.updateViewport();
         }
     }
 
@@ -231,7 +230,7 @@ public class PatternBaseView extends View {
         int min = 88;
         int max = 0;
         for(int i=0;;i++) {
-            Event note = mPattern.GetNoteByIndex(i);
+            Event note = mMasterPattern.GetNoteByIndex(i);
             if (note==null)
                 break;
             if (note.mChannel >max)
@@ -276,31 +275,15 @@ public class PatternBaseView extends View {
         }
     }
 
-
-    void EventToRect(Event event, RectF rf, float padding)
-    {
-        float x1 = event.mTime * (mTimeLine.getTickWidth());
-        float x2 = (event.mTime + event.mDuration) * (mTimeLine.getTickWidth());
-
-        int y = indexToNote(event.mChannel);
-
-        rf.left = x1 + padding;
-        rf.top = y * mRowHeight + padding;
-        rf.right = x2 - padding;
-        rf.bottom = (y + 1) * mRowHeight - padding;
-        mViewport.applyPosScaleRect(rf);
-    }
-
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         float contentHeight = getHeight();
 
-        mColumnWidth = mTimeLine.getTickWidth();
-        mLength = mPattern.GetLength();
-        mRowHeight = contentHeight/ (float)mChannels;
+        mColumnWidth = 1.0f;
+        mLength = mMasterPattern.GetLength();
+        mRowHeight = 1.0f;//contentHeight/ (float)mChannels;
 
         // Set canvas zoom and pan
         //
@@ -315,23 +298,20 @@ public class PatternBaseView extends View {
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLod());
-        int columnRight = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLod());
+        int columnLeft = mTimeLine.getLeftTick(1.0f/mViewport.getLod());
+        int columnRight = mTimeLine.getRightTick(1.0f/mViewport.getLod());
         if (columnLeft<0) columnLeft = 0;
         if (columnRight>mLength*mViewport.getLod()) columnRight = (int)(mLength*mViewport.getLod());
 
         // Draw background
         //
         if (mLOD==0) {
-
-            float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
-
             // horizontal tracks
             for (int i = iniTop; i < finBottom; i++) {
 
                 RectF rf = new RectF();
                 rf.left = 0;
-                rf.right = endTime;
+                rf.right = mMasterPattern.GetLength();
                 rf.top = i * mRowHeight;
                 rf.bottom = (i + 1) * mRowHeight;
 
@@ -353,7 +333,7 @@ public class PatternBaseView extends View {
 
             for (int i=columnLeft;i<columnRight;i++) {
 
-                float x = i* mTimeLine.getTickWidth()/mViewport.getLod();
+                float x = i/mViewport.getLod();
 
                 if (((i%16)==0)) {
                     canvas.drawLine(x, yTop, x, yBottom, white);
@@ -369,51 +349,37 @@ public class PatternBaseView extends View {
 
         canvas.restore();
 
-        //show selected block
-        //if (mLOD==0 && mSelectable) {
-        if (mLOD==0) {
-            for(Event selectedNote : mSelectedEvents) {
-                RectF rf = new RectF();
-                EventToRect(selectedNote, rf, 0);
-                canvas.drawRect(rf, selectedColor);
-            }
+        if (mChannel==-1) {
+            RectF rectBackground = new RectF();
+            rectBackground.top = 0;
+            rectBackground.bottom = 8 * mRowHeight;
+            rectBackground.left = 0;
+            rectBackground.right = mMasterPattern.GetLength();
+            mViewport.applyPosScaleRect(rectBackground);
 
-            if (mSelectedEvents.size()==1) {
+            RectF rectMasterPattern = new RectF();
+            rectMasterPattern.top = 0;
+            rectMasterPattern.bottom = mMasterPattern.GetChannelCount();
+            rectMasterPattern.left = 0;
+            rectMasterPattern.right = mMasterPattern.GetLength();
 
-                RectF rf = new RectF();
-                EventToRect(mSelectedEvents.get(0), rf, 0);
+            DrawMasterEvents(canvas, mMasterPattern, rectBackground, rectMasterPattern);
+        } else {
+            RectF rectBackground = new RectF();
+            rectBackground.top = 0;
+            rectBackground.bottom = 88 * mRowHeight;
+            rectBackground.left = 0;
+            rectBackground.right = mMasterPattern.GetLength();
+            mViewport.applyPosScaleRect(rectBackground);
 
-                //draw disk
-                diskRadius = (rf.bottom - rf.top) / 4;
-                diskX = rf.right + diskRadius * 1.1f;
-                diskY = (rf.top + rf.bottom) / 2;
+            RectF rectMasterPattern = new RectF();
+            rectMasterPattern.top = 0;
+            rectMasterPattern.bottom = 1;
+            rectMasterPattern.left = 0;
+            rectMasterPattern.right = mMasterPattern.GetLength();
 
-                canvas.drawCircle(diskX, diskY, diskRadius, white);
-            }
 
-        }
-
-        // draw events
-        for(int i=0;;i++) {
-            Event note = mPattern.GetNoteByIndex(i);
-            if (note==null)
-                break;
-
-            RectF rf = new RectF();
-            Integer id = note.mId;
-            if (mPatternImgDataBase!=null && mPatternImgDataBase.containsKey(id)) {
-                Bitmap bmp = mPatternImgDataBase.get(id);
-                if (bmp!=null) {
-                    EventToRect(note, rf, 0);
-                    canvas.drawBitmap(bmp, null, rf, bitmapPaint);
-                    canvas.drawRoundRect( rf, 10,10, green);
-                }
-            }
-            else {
-
-                EventToRect(note, rf, (mLOD==0)?2:1);
-                canvas.drawRect(rf, greenFill);
-            }
+            DrawChannelEvents(canvas, mMasterPattern, rectBackground, rectMasterPattern);
         }
 
         if (gestureInProgress==GentureInProgress.boxSelecting) {
@@ -431,11 +397,237 @@ public class PatternBaseView extends View {
         }
     }
 
-    private MotionEvent TranslateEvent(MotionEvent event) {
-        float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
-        int row = (int) (mViewport.removePosScaleY(event.getY()) / mRowHeight);
-        row = indexToNote(row);
-        return MotionEvent.obtain(0, 0, event.getAction(), thumbTime, row, 0);
+    private void TransformRect(RectF rectParent, RectF rectChild, RectF rectEvent, RectF rectOut) {
+        rectOut.top = Misc.map(rectEvent.top, rectChild.top, rectChild.bottom, rectParent.top, rectParent.bottom);
+        rectOut.bottom = Misc.map(rectEvent.bottom, rectChild.top, rectChild.bottom, rectParent.top, rectParent.bottom);
+        rectOut.left = Misc.map(rectEvent.left, rectChild.left, rectChild.right, rectParent.left, rectParent.right);
+        rectOut.right = Misc.map(rectEvent.right, rectChild.left, rectChild.right, rectParent.left, rectParent.right);
+    }
+
+    private void EventToRect(Event event, RectF rectOut) {
+        rectOut.top = event.mChannel;
+        rectOut.bottom = event.mChannel + 1;
+        rectOut.left = event.mTime;
+        rectOut.right = event.mTime+event.mDuration;
+    }
+
+    private void PadRect(RectF rf, float padding) {
+        rf.top -=padding;
+        rf.bottom +=padding;
+        rf.left -=padding;
+        rf.right +=padding;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------
+
+    private void DrawChannelEvents(Canvas canvas, PatternMaster pb, RectF rectBackground, RectF rectMasterPattern) {
+
+        canvas.drawRoundRect(rectBackground, 10, 10, green);
+
+        RectF rf = new RectF();
+        RectF rectEvent = new RectF();
+
+        // draw icons
+        for (int i = 0; ; i++) {
+            Event event = pb.GetNoteByIndex(i);
+            if (event == null)
+                break;
+
+            EventToRect(event, rectEvent);
+            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
+            PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
+            DrawEvents(canvas, pb2, rf);
+        }
+    }
+
+    // draw events
+    private void DrawEvents(Canvas canvas, PatternBase pb, RectF rectParent) {
+        canvas.drawRoundRect(rectParent, 10, 10, green);
+
+        RectF rf = new RectF();
+        RectF rectEvent = new RectF();
+
+        RectF rectChild = new RectF();
+        rectChild.top = 0;
+        rectChild.bottom = 88;
+        rectChild.left = 0;
+        rectChild.right = pb.GetLength();
+
+        // draw selection rects
+        for(Event selectedNote : mSelectedEvents) {
+            EventToRect(selectedNote, rectEvent);
+            TransformRect(rectParent, rectChild, rectEvent, rf);
+            PadRect(rf, 5);
+            canvas.drawRect(rf, selectedColor);
+        }
+
+        for (int i = 0; ; i++) {
+            Event event = pb.GetNoteByIndex(i);
+            if (event == null)
+                break;
+
+            EventToRect(event, rectEvent);
+            TransformRect(rectParent, rectChild, rectEvent, rf);
+            PadRect(rf, -5);
+            canvas.drawRect(rf, greenFill);
+        }
+
+        //draw disk
+        if (mSelectedEvents.size()==1) {
+
+            EventToRect(mSelectedEvents.get(0), rectEvent);
+            TransformRect(rectParent, rectChild, rectEvent, rf);
+
+            //draw disk
+            diskRadius = (rf.bottom - rf.top) / 4;
+            diskX = rf.right + diskRadius * 1.1f;
+            diskY = (rf.top + rf.bottom) / 2;
+
+            canvas.drawCircle(diskX, diskY, diskRadius, white);
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------
+
+    private void DrawMasterEvents(Canvas canvas, PatternBase pb, RectF rectBackground, RectF rectMasterPattern) {
+
+        canvas.drawRoundRect(rectBackground, 10, 10, green);
+
+        RectF rf = new RectF();
+        RectF rectEvent = new RectF();
+
+        // draw selection rects
+        for(Event selectedNote : mSelectedEvents) {
+            EventToRect(selectedNote, rectEvent);
+            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
+            canvas.drawRect(rf, selectedColor);
+        }
+
+        for (int i = 0; ; i++) {
+            Event event = pb.GetNoteByIndex(i);
+            if (event == null)
+                break;
+
+            EventToRect(event, rectEvent);
+            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
+            PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
+            DrawIcon(canvas, pb2, rf);
+        }
+    }
+
+    // draw events
+    private void DrawIcon(Canvas canvas, PatternBase pb, RectF rectParent) {
+
+        canvas.drawRoundRect(rectParent, 10, 10, green);
+
+        RectF rf = new RectF();
+        RectF rectEvent = new RectF();
+
+        RectF rectChild = new RectF();
+        rectChild.top = 0;
+        rectChild.bottom = pb.GetChannelCount();
+        rectChild.left = 0;
+        rectChild.right = pb.GetLength();
+
+        if (mChannel==-1) {
+            rectChild.top = pb.getMinChannel();
+            rectChild.bottom = pb.getMaxChannel();
+        } else {
+            rectChild.top = 0;
+            rectChild.bottom = 88;
+        }
+
+        for (int i = 0; ; i++) {
+            Event event = pb.GetNoteByIndex(i);
+            if (event == null)
+                break;
+
+            EventToRect(event, rectEvent);
+            TransformRect(rectParent, rectChild, rectEvent, rf);
+            canvas.drawRect(rf, greenFill);
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------------------------------
+    private boolean PatternCoords2ScreenCoords(PatternBase pb, float x, float y, PointF pointF) {
+        // get global time
+        switch(mViewMode) {
+            case PIANO: {
+                for (int i = 0; ; i++) {
+                    Event event = mMasterPattern.GetNoteByIndex(i);
+                    if (event == null)
+                        break;
+
+                    if (mMasterPattern.mPatternDataBase.get(event.mId) == pb) {
+                        pointF.x = mViewport.applyPosScaleX(x + event.mTime);
+
+                        float rowF = Misc.map(y, 0, 88, 0, 88 * mRowHeight);
+                        pointF.y = mViewport.applyPosScaleY(rowF);
+                        return true;
+                    }
+                }
+            }
+            case MAIN: {
+                pointF.x = mViewport.applyPosScaleX(x);
+
+                float rowF = Misc.map(y, 0, 8, 0, 8 * mRowHeight);
+                pointF.y = mViewport.applyPosScaleY(rowF);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    private boolean ScreenCoords2PatternCoords(float x, float y, PointF pointF) {
+
+        float time = mViewport.removePosScaleX(x) / 1.0f;
+
+        float rowF = mViewport.removePosScaleY(y);
+        switch(mViewMode) {
+            case PIANO: {
+                rowF = Misc.map(rowF, 0, 88 * mRowHeight, 0, 88);
+
+                Event event = mMasterPattern.get(mChannel, time);
+                if (event == null)
+                    return false;
+
+                time -= event.mTime;
+                mPattern = mMasterPattern.mPatternDataBase.get(event.mId);
+                break;
+            }
+            case MAIN: {
+                rowF = Misc.map(rowF, 0, 8 * mRowHeight, 0, 8);
+
+                mPattern = mMasterPattern;
+                break;
+            }
+            case CHORDS:
+                break;
+            case DRUMS:
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + mViewMode);
+        }
+
+        pointF.x = time;
+        pointF.y = rowF;
+        return true;
+    }
+    private MotionEvent ScreenCoords2PatternCoords(MotionEvent motionEvent) {
+        PointF pointF = new PointF();
+        if (ScreenCoords2PatternCoords(motionEvent.getX(), motionEvent.getY(), pointF)==false)
+            return null;
+
+        //snap to grid
+        float snap = 1;
+        float sx = (float)Math.floor(pointF.x/snap)*snap;
+        float sy = (float)Math.floor(pointF.y);
+
+        return MotionEvent.obtain(0, 0, motionEvent.getAction(), sx, sy, 0);
     }
 
     //--------------------------------selection
@@ -457,7 +649,6 @@ public class PatternBaseView extends View {
         return false;
     }
 
-
     public int  selectItemCount() {
         return mSelectedEvents.size();
     }
@@ -471,7 +662,7 @@ public class PatternBaseView extends View {
                 break;
             //*ticksPerColumn;
             RectF rf = new RectF();
-            EventToRect(note, rf, 0);
+            EventToRect(note, rf);
 
             if (RectF.intersects(rectSelection, rf)) {
                 mSelectedEvents.add(note);
@@ -527,8 +718,11 @@ public class PatternBaseView extends View {
     }
 
     // -------------------------------------------- update selection box
+    PointF boxSelectionCorner1 = new PointF();
+    PointF boxSelectionCorner2 = new PointF();
     RectF boxSelection = new RectF();
     RectF boxSelectionSorted = new RectF();
+    RectF boxSelectionSortedTranslated = new RectF();
     public boolean onBoxSelection(MotionEvent event, boolean bInit) {
         float thumbTime = mTimeLine.getRoundedTimeFromScreen(event.getX());
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -540,7 +734,10 @@ public class PatternBaseView extends View {
                 boxSelection.right = event.getX() + 10;
                 boxSelectionSorted.set(boxSelection);
                 boxSelectionSorted.sort();
-                selectRect(boxSelectionSorted);
+                ScreenCoords2PatternCoords(boxSelectionSorted.left, boxSelectionSorted.top, boxSelectionCorner1);
+                ScreenCoords2PatternCoords(boxSelectionSorted.right, boxSelectionSorted.bottom, boxSelectionCorner2);
+                boxSelectionSortedTranslated.set(boxSelectionCorner1.x, boxSelectionCorner1.y, boxSelectionCorner2.x, boxSelectionCorner2.y);
+                selectRect(boxSelectionSortedTranslated);
                 invalidate();
                 return true;
             }
@@ -551,13 +748,17 @@ public class PatternBaseView extends View {
                 boxSelection.right = event.getX();
                 boxSelectionSorted.set(boxSelection);
                 boxSelectionSorted.sort();
-                selectRect(boxSelectionSorted);
+                ScreenCoords2PatternCoords(boxSelectionSorted.left, boxSelectionSorted.top, boxSelectionCorner1);
+                ScreenCoords2PatternCoords(boxSelectionSorted.right, boxSelectionSorted.bottom, boxSelectionCorner2);
+                boxSelectionSortedTranslated.set(boxSelectionCorner1.x, boxSelectionCorner1.y, boxSelectionCorner2.x, boxSelectionCorner2.y);
+                selectRect(boxSelectionSortedTranslated);
                 invalidate();
                 return true;
             }
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             if (gestureInProgress == GentureInProgress.boxSelecting) {
                 gestureInProgress = GentureInProgress.idle;
+                selectRect(boxSelectionSortedTranslated);
                 invalidate();
                 return true;
             }
@@ -570,7 +771,7 @@ public class PatternBaseView extends View {
     public boolean onDragEvents(MotionEvent event, boolean bInit) {
 
         if (instrumentListener != null) {
-            MotionEvent ev2 = TranslateEvent(event);
+            MotionEvent ev2 = ScreenCoords2PatternCoords(event);
             switch(event.getAction())
             {
                 case  MotionEvent.ACTION_DOWN: {
@@ -666,21 +867,24 @@ public class PatternBaseView extends View {
 
     public boolean onTouchEvent(MotionEvent event) {
 
-        // dragging disk
-        if (onDiskDraggedEvent(event, false)) {
-            invalidate();
-           return true;
-        }
+        MotionEvent ev2 = ScreenCoords2PatternCoords(event);
+        if (ev2!=null) {
+            // dragging disk
+            if (onDiskDraggedEvent(event, false)) {
+                invalidate();
+                return true;
+            }
 
-        // LongPress enables box selection
-        if (onBoxSelection(event, false)) {
-            invalidate();
-            return true;
-        }
+            // LongPress enables box selection
+            if (onBoxSelection(event, false)) {
+                invalidate();
+                return true;
+            }
 
-        if (onDragEvents(event, false)) {
-            invalidate();
-            return true;
+            if (onDragEvents(event, false)) {
+                invalidate();
+                return true;
+            }
         }
 
         if (event.getAction() ==  MotionEvent.ACTION_UP) {
@@ -711,10 +915,11 @@ public class PatternBaseView extends View {
         {
             selectClear();
 
-            MotionEvent ev = TranslateEvent(event);
-
-            if (instrumentListener!=null) {
-                return instrumentListener.noteTouched(ev);
+            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            if (ev!=null) {
+                if (instrumentListener != null) {
+                    return instrumentListener.noteTouched(ev);
+                }
             }
 
             return false;
@@ -723,10 +928,11 @@ public class PatternBaseView extends View {
         @Override
         public boolean onDoubleTap (MotionEvent event)
         {
-            MotionEvent ev = TranslateEvent(event);
-
-            if (instrumentListener!=null) {
-                return instrumentListener.onDoubleTap(ev);
+            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            if (ev!=null) {
+                if (instrumentListener != null) {
+                    return instrumentListener.onDoubleTap(ev);
+                }
             }
 
             return false;
@@ -735,19 +941,20 @@ public class PatternBaseView extends View {
         @Override
         public void onLongPress (MotionEvent event)
         {
-            MotionEvent ev = TranslateEvent(event);
-
-            // long press on background -> square selection
-            if (mPattern.get((int)ev.getY(), ev.getX())==null) {
-                if (onBoxSelection(event, true)) {
-                    return;
+            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            if (ev!=null) {
+                // long press on background -> square selection
+                if (mMasterPattern.get((int) ev.getY(), ev.getX()) == null) {
+                    if (onBoxSelection(event, true)) {
+                        return;
+                    }
                 }
-            }
 
-            //otherwise pass to activity
-            if (instrumentListener!=null) {
-                if (instrumentListener.longPress(ev))
-                    return;
+                //otherwise pass to activity
+                if (instrumentListener != null) {
+                    if (instrumentListener.longPress(ev))
+                        return;
+                }
             }
         }
 
@@ -767,16 +974,18 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 
-            if (onDiskDraggedEvent(e1, true)) {
-                invalidate();
-                return true;
-            }
+            MotionEvent ev2 = ScreenCoords2PatternCoords(e1);
+            if (ev2!=null) {
+                if (onDiskDraggedEvent(e1, true)) {
+                    invalidate();
+                    return true;
+                }
 
-            if (onDragEvents(e1, true)) {
-                invalidate();
-                return true;
+                if (onDragEvents(e1, true)) {
+                    invalidate();
+                    return true;
+                }
             }
-
             //background panning
             gestureInProgress = GentureInProgress.patternPanning;
             mViewport.onDrag(distanceX, distanceY);

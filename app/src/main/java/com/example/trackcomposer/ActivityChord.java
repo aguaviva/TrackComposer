@@ -62,7 +62,7 @@ public class ActivityChord extends AppCompatActivity {
         });
 
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternChord, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
+        mNoteView.SetPattern(null, 0, mTimeLine,false, PatternBaseView.ViewMode.CHORDS);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {

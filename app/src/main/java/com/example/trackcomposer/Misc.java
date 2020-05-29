@@ -104,6 +104,20 @@ public class Misc {
         }
     }
 
+    public static float unmap(float val, float minIn, float maxIn)
+    {
+        return (val-minIn)/(maxIn-minIn);
+    }
 
+    public static float map(float t, float minOut, float maxOut)
+    {
+        return (1.0f-t)*minOut + t*maxOut;
+    }
+
+    public static float map(float val, float minIn, float maxIn, float minOut, float maxOut)
+    {
+        float t = unmap(val, minIn,  maxIn);
+        return map( t, minOut, maxOut);
+    }
 
 }

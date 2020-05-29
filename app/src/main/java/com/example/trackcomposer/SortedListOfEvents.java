@@ -73,6 +73,7 @@ class SortedListOfEvents
 
     protected List<Event> myList = new ArrayList<>();
     public float mLength = 0;
+    public int mMinChannel, mMaxChannel;
 
     public SortedListOfEvents.State getIter() {
         return new SortedListOfEvents.State(this);
@@ -173,6 +174,7 @@ class SortedListOfEvents
     {
         Clear(gen.mChannel, gen.mTime);
         myList.add(gen);
+        ComputeChannelBoundingBox();
         sortEvents();
     }
 
@@ -182,6 +184,7 @@ class SortedListOfEvents
         {
             if (myList.get(i) == event) {
                 myList.remove(i);
+                ComputeChannelBoundingBox();
                 return true;
             }
         }
@@ -194,10 +197,28 @@ class SortedListOfEvents
         {
             if (myList.get(i).mChannel ==channel && myList.get(i).mTime == time) {
                 myList.remove(i);
+                ComputeChannelBoundingBox();
                 return true;
             }
         }
         return false;
+    }
+
+    void ComputeChannelBoundingBox()
+    {
+        mMinChannel=1000;
+        mMaxChannel=0;
+
+        for(int i=0;i<myList.size();i++) {
+            int channel = myList.get(i).mChannel;
+            if (channel>mMaxChannel) mMaxChannel = channel;
+            if (channel<mMinChannel) mMinChannel = channel;
+        }
+
+        if (mMinChannel>mMaxChannel)
+            mMinChannel = mMaxChannel;
+
+        mMaxChannel++;
     }
 
     void serializeToJson(JSONObject jsonObj) throws JSONException
@@ -227,5 +248,6 @@ class SortedListOfEvents
             note.serializeFromJson(json);
             myList.add(note);
         }
+        ComputeChannelBoundingBox();
     }
 }

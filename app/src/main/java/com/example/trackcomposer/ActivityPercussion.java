@@ -68,7 +68,7 @@ public class ActivityPercussion extends AppCompatActivity {
         });
 
         mDrumTracker = (PatternBaseView)findViewById(R.id.tracksView);
-        mDrumTracker.SetPattern(mAppState.mLastPatternAdded, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
+        mDrumTracker.SetPattern(null, 0, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {

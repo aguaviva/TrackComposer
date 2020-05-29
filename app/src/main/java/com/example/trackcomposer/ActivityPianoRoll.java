@@ -79,7 +79,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         //
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(patternPianoRoll, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
+        mNoteView.SetPattern(mAppState.mPatternMaster, 0, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
         mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             Event noteDown;

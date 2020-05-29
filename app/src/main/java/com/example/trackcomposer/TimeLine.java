@@ -20,11 +20,11 @@ public class TimeLine {
         int length = 16;
         if (mPattern!=null)
             length = (int)mPattern.GetLength();
-        mTickWidth = mViewport.mScreenWidth / length;
+        mTickWidth = 1.0f;//mViewport.mScreenWidth / length;
     }
 
     public float getTickWidth() {
-        return mTickWidth;
+        return 1.0f;//mTickWidth;
     }
 
     public float getLength() {
@@ -37,6 +37,11 @@ public class TimeLine {
     }
     public float getTime() {
         return mTime;
+    }
+
+    public void setTimeSpan(float t1, float t2)
+    {
+        mViewport.setSpanHorizontal(t1 * getTickWidth(), t2 * getTickWidth());
     }
 
     public int getLeftTick(float tickWidth) {

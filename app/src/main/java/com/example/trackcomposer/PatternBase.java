@@ -52,6 +52,9 @@ public class PatternBase {
             mBeatListener.beat(currentBeat);
     }
 
+    public int getMinChannel() { return mNotes.mMinChannel; }
+    public int getMaxChannel() { return mNotes.mMaxChannel; }
+
     void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         jsonObj.put("name", mName);

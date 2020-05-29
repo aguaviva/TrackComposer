@@ -3,31 +3,54 @@ package com.example.trackcomposer;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 
-public class Viewport {
+class Viewport {
     protected float mPosX = 0.0f, mPosY = 0.0f;
     protected float mScaleX = 1.0f, mScaleY = 1.0f;
     protected float mVelX = 0.0f, mVelY = 0.0f;
     private float mLod = 1; // for ticks
     private float mLodFactor = 1;
-
     RectF mRect = new RectF();
 
     float mScreenHeight, mScreenWidth;
 
-    public void setViewSize(float width, float height) {
-        mScreenHeight = height;
-        mScreenWidth = width;
-    }
-
-    public void updateViewport() {
+    public void scalePos2Viewport() {
         mRect.top = (0 - mPosY) / mScaleY;
         mRect.bottom = (mScreenHeight - mPosY) / mScaleY;
         mRect.left = (0 - mPosX) / mScaleX;
         mRect.right = (mScreenWidth - mPosX) / mScaleX;
     }
 
+    public void viewport2ScalePos() {
+        mScaleX = mScreenWidth/(mRect.right-mRect.left);
+        mPosX = -mRect.left * mScaleX;
+
+        mScaleY = mScreenHeight/(mRect.bottom-mRect.top);
+        mPosY = -mRect.top * mScaleY;
+
+        mLod = (float) Math.pow(2, Math.floor(Math.log(mScaleX) / Math.log(2) + 0.0f));
+    }
+
     public float getLod() { return mLodFactor * mLod; }
     public void setLodFactor(float factor) { mLodFactor = factor; }
+
+    public void setSpanHorizontal(float x1, float x2) {
+        mRect.left = x1;
+        mRect.right = x2;
+        viewport2ScalePos();
+    }
+
+    public void setSpanVertical(float y1, float y2) {
+        mRect.top = y1;
+        mRect.bottom = y2;
+        viewport2ScalePos();
+    }
+
+    public void setViewSize(float width, float height) {
+        mScreenHeight = height;
+        mScreenWidth = width;
+
+        viewport2ScalePos();
+    }
 
     public float applyPosScaleX(float x) {
         return (x * mScaleX) + mPosX;
@@ -57,14 +80,19 @@ public class Viewport {
 
         mVelX = 0; mVelY = 0;
 
+        viewport2ScalePos();
+
         mPosX -= distanceX;
         mPosY -= distanceY;
-        updateViewport();
+
+        scalePos2Viewport();
     }
 
     public void onScale(float focusX, float focusY, float scaleX, float scaleY) {
 
         mVelX = 0; mVelY = 0;
+
+        viewport2ScalePos();
 
         float oldScaleFactorX = mScaleX;
         mScaleX *= (scaleX*scaleX);
@@ -88,14 +116,15 @@ public class Viewport {
         mPosX = focusX - dxSc;
         mPosY = focusY - dySc;
 
-        mLod = (float)Math.pow(2, Math.floor(Math.log(mScaleX)/Math.log(2)+0.5f));
+        mLod = (float)Math.pow(2, Math.floor(Math.log(mScaleX)/Math.log(2)+0.0f));
 
-        updateViewport();
+        scalePos2Viewport();
     }
 
     public void onFling(float velX, float velY)
     {
-        mVelX = velX; mVelY = velY;
+        mVelX = -velX/mScaleX;
+        mVelY = -velY/mScaleY;
     }
 
     public boolean onDown(MotionEvent e) {
@@ -108,8 +137,10 @@ public class Viewport {
         boolean bDoInvalidate = false;
 
         if (Math.abs(mVelX) > 0.001f || Math.abs(mVelY) > 0.001f) {
-            mPosX += mVelX ;
-            mPosY += mVelY;
+            mRect.left += mVelX ;
+            mRect.right += mVelX ;
+            mRect.top += mVelY;
+            mRect.bottom += mVelY;
 
             mVelX *= 0.99f;
             mVelY *= 0.99f;
@@ -119,23 +150,27 @@ public class Viewport {
 
         // spring to center the track
         //
-        if (mPosX > 0.001) {
+        if (mRect.left < -0.001) {
             mVelX = 0;
-            mPosX += (0 - mPosX) * .1;
+            float v = (0 - mRect.left) * 0.1f;
+            mRect.left += v;
+            mRect.right += v;
             bDoInvalidate = true;
         }
 
-        if (mPosY > 0.001) {
+        if (mRect.top < -0.001) {
             mVelY = 0;
-            mPosY += (0 - mPosY) * .1;
+            float v = (0 - mRect.top) * 0.1f;
+            mRect.top += v;
+            mRect.bottom += v;
             bDoInvalidate = true;
         }
 
-        if (bDoInvalidate) {
-            updateViewport();
-            return true;
+        if (bDoInvalidate)
+        {
+            viewport2ScalePos();
         }
 
-        return false;
+        return bDoInvalidate;
     }
 }

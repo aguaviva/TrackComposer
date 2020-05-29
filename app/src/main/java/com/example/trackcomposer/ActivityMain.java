@@ -96,6 +96,8 @@ public class ActivityMain extends AppCompatActivity {
         rigControls();
 
         mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
+        mTimeLine.setTimeSpan(0,256);
+        mTimeLine.mViewport.setSpanVertical(0,8);
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -118,7 +120,7 @@ public class ActivityMain extends AppCompatActivity {
 
         //
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true, PatternBaseView.ViewMode.MAIN);
+        masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine,true, PatternBaseView.ViewMode.MAIN);
         masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
 
@@ -191,6 +193,7 @@ public class ActivityMain extends AppCompatActivity {
                 float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
                 editPattern(noteTouched);
+
                 return noteTouched!=null;
             }
             @Override
@@ -451,7 +454,7 @@ public class ActivityMain extends AppCompatActivity {
                     mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
                     timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                     setTrackNames();
-                    masterView.SetPattern(mAppState.mPatternMaster, mTimeLine,true,PatternBaseView.ViewMode.MAIN);
+                    masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine,true,PatternBaseView.ViewMode.MAIN);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
                     generateIcons();
                     masterView.invalidate();
@@ -719,7 +722,7 @@ public class ActivityMain extends AppCompatActivity {
             PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(key);
 
             timeLine.init(pattern, 1);
-            pbv.SetPattern(pattern, timeLine,false, PatternBaseView.ViewMode.PIANO);
+            pbv.SetPattern(mAppState.mPatternMaster, -1, timeLine,false, PatternBaseView.ViewMode.PIANO);
             Bitmap b = pbv.getBitmapFromView((int)(25 * pattern.GetLength()), 3 * pattern.mChannels);
             mAppState.mPatternImgDataBase.put(key, b);
         }
