@@ -51,7 +51,6 @@ public class PatternBaseView extends View {
 
     private ArrayList<Event> mSelectedEvents = new ArrayList<Event>();
 
-    float mRowHeight = 0;
     float mColumnWidth = 0;
     int mChannels = 0;
     float mLength = 0;
@@ -265,13 +264,11 @@ public class PatternBaseView extends View {
             max = 0;
         }
 
-        mRowHeight = getHeight()/ (float)mChannels;
-
         max = indexToNote(max);
-        mViewport.mPosY = (-max)* mRowHeight;
+        mViewport.mPosY = (-max);
 
         if (instrumentListener!=null) {
-            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
         }
     }
 
@@ -283,7 +280,6 @@ public class PatternBaseView extends View {
 
         mColumnWidth = 1.0f;
         mLength = mMasterPattern.GetLength();
-        mRowHeight = 1.0f;//contentHeight/ (float)mChannels;
 
         // Set canvas zoom and pan
         //
@@ -292,8 +288,8 @@ public class PatternBaseView extends View {
         canvas.scale(mViewport.mScaleX, mViewport.mScaleY);
 
         // channels
-        int iniTop = (int)Math.floor(mViewport.mRect.top / mRowHeight);
-        int finBottom = (int)Math.ceil(mViewport.mRect.bottom / mRowHeight);
+        int iniTop = (int)Math.floor(mViewport.mRect.top);
+        int finBottom = (int)Math.ceil(mViewport.mRect.bottom);
         if (iniTop<0) iniTop = 0;
         if (finBottom>88) finBottom = 88;
 
@@ -312,8 +308,8 @@ public class PatternBaseView extends View {
                 RectF rf = new RectF();
                 rf.left = 0;
                 rf.right = mMasterPattern.GetLength();
-                rf.top = i * mRowHeight;
-                rf.bottom = (i + 1) * mRowHeight;
+                rf.top = i;
+                rf.bottom = (i + 1);
 
                 boolean isWhite = true;
                 if (mBaseNote >=0)
@@ -328,8 +324,8 @@ public class PatternBaseView extends View {
             }
 
             //vertical lines
-            float yTop = iniTop * mRowHeight;
-            float yBottom = finBottom * mRowHeight;
+            float yTop = iniTop;
+            float yBottom = finBottom;
 
             for (int i=columnLeft;i<columnRight;i++) {
 
@@ -352,7 +348,7 @@ public class PatternBaseView extends View {
         if (mChannel==-1) {
             RectF rectBackground = new RectF();
             rectBackground.top = 0;
-            rectBackground.bottom = 8 * mRowHeight;
+            rectBackground.bottom = 8;
             rectBackground.left = 0;
             rectBackground.right = mMasterPattern.GetLength();
             mViewport.applyPosScaleRect(rectBackground);
@@ -367,7 +363,7 @@ public class PatternBaseView extends View {
         } else {
             RectF rectBackground = new RectF();
             rectBackground.top = 0;
-            rectBackground.bottom = 88 * mRowHeight;
+            rectBackground.bottom = 88;
             rectBackground.left = 0;
             rectBackground.right = mMasterPattern.GetLength();
             mViewport.applyPosScaleRect(rectBackground);
@@ -391,7 +387,7 @@ public class PatternBaseView extends View {
         if (mViewport.springToScreen())
         {
             if (instrumentListener != null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
             }
             invalidate();
         }
@@ -564,7 +560,7 @@ public class PatternBaseView extends View {
                     if (mMasterPattern.mPatternDataBase.get(event.mId) == pb) {
                         pointF.x = mViewport.applyPosScaleX(x + event.mTime);
 
-                        float rowF = Misc.map(y, 0, 88, 0, 88 * mRowHeight);
+                        float rowF = Misc.map(y, 0, 88, 0, 88);
                         pointF.y = mViewport.applyPosScaleY(rowF);
                         return true;
                     }
@@ -573,7 +569,7 @@ public class PatternBaseView extends View {
             case MAIN: {
                 pointF.x = mViewport.applyPosScaleX(x);
 
-                float rowF = Misc.map(y, 0, 8, 0, 8 * mRowHeight);
+                float rowF = Misc.map(y, 0, 8, 0, 8);
                 pointF.y = mViewport.applyPosScaleY(rowF);
                 return true;
             }
@@ -589,7 +585,7 @@ public class PatternBaseView extends View {
         float rowF = mViewport.removePosScaleY(y);
         switch(mViewMode) {
             case PIANO: {
-                rowF = Misc.map(rowF, 0, 88 * mRowHeight, 0, 88);
+                rowF = Misc.map(rowF, 0, 88, 0, 88);
 
                 Event event = mMasterPattern.get(mChannel, time);
                 if (event == null)
@@ -600,7 +596,7 @@ public class PatternBaseView extends View {
                 break;
             }
             case MAIN: {
-                rowF = Misc.map(rowF, 0, 8 * mRowHeight, 0, 8);
+                rowF = Misc.map(rowF, 0, 8, 0, 8);
 
                 mPattern = mMasterPattern;
                 break;
@@ -990,7 +986,7 @@ public class PatternBaseView extends View {
             gestureInProgress = GentureInProgress.patternPanning;
             mViewport.onDrag(distanceX, distanceY);
             if (instrumentListener != null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
             }
 
             invalidate();
@@ -1020,7 +1016,7 @@ public class PatternBaseView extends View {
 
             mViewport.onScale(detector.getFocusX(), detector.getFocusY(), scaleX, scaleY);
             if (instrumentListener!=null) {
-                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, mRowHeight);
+                instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
             }
 
             invalidate();
