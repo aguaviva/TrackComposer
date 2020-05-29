@@ -101,8 +101,8 @@ class Viewport {
         mScaleY *= (scaleY*scaleY);
 
         // Don't let the object get too small or too large.
-        mScaleX = Math.max(0.1f, Math.min(mScaleX, 20.0f));
-        mScaleY = Math.max(0.1f, Math.min(mScaleY, 20.0f));
+        mScaleX = Math.max(0.1f, Math.min(mScaleX, 80.0f));
+        mScaleY = Math.max(0.1f, Math.min(mScaleY, 200.0f));
 
         //distance between focus and old origin
         float dx = focusX-mPosX;

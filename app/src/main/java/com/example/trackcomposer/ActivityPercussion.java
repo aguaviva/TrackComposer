@@ -78,8 +78,6 @@ public class ActivityPercussion extends AppCompatActivity {
             public void scaling(float x, float y, float scale, float trackHeight) {
                 timeLineView.init(mPattern, mTimeLine);
                 timeLineView.invalidate();
-
-                mPatternHeaderView.setPosScale(trackHeight);
                 mPatternHeaderView.invalidate();
             }
             @Override

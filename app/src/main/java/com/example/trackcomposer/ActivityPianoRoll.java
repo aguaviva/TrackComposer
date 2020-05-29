@@ -25,8 +25,11 @@ public class ActivityPianoRoll extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pianoroll);
+
+        //main_toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setSubtitle("Piano roll");
 
         LinearLayout linearLayout = (LinearLayout)findViewById(R.id.left_side);
         linearLayout.addView(getLayoutInflater().inflate(R.layout.edit_checkbox, null));
@@ -37,7 +40,9 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         patternPianoRoll = (PatternPianoRoll)mAppState.mLastPatternAdded;
 
-        mTimeLine.init(patternPianoRoll, 1); // at scale 1, draw 1 vertical line every tick
+        mTimeLine.init(patternPianoRoll, 16); // at scale 1, draw 1 vertical line every tick
+        mTimeLine.setTimeSpan(48,64);
+        mTimeLine.mViewport.setSpanVertical(patternPianoRoll.getMinChannel(),patternPianoRoll.getMaxChannel());
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -46,8 +51,8 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
+                mAppState.mPatternMaster.setTime(time);
                 mNoteView.invalidate();
-                //mAppState.setLoop(time, (1 * 16 * 16));
             }
             @Override
             public void onPatternEnd(float time)
@@ -133,8 +138,6 @@ public class ActivityPianoRoll extends AppCompatActivity {
             {
                 timeLineView.init(patternPianoRoll, mTimeLine);
                 timeLineView.invalidate();
-
-                mPatternHeaderView.setPosScale(trackHeight);
                 mPatternHeaderView.invalidate();
             }
             @Override

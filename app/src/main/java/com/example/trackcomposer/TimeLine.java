@@ -11,8 +11,6 @@ public class TimeLine {
         mViewport.setLodFactor(1.0f/bias); // 4 is the number of
     }
 
-    float mTickWidth;
-
     public void setViewSize(float width, float height) {
 
         mViewport.setViewSize(width, height);
@@ -20,11 +18,6 @@ public class TimeLine {
         int length = 16;
         if (mPattern!=null)
             length = (int)mPattern.GetLength();
-        mTickWidth = 1.0f;//mViewport.mScreenWidth / length;
-    }
-
-    public float getTickWidth() {
-        return 1.0f;//mTickWidth;
     }
 
     public float getLength() {
@@ -41,28 +34,26 @@ public class TimeLine {
 
     public void setTimeSpan(float t1, float t2)
     {
-        mViewport.setSpanHorizontal(t1 * getTickWidth(), t2 * getTickWidth());
+        mViewport.setSpanHorizontal(t1, t2);
     }
 
     public int getLeftTick(float tickWidth) {
-        return (int) Math.max(Math.floor(mViewport.mRect.left / tickWidth), 0); // 0 ticks
+        return (int) Math.max(Math.floor(mViewport.mRect.left * tickWidth), 0); // 0 ticks
     }
 
     public int getRightTick(float tickWidth) {
-        return (int)Math.ceil(mViewport.mRect.right / tickWidth); // 256 ticks
+        return (int)Math.ceil(mViewport.mRect.right * tickWidth); // 256 ticks
     }
 
     public float getTimeFromScreen(float x)
     {
-        x = mViewport.removePosScaleX(x);
-        return x / getTickWidth();
+        return mViewport.removePosScaleX(x);
     }
-
 
     public float getRoundedTimeFromScreen(float x)
     {
         x = mViewport.removePosScaleX(x);
-        return (float)Math.floor(x / ((getTickWidth()/mViewport.getLod())))/mViewport.getLod();
+        return (float)Math.floor(x *mViewport.getLod())/mViewport.getLod();
     }
 
 }

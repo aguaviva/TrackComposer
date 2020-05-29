@@ -45,13 +45,13 @@ public class PatternHeaderView extends View {
         mTextBlack.setColor(Color.BLACK);
         mTextBlack.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextBlack.setTextAlign(Paint.Align.LEFT);
-        mTextBlack.setTextSize(40);
+        mTextBlack.setTextSize(1);
 
         mTextWhite = new TextPaint();
         mTextWhite.setColor(Color.WHITE);
         mTextWhite.setFlags(Paint.ANTI_ALIAS_FLAG);
         mTextWhite.setTextAlign(Paint.Align.LEFT);
-        mTextWhite.setTextSize(40);
+        mTextWhite.setTextSize(1);
 
         black = new Paint();
         black.setColor(Color.BLACK);
@@ -84,14 +84,6 @@ public class PatternHeaderView extends View {
         this.bInvertY = bInvertY;
     }
 
-
-    protected float mRowHeight = 0;
-
-    public void setPosScale(float trackHeight)
-    {
-        mRowHeight = trackHeight;
-    }
-
     int indexToNote(int y)
     {
         return (bInvertY)?(88 - y):y;
@@ -102,16 +94,15 @@ public class PatternHeaderView extends View {
         super.onDraw(canvas);
 
         canvas.translate(0, mTimeLine.mViewport.mPosY);
-        canvas.scale(1, mTimeLine.mViewport.mScaleY);
+        canvas.scale(mTimeLine.mViewport.mScaleY, mTimeLine.mViewport.mScaleY);
 
         // Draw background
         //
-        int ini = (int)Math.floor(mTimeLine.mViewport.mRect.top / mRowHeight);
-        int fin = (int)Math.ceil(mTimeLine.mViewport.mRect.bottom / mRowHeight);
+        int ini = (int)Math.floor(mTimeLine.mViewport.mRect.top);
+        int fin = (int)Math.ceil(mTimeLine.mViewport.mRect.bottom);
 
         if (ini<0) ini = 0;
         if (fin>88) fin = 88;
-
 
         float left = 0;
         float right = getWidth();
@@ -130,21 +121,22 @@ public class PatternHeaderView extends View {
             RectF rf = new RectF();
             rf.left = left;
             rf.right = right;
-            rf.top = i * mRowHeight;
-            rf.bottom = (i + 1) * mRowHeight;
+            rf.top = i;
+            rf.bottom = (i + 1);
 
             if (bIsBlack) {
                 canvas.drawRect(rf, box);
             }
 
-            float y = ((rf.top + rf.bottom)/2) + (mTextBlack.getTextSize() / 2);
-            float x = 5;
+            //float y = ((rf.top + rf.bottom)/2.0f) + (mTextBlack.getTextSize() / 2.0f);
+            float y = (rf.bottom);// + (mTextBlack.getTextSize() / 2.0f);
+            float x = 5.0f/mTimeLine.mViewport.mScaleY;
             canvas.drawText(str, x, y, bIsBlack?mTextWhite:mTextBlack);
         }
 
         // horizontal lines
         for (int i = ini; i < fin; i++) {
-            float y = i* mRowHeight;
+            float y = i;
             canvas.drawLine(0, y, mTimeLine.mViewport.mRect.right, y, black);
         }
     }
@@ -154,7 +146,7 @@ public class PatternHeaderView extends View {
 
         int eventAction = event.getAction();
 
-        int touchY = (int)(event.getY()/ mRowHeight);
+        int touchY = (int)(event.getY());
 
         // put your code in here to handle the event
         switch (eventAction) {

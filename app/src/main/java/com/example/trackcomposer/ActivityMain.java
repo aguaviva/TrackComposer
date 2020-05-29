@@ -106,7 +106,6 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
-                //mAppState.setLoop((int) time, (int) (1 * 16 * 16));
                 mAppState.mPatternMaster.setTime(time);
                 masterView.invalidate();
             }
@@ -167,7 +166,6 @@ public class ActivityMain extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
                 timeLineView.init(mAppState.mPatternMaster, mTimeLine);
-
                 timeLineView.invalidate();
             }
             @Override
@@ -249,8 +247,6 @@ public class ActivityMain extends AppCompatActivity {
         {
             eventSelected.mDuration = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.mId).GetLength();
         }
-
-        generateIcons();
     }
 
     void rigControls()
@@ -456,7 +452,7 @@ public class ActivityMain extends AppCompatActivity {
                     setTrackNames();
                     masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine,true,PatternBaseView.ViewMode.MAIN);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
-                    generateIcons();
+
                     masterView.invalidate();
 
                     //overwrite listener with our own
@@ -711,21 +707,6 @@ public class ActivityMain extends AppCompatActivity {
 
         startActivity(intent);
         masterView.invalidate();
-    }
-
-    public void generateIcons()
-    {
-        PatternBaseView pbv = new PatternBaseView(this);
-        TimeLine timeLine = new TimeLine();
-        pbv.patternImgDataBase(null);
-        for (Integer key : mAppState.mPatternMaster.mPatternDataBase.keySet()) {
-            PatternBase pattern = mAppState.mPatternMaster.mPatternDataBase.get(key);
-
-            timeLine.init(pattern, 1);
-            pbv.SetPattern(mAppState.mPatternMaster, -1, timeLine,false, PatternBaseView.ViewMode.PIANO);
-            Bitmap b = pbv.getBitmapFromView((int)(25 * pattern.GetLength()), 3 * pattern.mChannels);
-            mAppState.mPatternImgDataBase.put(key, b);
-        }
     }
 
 

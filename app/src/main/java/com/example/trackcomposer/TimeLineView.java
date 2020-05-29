@@ -78,14 +78,14 @@ public class TimeLineView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        mIni = mTimeLine.getLeftTick(mTimeLine.getTickWidth()/mViewport.getLod());
-        mFin = mTimeLine.getRightTick(mTimeLine.getTickWidth()/mViewport.getLod());
+        mIni = mTimeLine.getLeftTick(mViewport.getLod());
+        mFin = mTimeLine.getRightTick(mViewport.getLod());
 
         float hh = getHeight() / 5.0f;
 
         for (int i=mIni;i<mFin;i++) {
 
-            float x = mViewport.applyPosScaleX(i * mTimeLine.getTickWidth() / mViewport.getLod());
+            float x = mViewport.applyPosScaleX(i / mViewport.getLod());
 
             float h = 0;
             if (i % 4 == 0) {
@@ -100,7 +100,7 @@ public class TimeLineView extends View {
 
         // draw time pos marker
         {
-            float time =  (mTimeLine.getTime() * mTimeLine.getTickWidth());
+            float time =  (mTimeLine.getTime());
             float x = mViewport.applyPosScaleX(time);
             RectF rf = new RectF();
             rf.top = 0;
@@ -112,7 +112,7 @@ public class TimeLineView extends View {
 
         // draw track length marker
         {
-            float endTime =  (mTimeLine.getLength() * mTimeLine.getTickWidth());
+            float endTime =  (mTimeLine.getLength());
             float x = mViewport.applyPosScaleX(endTime);
             RectF rf = new RectF();
             rf.top = 0;

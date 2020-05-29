@@ -51,7 +51,6 @@ public class PatternBaseView extends View {
 
     private ArrayList<Event> mSelectedEvents = new ArrayList<Event>();
 
-    float mColumnWidth = 0;
     int mChannels = 0;
     float mLength = 0;
 
@@ -205,7 +204,8 @@ public class PatternBaseView extends View {
     }
 
     int indexToNote(int y) {
-        return (bInvertY) ? (88 - y) : y;
+        //return (bInvertY) ? (88 - y) : y;
+        return y;
     }
 
     public void setCurrentBeat(float currentBeat) {
@@ -217,15 +217,13 @@ public class PatternBaseView extends View {
     {
         if (mTimeLine!=null) {
             mTimeLine.setViewSize(getWidth(), getHeight());
-
             centerViewInNotes();
-
-            //mTimeLine.mViewport.updateViewport();
         }
     }
 
     void centerViewInNotes()
     {
+        /*
         int min = 88;
         int max = 0;
         for(int i=0;;i++) {
@@ -239,7 +237,6 @@ public class PatternBaseView extends View {
         }
 
         if (mViewMode == ViewMode.PIANO) {
-
             mChannels = max - min +1;
             if (max == 0) {
                 max = (40 + 12) -1;
@@ -255,7 +252,8 @@ public class PatternBaseView extends View {
         else if (mViewMode == ViewMode.MAIN) {
             if (mChannels < 8) {
                 mChannels = 8;
-                max = 0;
+                min = 0;
+                max = 8;
             }
         }
         else if (mViewMode == ViewMode.CHORDS)
@@ -265,20 +263,19 @@ public class PatternBaseView extends View {
         }
 
         max = indexToNote(max);
-        mViewport.mPosY = (-max);
+        mViewport.setSpanVertical(min,max);
 
         if (instrumentListener!=null) {
             instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
         }
+
+         */
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float contentHeight = getHeight();
-
-        mColumnWidth = 1.0f;
         mLength = mMasterPattern.GetLength();
 
         // Set canvas zoom and pan
@@ -294,8 +291,8 @@ public class PatternBaseView extends View {
         if (finBottom>88) finBottom = 88;
 
         // ticks
-        int columnLeft = mTimeLine.getLeftTick(1.0f/mViewport.getLod());
-        int columnRight = mTimeLine.getRightTick(1.0f/mViewport.getLod());
+        int columnLeft = mTimeLine.getLeftTick(mViewport.getLod());
+        int columnRight = mTimeLine.getRightTick(mViewport.getLod());
         if (columnLeft<0) columnLeft = 0;
         if (columnRight>mLength*mViewport.getLod()) columnRight = (int)(mLength*mViewport.getLod());
 
@@ -324,23 +321,20 @@ public class PatternBaseView extends View {
             }
 
             //vertical lines
-            float yTop = iniTop;
-            float yBottom = finBottom;
-
             for (int i=columnLeft;i<columnRight;i++) {
 
                 float x = i/mViewport.getLod();
 
                 if (((i%16)==0)) {
-                    canvas.drawLine(x, yTop, x, yBottom, white);
+                    canvas.drawLine(x, iniTop, x, finBottom, white);
                 }
                 else if (i%4==0) {
-                    canvas.drawLine(x, yTop, x, yBottom, ltgray);
+                    canvas.drawLine(x, iniTop, x, finBottom, ltgray);
                 }
             }
 
             // Draw cursor
-            canvas.drawRect((mCurrentBeat * mColumnWidth), 0, ((mCurrentBeat + 1) * mColumnWidth), yBottom, blue);
+            canvas.drawRect(mCurrentBeat, 0, (mCurrentBeat + 1), finBottom, blue);
         }
 
         canvas.restore();
@@ -1040,17 +1034,4 @@ public class PatternBaseView extends View {
     }
     private InstrumentListener instrumentListener;
 
-    //-----------------------------------------------------
-
-    public Bitmap getBitmapFromView(int width, int height) {
-        measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED);
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        layout(0, 0, width, height);
-        centerViewInNotes();
-        mLOD = 1;
-        draw(canvas);
-        mLOD = 0;
-        return bitmap;
-    }
 }
