@@ -172,6 +172,7 @@ class Viewport {
         }
 
         if (mRect.left < mLimits.left && mRect.right>mLimits.right) {
+            mVelX = 0;
             mRect.left += (mLimits.left - mRect.left) * 0.1f;
             mRect.right += (mLimits.right - mRect.right) * 0.1f;
         }
@@ -195,6 +196,7 @@ class Viewport {
         }
 
         if (mRect.top < mLimits.top && mRect.bottom>mLimits.bottom) {
+            mVelY = 0;
             mRect.top += (mLimits.top - mRect.top) * 0.1f;
             mRect.bottom += (mLimits.bottom - mRect.bottom) * 0.1f;
         }
