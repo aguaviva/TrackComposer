@@ -28,7 +28,9 @@ public class ActivityPercussion extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         mPattern = (PatternPercussion)mAppState.mLastPatternAdded;
 
-        mTimeLine.init(mPattern, 1); //
+        mTimeLine.init(mPattern, 16); //
+        mTimeLine.setTimeSpan(48,64);
+        mTimeLine.mViewport.setSpanVertical(mPattern.getMinChannel(),mPattern.getMaxChannel());
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -59,16 +61,20 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public String getInstrumentName(int channel)
             {
+
                 if (mPattern.mInstrumentId >=0) {
                     InstrumentPercussion p = (InstrumentPercussion)mAppState.instrumentList.get(mPattern.mInstrumentId);
-                    return p.GetChannelName(channel);
+                    if (channel<p.mChannels.length)
+                        return p.GetChannelName(channel);
+                    else
+                        return "---";
                 }
                 return "none";
             }
         });
 
         mDrumTracker = (PatternBaseView)findViewById(R.id.tracksView);
-        mDrumTracker.SetPattern(null, 0, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
+        mDrumTracker.SetPattern(mAppState.mPatternMaster, 0, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {
