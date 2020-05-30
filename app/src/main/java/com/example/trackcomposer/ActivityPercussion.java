@@ -31,6 +31,7 @@ public class ActivityPercussion extends AppCompatActivity {
         mTimeLine.init(mPattern, 16); //
         mTimeLine.setTimeSpan(48,64);
         mTimeLine.mViewport.setSpanVertical(mPattern.getMinChannel(),mPattern.getMaxChannel());
+        mTimeLine.mViewport.setLimits(0,0,256,8);
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);

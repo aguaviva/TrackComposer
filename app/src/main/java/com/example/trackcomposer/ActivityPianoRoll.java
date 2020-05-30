@@ -43,6 +43,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mTimeLine.init(patternPianoRoll, 16); // at scale 1, draw 1 vertical line every tick
         mTimeLine.setTimeSpan(48,64);
         mTimeLine.mViewport.setSpanVertical(patternPianoRoll.getMinChannel(),patternPianoRoll.getMaxChannel());
+        mTimeLine.mViewport.setLimits(0,0,256,88);
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -200,6 +201,17 @@ public class ActivityPianoRoll extends AppCompatActivity {
         super.onResume();
 
         mWidgetVcrControl.onResume(mTimeLine, timeLineView);
+
+        //overwrite listener with our own
+        mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
+            @Override
+            public void beat(float currentBeat) {
+                mNoteView.setCurrentBeat(currentBeat);
+                mNoteView.invalidate();
+                mTimeLine.setTime(mAppState.mPatternMaster.getTime());
+                timeLineView.invalidate();
+            }
+        });
     }
 
 

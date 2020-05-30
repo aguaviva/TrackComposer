@@ -10,6 +10,7 @@ class Viewport {
     private float mLod = 1; // for ticks
     private float mLodFactor = 1;
     RectF mRect = new RectF();
+    RectF mLimits = new RectF();
 
     float mScreenHeight, mScreenWidth;
 
@@ -37,6 +38,10 @@ class Viewport {
         mRect.left = x1;
         mRect.right = x2;
         viewport2ScalePos();
+    }
+
+    public void setLimits(float left,float top,float right,float bottom) {
+        mLimits.set(left,top,right,bottom);
     }
 
     public void setSpanVertical(float y1, float y2) {
@@ -148,22 +153,50 @@ class Viewport {
             bDoInvalidate = true;
         }
 
-        // spring to center the track
+        // spring to center the track vertically
         //
-        if (mRect.left < -0.001) {
+        if (mRect.left < mLimits.left) {
             mVelX = 0;
-            float v = (0 - mRect.left) * 0.1f;
+            float v = (mLimits.left - mRect.left) * 0.1f;
             mRect.left += v;
             mRect.right += v;
             bDoInvalidate = true;
         }
 
-        if (mRect.top < -0.001) {
+        if (mRect.right>mLimits.right) {
+            mVelX = 0;
+            float v = (mLimits.right - mRect.right) * 0.1f;
+            mRect.left += v;
+            mRect.right += v;
+            bDoInvalidate = true;
+        }
+
+        if (mRect.left < mLimits.left && mRect.right>mLimits.right) {
+            mRect.left += (mLimits.left - mRect.left) * 0.1f;
+            mRect.right += (mLimits.right - mRect.right) * 0.1f;
+        }
+
+        // spring to center the track vertically
+        //
+        if (mRect.top < mLimits.top) {
             mVelY = 0;
-            float v = (0 - mRect.top) * 0.1f;
+            float v = (mLimits.top - mRect.top) * 0.1f;
             mRect.top += v;
             mRect.bottom += v;
             bDoInvalidate = true;
+        }
+
+        if (mRect.bottom>mLimits.bottom) {
+            mVelY = 0;
+            float v = (mLimits.bottom - mRect.bottom) * 0.1f;
+            mRect.top += v;
+            mRect.bottom += v;
+            bDoInvalidate = true;
+        }
+
+        if (mRect.top < mLimits.top && mRect.bottom>mLimits.bottom) {
+            mRect.top += (mLimits.top - mRect.top) * 0.1f;
+            mRect.bottom += (mLimits.bottom - mRect.bottom) * 0.1f;
         }
 
         if (bDoInvalidate)

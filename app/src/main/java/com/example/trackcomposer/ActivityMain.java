@@ -98,6 +98,7 @@ public class ActivityMain extends AppCompatActivity {
         mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
         mTimeLine.setTimeSpan(0,256);
         mTimeLine.mViewport.setSpanVertical(0,8);
+        mTimeLine.mViewport.setLimits(0,0,256,8);
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
@@ -209,16 +210,7 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        //overwrite listener with our own
-        mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
-            @Override
-            public void beat(float currentBeat) {
-                masterView.setCurrentBeat(currentBeat);
-                masterView.invalidate();
-                mTimeLine.setTime(mAppState.mPatternMaster.getTime());
-                timeLineView.invalidate();
-            }
-        });
+
 
         isStoragePermissionGranted();
 
@@ -242,6 +234,17 @@ public class ActivityMain extends AppCompatActivity {
 
         //mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
         mWidgetVcrControl.onResume(mTimeLine, timeLineView);
+
+        //overwrite listener with our own
+        mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
+            @Override
+            public void beat(float currentBeat) {
+                masterView.setCurrentBeat(currentBeat);
+                masterView.invalidate();
+                mTimeLine.setTime(mAppState.mPatternMaster.getTime());
+                timeLineView.invalidate();
+            }
+        });
 
         if (eventSelected!=null)
         {

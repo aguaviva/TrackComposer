@@ -287,8 +287,8 @@ public class PatternBaseView extends View {
         // channels
         int iniTop = (int)Math.floor(mViewport.mRect.top);
         int finBottom = (int)Math.ceil(mViewport.mRect.bottom);
-        if (iniTop<0) iniTop = 0;
-        if (finBottom>88) finBottom = 88;
+        if (iniTop<(int)mViewport.mLimits.top) iniTop = (int)mViewport.mLimits.top;
+        if (finBottom>(int)mViewport.mLimits.bottom) finBottom = (int)mViewport.mLimits.bottom;
 
         // ticks
         int columnLeft = mTimeLine.getLeftTick(mViewport.getLod());
