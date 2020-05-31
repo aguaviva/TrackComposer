@@ -46,7 +46,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         patternPianoRoll = (PatternPianoRoll)mAppState.mPatternMaster.mPatternDataBase.get(patternId);
 
-        mTimeLine.init(patternPianoRoll, 16); // at scale 1, draw 1 vertical line every tick
+        mTimeLine.init(mAppState.mPatternMaster, 16); // at scale 1, draw 1 vertical line every tick
         mTimeLine.setTimeSpan(timeBegin,timeEnd);
         int min = patternPianoRoll.getMinChannel();
         int max = patternPianoRoll.getMaxChannel();
@@ -56,7 +56,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         //
         timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
-        timeLineView.init(patternPianoRoll, mTimeLine);
+        timeLineView.init(mAppState.mPatternMaster, mTimeLine);
         timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
             @Override
             public void onTimeChanged(float time)
@@ -146,7 +146,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
             @Override
             public void scaling(float x, float y, float scale, float trackHeight)
             {
-                timeLineView.init(patternPianoRoll, mTimeLine);
+                timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                 timeLineView.invalidate();
                 mPatternHeaderView.invalidate();
             }
