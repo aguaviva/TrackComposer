@@ -50,25 +50,26 @@ public class ActivityMain extends AppCompatActivity {
     Context mContext;
     TimeLine mTimeLine = new TimeLine();
     TimeLineView timeLineView;
-    int mNote=-1, mBeat=-1;
+    int mNote = -1, mBeat = -1;
     WidgetVcrControl mWidgetVcrControl;
-    enum PatternType
-    {
+
+    enum PatternType {
         none,
         PianoRoll,
         Percussion,
         Chords
-    };
+    }
 
-    public class Track
-    {
+    ;
+
+    public class Track {
         PatternType patternType;
         View trackControls;
         TextView trackNames;
         SeekBar trackVolumes;
     }
 
-    Track [] mTracks;
+    Track[] mTracks;
 
     int mRowSelected;
     Event eventSelected;
@@ -90,29 +91,28 @@ public class ActivityMain extends AppCompatActivity {
         //sn.Init(this);
         //String str = stringFromJNI();
 
-        mAppState = ((ApplicationClass)this.getApplication());
+        mAppState = ((ApplicationClass) this.getApplication());
         mAppState.Init();
 
         rigControls();
 
         mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
-        mTimeLine.setTimeSpan(0,256);
-        mTimeLine.mViewport.setSpanVertical(0,8);
-        mTimeLine.mViewport.setLimits(0,0,256,8);
+        mTimeLine.setTimeSpan(0, 256);
+        mTimeLine.mViewport.setSpanVertical(0, 8);
+        mTimeLine.mViewport.setLimits(0, 0, 256, 8);
 
         //
-        timeLineView = (TimeLineView)findViewById(R.id.timeLineView);
+        timeLineView = (TimeLineView) findViewById(R.id.timeLineView);
         timeLineView.init(mAppState.mPatternMaster, mTimeLine);
         timeLineView.setTimeLineListener(new TimeLineView.TimeLineListener() {
             @Override
-            public void onTimeChanged(float time)
-            {
+            public void onTimeChanged(float time) {
                 mAppState.mPatternMaster.setTime(time);
                 masterView.invalidate();
             }
+
             @Override
-            public void onPatternEnd(float time)
-            {
+            public void onPatternEnd(float time) {
                 masterView.GetPattern().SetLength(time);
                 masterView.invalidate();
             }
@@ -120,20 +120,21 @@ public class ActivityMain extends AppCompatActivity {
 
         //
         masterView = (PatternBaseView) findViewById(R.id.masterView);
-        masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine,true, PatternBaseView.ViewMode.MAIN);
+        masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
         masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
 
             Event noteDown;
             float orgTime = 0;
+
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {
-                int rowSelected = (int)event.getY();
+                int rowSelected = (int) event.getY();
                 float time = event.getX();
 
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     noteDown = mAppState.mPatternMaster.get(rowSelected, time);
-                    if (noteDown!=null) {
+                    if (noteDown != null) {
                         orgTime = time;
 
                         if (masterView.isEventSelected(noteDown)) {
@@ -143,11 +144,8 @@ public class ActivityMain extends AppCompatActivity {
                         }
                         return true;
                     }
-                }
-                else if (event.getAction() == MotionEvent.ACTION_MOVE)
-                {
-                    if (noteDown!=null)
-                    {
+                } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                    if (noteDown != null) {
                         float deltaTime = time - orgTime;
 
                         masterView.selectMove(deltaTime, 0);
@@ -164,18 +162,19 @@ public class ActivityMain extends AppCompatActivity {
 
                 return false;
             }
+
             @Override
             public void scaling(float x, float y, float scale, float trackHeight) {
                 timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                 timeLineView.invalidate();
             }
+
             @Override
-            public boolean longPress(MotionEvent event)
-            {
-                int rowSelected = (int)event.getY();
+            public boolean longPress(MotionEvent event) {
+                int rowSelected = (int) event.getY();
                 float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
-                if (noteTouched!=null) {
+                if (noteTouched != null) {
                     eventSelected = noteTouched;
                     mRowSelected = rowSelected;
                     createPopUpMenu(new PointF());
@@ -186,21 +185,27 @@ public class ActivityMain extends AppCompatActivity {
                 return false;
 
             }
+
             @Override
             public boolean onDoubleTap(MotionEvent event) {
-                int rowSelected = (int)event.getY();
+                int rowSelected = (int) event.getY();
                 float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
-                editPattern(noteTouched);
+                if (noteTouched != null) {
+                    editPattern(noteTouched);
+                } else {
+                    addPattern(rowSelected, time);
+                }
 
-                return noteTouched!=null;
+                return noteTouched != null;
             }
+
             @Override
             public boolean noteTouched(MotionEvent event) {
-                int rowSelected = (int)event.getY();
+                int rowSelected = (int) event.getY();
                 float time = event.getX();
                 Event noteTouched = mAppState.mPatternMaster.get(rowSelected, time);
-                if (noteTouched!=null) {
+                if (noteTouched != null) {
                     masterView.selectSingleEvent(noteTouched);
                     eventSelected = noteTouched;
                     mRowSelected = rowSelected;
@@ -211,14 +216,13 @@ public class ActivityMain extends AppCompatActivity {
         });
 
 
-
         isStoragePermissionGranted();
 
         // Tempo controls
         View noteControls = WidgetNoteTransposer.AddUpAndDownKey(this, String.valueOf(mAppState.mPatternMaster.mBPM), new WidgetNoteTransposer.Listener() {
             @Override
             public String update(int inc) {
-                mAppState.mPatternMaster.setBmp(mAppState.mPatternMaster.getBmp()+inc);
+                mAppState.mPatternMaster.setBmp(mAppState.mPatternMaster.getBmp() + inc);
                 return String.valueOf(mAppState.mPatternMaster.mBPM);
             }
         });
@@ -229,7 +233,7 @@ public class ActivityMain extends AppCompatActivity {
 
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
 
         //mAppState.setLoop((int) (0 * 16 * 16), (int) (1 * 16 * 16));
@@ -246,27 +250,25 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-        if (eventSelected!=null)
-        {
+        if (eventSelected != null) {
             eventSelected.mDuration = mAppState.mPatternMaster.mPatternDataBase.get(eventSelected.mId).GetLength();
         }
     }
 
-    void rigControls()
-    {
+    void rigControls() {
         LinearLayout headers = (LinearLayout) findViewById(R.id.headers);
         headers.removeAllViews();
         int channelCount = mAppState.mPatternMaster.GetChannelCount();
 
         mTracks = new Track[channelCount];
 
-        for(int i=0;i<mTracks.length;i++) {
+        for (int i = 0; i < mTracks.length; i++) {
             final int finalI = i;
             mTracks[i] = new Track();
             mTracks[i].patternType = none;
             mTracks[i].trackControls = getLayoutInflater().inflate(R.layout.track_header, null);
 
-            Button button = (Button)mTracks[i].trackControls.findViewById(R.id.set_instrument);
+            Button button = (Button) mTracks[i].trackControls.findViewById(R.id.set_instrument);
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -274,10 +276,9 @@ public class ActivityMain extends AppCompatActivity {
                 }
             });
 
-            mTracks[i].trackNames = (TextView)mTracks[i].trackControls.findViewById(R.id.instrumentName);
+            mTracks[i].trackNames = (TextView) mTracks[i].trackControls.findViewById(R.id.instrumentName);
             mTracks[i].trackNames.setText(String.valueOf(i));
-            mTracks[i].trackControls.setOnTouchListener(new TextView.OnTouchListener()
-            {
+            mTracks[i].trackControls.setOnTouchListener(new TextView.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN)
@@ -287,33 +288,33 @@ public class ActivityMain extends AppCompatActivity {
             });
 
             // mute
-            ToggleButton toggleMute = (ToggleButton)mTracks[i].trackControls.findViewById(R.id.toggleMute);
+            ToggleButton toggleMute = (ToggleButton) mTracks[i].trackControls.findViewById(R.id.toggleMute);
             toggleMute.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                     float vol = mAppState.mPatternMaster.getVolume(finalI);
                     if (isChecked)
-                        mAppState.mPatternMaster.setVolume(finalI,-Math.abs(vol));
+                        mAppState.mPatternMaster.setVolume(finalI, -Math.abs(vol));
                     else
-                        mAppState.mPatternMaster.setVolume(finalI,Math.abs(vol));
+                        mAppState.mPatternMaster.setVolume(finalI, Math.abs(vol));
                 }
             });
 
             // volume
-            mTracks[i].trackVolumes = (SeekBar)mTracks[i].trackControls.findViewById(R.id.seekBar);
-            mTracks[i].trackVolumes.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
-            {
+            mTracks[i].trackVolumes = (SeekBar) mTracks[i].trackControls.findViewById(R.id.seekBar);
+            mTracks[i].trackVolumes.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
-                {
-                    mAppState.mPatternMaster.setVolume(finalI, ((float)progress)/100.0f);
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    mAppState.mPatternMaster.setVolume(finalI, ((float) progress) / 100.0f);
                 }
 
                 @Override
-                public void onStartTrackingTouch(SeekBar seekBar){}
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
 
                 @Override
-                public void onStopTrackingTouch(SeekBar seekBar){}
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
             });
 
             headers.addView(mTracks[i].trackControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, 0, 1.0f));
@@ -323,10 +324,9 @@ public class ActivityMain extends AppCompatActivity {
     }
 
 
-    void setTrackNames()
-    {
-        for(int i=0;i<mTracks.length;i++) {
-            mTracks[i].trackVolumes.setProgress((int)(100*mAppState.mPatternMaster.getVolume(i)), false);
+    void setTrackNames() {
+        for (int i = 0; i < mTracks.length; i++) {
+            mTracks[i].trackVolumes.setProgress((int) (100 * mAppState.mPatternMaster.getVolume(i)), false);
         }
     }
 
@@ -339,15 +339,15 @@ public class ActivityMain extends AppCompatActivity {
 
     View.OnClickListener btnEditingListent = new View.OnClickListener() {
         Event copiedEvent = null;
+
         @Override
         public void onClick(View v) {
-            switch (v.getId())
-            {
+            switch (v.getId()) {
                 case R.id.btnNew:
                     addPattern(mRowSelected, mTimeLine.getTime());
                     break;
                 case R.id.btnEdit:
-                    if (eventSelected!=null) {
+                    if (eventSelected != null) {
                         //mAppState.setLoop(eventSelected.time, eventSelected.time + eventSelected.durantion);
                         editPattern(eventSelected);
                     }
@@ -369,15 +369,13 @@ public class ActivityMain extends AppCompatActivity {
 
                         mAppState.mPatternMaster.Set(note);
                         break;
-                    }
-                    else
-                    {
+                    } else {
                         Toast.makeText(mContext, "Nothing to paste", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 }
                 case R.id.btnDelete:
-                    if (eventSelected!=null) {
+                    if (eventSelected != null) {
                         mAppState.mPatternMaster.Clear(eventSelected.mChannel, eventSelected.mTime);
                         masterView.selectClear();
                         eventSelected = null;
@@ -419,7 +417,7 @@ public class ActivityMain extends AppCompatActivity {
         btnDelete.setOnClickListener(btnEditingListent);
 
 
-        popupWindow.showAtLocation(masterView, Gravity.NO_GRAVITY, (int)pf.x, (int)pf.y);
+        popupWindow.showAtLocation(masterView, Gravity.NO_GRAVITY, (int) pf.x, (int) pf.y);
     }
 
     @Override
@@ -434,15 +432,13 @@ public class ActivityMain extends AppCompatActivity {
             final FileChooser filesChooser = new FileChooser(this, mAppState.extStoreDir, "Load Song");
             filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                 @Override
-                public void fileSelected(String file)
-                {
+                public void fileSelected(String file) {
                     mAppState.Load(file, new ApplicationClass.EditorMetadata() {
                         @Override
                         public void Listener(JSONObject jsonObj) throws JSONException {
                             //here we can load some metadata for the editor
                             JSONArray jsonTracks = jsonObj.getJSONArray("tracks");
-                            for(int i=0;i<jsonTracks.length();i++)
-                            {
+                            for (int i = 0; i < jsonTracks.length(); i++) {
                                 JSONObject jsonTrack = jsonTracks.getJSONObject(i);
                                 String type = jsonTrack.getString("type");
                                 PatternType pt = PatternType.valueOf(type);
@@ -453,7 +449,7 @@ public class ActivityMain extends AppCompatActivity {
                     mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
                     timeLineView.init(mAppState.mPatternMaster, mTimeLine);
                     setTrackNames();
-                    masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine,true,PatternBaseView.ViewMode.MAIN);
+                    masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
 
                     masterView.invalidate();
@@ -471,9 +467,9 @@ public class ActivityMain extends AppCompatActivity {
 
 
                     InstrumentList instruments = InstrumentList.getInstance();
-                    for(int i=0;i<mTracks.length;i++) {
+                    for (int i = 0; i < mTracks.length; i++) {
                         InstrumentBase instrument = instruments.get(i);
-                        if (instrument!=null) {
+                        if (instrument != null) {
 /*
                             if (instrument instanceof InstrumentPercussion)
                                 mTracks[i].patternType = Percussion;
@@ -488,7 +484,8 @@ public class ActivityMain extends AppCompatActivity {
                 }
 
                 @Override
-                public void fileTouched(String file) {}
+                public void fileTouched(String file) {
+                }
             });
             filesChooser.setExtension("json");
             filesChooser.showDialog();
@@ -505,8 +502,7 @@ public class ActivityMain extends AppCompatActivity {
                         public void Listener(JSONObject jsonObj) throws JSONException {
                             //here we can save some metadata for the editor
                             JSONArray jsonTracks = new JSONArray();
-                            for(int i=0;i<mTracks.length;i++)
-                            {
+                            for (int i = 0; i < mTracks.length; i++) {
                                 JSONObject jsonTrack = new JSONObject();
                                 jsonTrack.put("type", mTracks[i].patternType);
                                 jsonTracks.put(jsonTrack);
@@ -517,7 +513,8 @@ public class ActivityMain extends AppCompatActivity {
                 }
 
                 @Override
-                public void fileTouched(String file) {}
+                public void fileTouched(String file) {
+                }
             });
             filesChooser.setExtension("json");
             filesChooser.showDialog();
@@ -527,10 +524,8 @@ public class ActivityMain extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void editPattern(Event event)
-    {
-        if (event==null)
-        {
+    private void editPattern(Event event) {
+        if (event == null) {
             Toast.makeText(mContext, "Nothing to edit ", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -543,16 +538,24 @@ public class ActivityMain extends AppCompatActivity {
 
         if (pattern instanceof PatternPercussion) {
             intent = new Intent(mContext, ActivityPercussion.class);
-        }
-        else if (pattern instanceof PatternPianoRoll) {
+        } else if (pattern instanceof PatternPianoRoll) {
             intent = new Intent(mContext, ActivityPianoRoll.class);
-        }
-        else if (pattern instanceof PatternChord) {
+        } else if (pattern instanceof PatternChord) {
             intent = new Intent(mContext, ActivityChord.class);
         }
 
+        StartActivity(intent, event);
+    }
+
+    void StartActivity(Intent intent, Event event) {
+        intent.putExtra("PATTERN_TIME_BEGIN", event.mTime);
+        intent.putExtra("PATTERN_TIME_END", event.mTime + event.mDuration);
+        intent.putExtra("PATTERN_ID", event.mId);
+        intent.putExtra("PATTERN_CHANNEL", event.mChannel);
+
         startActivity(intent);
     }
+
 
     void chooseTrackType(final int track)
     {
@@ -700,15 +703,16 @@ public class ActivityMain extends AppCompatActivity {
         mAppState.mLastPatternAdded = pattern;
         mAppState.mLastPatternMixer = mAppState.mPatternMaster.mTracks[mRowSelected];
 
-        Event note = new Event();
-        note.mTime = time;
-        note.mChannel = channel;
-        note.mDuration = 16;
-        note.mId = id;
-        mAppState.mPatternMaster.Set(note);
-        eventSelected = note;
+        Event event = new Event();
+        event.mTime = time;
+        event.mChannel = channel;
+        event.mDuration = 16;
+        event.mId = id;
+        mAppState.mPatternMaster.Set(event);
+        eventSelected = event;
 
-        startActivity(intent);
+
+        StartActivity(intent, event);
         masterView.invalidate();
     }
 

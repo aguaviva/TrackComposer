@@ -217,59 +217,7 @@ public class PatternBaseView extends View {
     {
         if (mTimeLine!=null) {
             mTimeLine.setViewSize(getWidth(), getHeight());
-            centerViewInNotes();
         }
-    }
-
-    void centerViewInNotes()
-    {
-        /*
-        int min = 88;
-        int max = 0;
-        for(int i=0;;i++) {
-            Event note = mMasterPattern.GetNoteByIndex(i);
-            if (note==null)
-                break;
-            if (note.mChannel >max)
-                max = note.mChannel;
-            if (note.mChannel <min)
-                min = note.mChannel;
-        }
-
-        if (mViewMode == ViewMode.PIANO) {
-            mChannels = max - min +1;
-            if (max == 0) {
-                max = (40 + 12) -1;
-                mChannels = 12;
-            }
-        }
-        else if (mViewMode == ViewMode.DRUMS) {
-            if (mChannels < 8) {
-                mChannels = 8;
-                max = 0;
-            }
-        }
-        else if (mViewMode == ViewMode.MAIN) {
-            if (mChannels < 8) {
-                mChannels = 8;
-                min = 0;
-                max = 8;
-            }
-        }
-        else if (mViewMode == ViewMode.CHORDS)
-        {
-            mChannels = 3*4;
-            max = 0;
-        }
-
-        max = indexToNote(max);
-        mViewport.setSpanVertical(min,max);
-
-        if (instrumentListener!=null) {
-            instrumentListener.scaling(mViewport.mPosX, mViewport.mPosY, mViewport.mScaleX, 1);
-        }
-
-         */
     }
 
     @Override
@@ -339,37 +287,26 @@ public class PatternBaseView extends View {
 
         canvas.restore();
 
-        if (mChannel==-1) {
-            RectF rectBackground = new RectF();
-            rectBackground.top = 0;
-            rectBackground.bottom = 8;
-            rectBackground.left = 0;
-            rectBackground.right = mMasterPattern.GetLength();
-            mViewport.applyPosScaleRect(rectBackground);
 
+        if (mChannel==-1) {
             RectF rectMasterPattern = new RectF();
             rectMasterPattern.top = 0;
             rectMasterPattern.bottom = mMasterPattern.GetChannelCount();
             rectMasterPattern.left = 0;
             rectMasterPattern.right = mMasterPattern.GetLength();
+            mViewport.applyPosScaleRect(rectMasterPattern);
 
-            DrawMasterEvents(canvas, mMasterPattern, rectBackground, rectMasterPattern);
+            DrawMasterEvents(canvas, mMasterPattern, rectMasterPattern);
         } else {
-            RectF rectBackground = new RectF();
-            rectBackground.top = 0;
-            rectBackground.bottom = 88;
-            rectBackground.left = 0;
-            rectBackground.right = mMasterPattern.GetLength();
-            mViewport.applyPosScaleRect(rectBackground);
 
             RectF rectMasterPattern = new RectF();
             rectMasterPattern.top = 0;
-            rectMasterPattern.bottom = 1;
+            rectMasterPattern.bottom = 88;
             rectMasterPattern.left = 0;
             rectMasterPattern.right = mMasterPattern.GetLength();
 
 
-            DrawChannelEvents(canvas, mMasterPattern, rectBackground, rectMasterPattern);
+            DrawMasterPatternChannelInRect(canvas, mMasterPattern);
         }
 
         if (gestureInProgress==GentureInProgress.boxSelecting) {
@@ -411,11 +348,8 @@ public class PatternBaseView extends View {
     //------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------
 
-    private void DrawChannelEvents(Canvas canvas, PatternMaster pb, RectF rectBackground, RectF rectMasterPattern) {
+    private void DrawMasterPatternChannelInRect(Canvas canvas, PatternMaster pb) {
 
-        canvas.drawRoundRect(rectBackground, 10, 10, green);
-
-        RectF rf = new RectF();
         RectF rectEvent = new RectF();
 
         // draw icons
@@ -424,15 +358,21 @@ public class PatternBaseView extends View {
             if (event == null)
                 break;
 
-            EventToRect(event, rectEvent);
-            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
-            PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
-            DrawEvents(canvas, pb2, rf);
+            if (event.mChannel == mChannel) {
+                rectEvent.top = 0;
+                rectEvent.bottom = 88;
+                rectEvent.left = event.mTime;
+                rectEvent.right = event.mTime + event.mDuration;
+
+                mViewport.applyPosScaleRect(rectEvent);
+                PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
+                DrawDetailedPatternInRect(canvas, pb2, rectEvent);
+            }
         }
     }
 
     // draw events
-    private void DrawEvents(Canvas canvas, PatternBase pb, RectF rectParent) {
+    private void DrawDetailedPatternInRect(Canvas canvas, PatternBase pb, RectF rectParent) {
         canvas.drawRoundRect(rectParent, 10, 10, green);
 
         RectF rf = new RectF();
@@ -481,9 +421,15 @@ public class PatternBaseView extends View {
     //------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------
 
-    private void DrawMasterEvents(Canvas canvas, PatternBase pb, RectF rectBackground, RectF rectMasterPattern) {
+    private void DrawMasterEvents(Canvas canvas, PatternBase pb, RectF rectMasterPattern) {
 
-        canvas.drawRoundRect(rectBackground, 10, 10, green);
+        canvas.drawRoundRect(rectMasterPattern, 10, 10, green);
+
+        RectF rectBackground = new RectF();
+        rectBackground.top = 0;
+        rectBackground.bottom = 8;
+        rectBackground.left = 0;
+        rectBackground.right = mMasterPattern.GetLength();
 
         RectF rf = new RectF();
         RectF rectEvent = new RectF();
@@ -491,7 +437,7 @@ public class PatternBaseView extends View {
         // draw selection rects
         for(Event selectedNote : mSelectedEvents) {
             EventToRect(selectedNote, rectEvent);
-            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
+            TransformRect(rectMasterPattern, rectBackground, rectEvent, rf);
             canvas.drawRect(rf, selectedColor);
         }
 
@@ -501,7 +447,7 @@ public class PatternBaseView extends View {
                 break;
 
             EventToRect(event, rectEvent);
-            TransformRect(rectBackground, rectMasterPattern, rectEvent, rf);
+            TransformRect(rectMasterPattern, rectBackground, rectEvent, rf);
             PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
             DrawIcon(canvas, pb2, rf);
         }
@@ -650,7 +596,7 @@ public class PatternBaseView extends View {
             Event note = mPattern.GetNoteByIndex(i);
             if (note == null)
                 break;
-            //*ticksPerColumn;
+
             RectF rf = new RectF();
             EventToRect(note, rf);
 

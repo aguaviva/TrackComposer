@@ -38,11 +38,20 @@ public class ActivityPianoRoll extends AppCompatActivity {
         mContext = getApplicationContext();
 
         mAppState = ((ApplicationClass)this.getApplication());
-        patternPianoRoll = (PatternPianoRoll)mAppState.mLastPatternAdded;
+
+        float timeBegin = getIntent().getFloatExtra("PATTERN_TIME_BEGIN",0);
+        float timeEnd = getIntent().getFloatExtra("PATTERN_TIME_END",256);
+        int channel = getIntent().getIntExtra("PATTERN_CHANNEL", -1);
+        int patternId = getIntent().getIntExtra("PATTERN_ID",-1);
+
+        patternPianoRoll = (PatternPianoRoll)mAppState.mPatternMaster.mPatternDataBase.get(patternId);
 
         mTimeLine.init(patternPianoRoll, 16); // at scale 1, draw 1 vertical line every tick
-        mTimeLine.setTimeSpan(48,64);
-        mTimeLine.mViewport.setSpanVertical(patternPianoRoll.getMinChannel(),patternPianoRoll.getMaxChannel());
+        mTimeLine.setTimeSpan(timeBegin,timeEnd);
+        int min = patternPianoRoll.getMinChannel();
+        int max = patternPianoRoll.getMaxChannel();
+        if (max-min<=0) { min = 40; max = 64;}
+        mTimeLine.mViewport.setSpanVertical(min, max);
         mTimeLine.mViewport.setLimits(0,0,256,88);
 
         //
@@ -85,7 +94,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         //
         mNoteView = (PatternBaseView)findViewById(R.id.noteView);
-        mNoteView.SetPattern(mAppState.mPatternMaster, 0, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
+        mNoteView.SetPattern(mAppState.mPatternMaster, channel, mTimeLine,false,PatternBaseView.ViewMode.PIANO);
         mNoteView.setBaseNote(patternPianoRoll.mBaseNote);
         mNoteView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             Event noteDown;
