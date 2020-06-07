@@ -9,8 +9,10 @@ class PatternVocals extends PatternBase
 
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
-        public void AddNote(float noteTime, Event event){
-            play(event);
+        public void AddNote(Mixer mixer, float noteTime, Event event){
+
+            int time = mixer.getTimeInSamples(event);
+            play(time, event);
         }
 
         @Override
@@ -25,10 +27,10 @@ class PatternVocals extends PatternBase
         super(name, filename, channels, length);
     }
 
-    public void play(Event event)
+    public void play(int noteTime, Event event)
     {
-        InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4);
+        InstrumentVocals g = (InstrumentVocals)InstrumentList.getInstance().get(mInstrumentId);
+        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4, noteTime);
     }
 
     @Override

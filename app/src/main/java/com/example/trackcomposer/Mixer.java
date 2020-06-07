@@ -27,6 +27,14 @@ class Mixer {
         //mParent.play(int sampleId, int channel, 1, 1);
     }
 
+    public float getTime(Event event) {
+        return ((float)mTime/(float)mTempoInSamples) - event.mTime;
+    }
+
+    public int getTimeInSamples(Event event) {
+        return (int)(mTime - event.mTime*mTempoInSamples);
+    }
+
     private boolean sequencer()
     {
         if (iter==null)
@@ -48,7 +56,7 @@ class Mixer {
 
                 if (mMixerListener!=null)
                 {
-                    mMixerListener.AddNote(((float)mTime/(float)mTempoInSamples) - event.mTime, event);
+                    mMixerListener.AddNote(this, ((float)mTime/(float)mTempoInSamples) - event.mTime, event);
                 }
 
                 iter.nextEvent();
@@ -112,7 +120,7 @@ class Mixer {
 
     public interface MixerListener
     {
-        public void AddNote(float time, Event event);
+        public void AddNote(Mixer mixer, float time, Event event);
         public void PlayBeat(short[] chunk, int ini, int fin, float volume);
     }
 

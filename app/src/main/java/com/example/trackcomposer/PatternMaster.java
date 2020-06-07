@@ -32,19 +32,19 @@ class PatternMaster extends PatternBase
         master = new Mixer();
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
-            public void AddNote(float noteTime, Event event){
+            public void AddNote(Mixer mixer, float noteTime, Event event){
                 PatternBase p = mPatternDataBase.get(event.mId);
                 Mixer.MixerListener listener = p.GetMixerListener();
 
                 mTracks[event.mChannel].SetState(p.getIter());
                 mTracks[event.mChannel].mMixerListener = listener;
-                mTracks[event.mChannel].setTime(noteTime);//ch.timeInSamples/master.mTempoInSamples);
+                mTracks[event.mChannel].setTime(noteTime);
             }
 
             @Override
             public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
                 for (int c = 0; c < mTracks.length; c++) {
-                    mTracks[c].renderChunk(chunk, ini, fin, 1);
+                    mTracks[c].renderChunk(chunk, ini, fin, 1.0f);
                 }
             }
         };
