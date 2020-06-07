@@ -487,21 +487,20 @@ public class PatternBaseView extends View {
 
         float tickEnd = secondsToTicks(length);
         float s = mViewport.applyPosScaleX(tickEnd)- mViewport.applyPosScaleX(0);
-        int step = (int)(frames / s);
+        int step = (int)(frames / s)*2;
         for(int i=0;i<frames-step;i+=step)
         {
             short min = Short.MAX_VALUE;
             short max = Short.MIN_VALUE;
-            float av = 0;
+            float avpos = 0; int poscnt = 0;
+            float avneg = 0; int negcnt = 0;
             for(int ii=0;ii<step;ii++) {
-                inst.mSample.copyFrame(0, frame, i+ii, 1.0f);
+                frame[0]=0;
+                inst.mSample.copyFrame(0, frame, i+ii, 3.0f);
                 min = (short) Math.min(min,frame[0]);
                 max = (short) Math.max(max,frame[0]);
-                av+= frame[0];
             }
-            av/=step;
-            min = (short)(-av);
-            max = (short)(av);
+
             float y0 = Misc.map(min, Short.MIN_VALUE, Short.MAX_VALUE, rectParent.top, rectParent.bottom);
             float y1 = Misc.map(max, Short.MIN_VALUE, Short.MAX_VALUE, rectParent.top, rectParent.bottom);
             float x = Misc.map(i, 0, frames, rectParent.left, rectParent.left+s);
