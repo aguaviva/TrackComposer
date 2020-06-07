@@ -28,9 +28,14 @@ public class ActivityPercussion extends AppCompatActivity {
         mAppState = ((ApplicationClass)this.getApplication());
         mPattern = (PatternPercussion)mAppState.mLastPatternAdded;
 
-        mTimeLine.init(mPattern, 16); //
-        mTimeLine.setTimeSpan(48,64);
-        mTimeLine.mViewport.setSpanVertical(mPattern.getMinChannel(),mPattern.getMaxChannel());
+        float timeBegin = getIntent().getFloatExtra("PATTERN_TIME_BEGIN",0);
+        float timeEnd = getIntent().getFloatExtra("PATTERN_TIME_END",256);
+        int channel = getIntent().getIntExtra("PATTERN_CHANNEL", -1);
+        int patternId = getIntent().getIntExtra("PATTERN_ID",-1);
+
+        mTimeLine.init(mAppState.mPatternMaster, 16.0f); // at scale 1, draw 1 vertical line every tick
+        mTimeLine.setTimeSpan(timeBegin,timeEnd);
+        mTimeLine.mViewport.setSpanVertical(0, 8);
         mTimeLine.mViewport.setLimits(0,0,256,8);
 
         //
@@ -40,7 +45,6 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public void onTimeChanged(float time)
             {
-                //mAppState.setLoop((int) time, (int) (1 * 16 * 16));
                 mAppState.mPatternMaster.setTime(time);
                 mDrumTracker.invalidate();
             }
@@ -62,7 +66,6 @@ public class ActivityPercussion extends AppCompatActivity {
             @Override
             public String getInstrumentName(int channel)
             {
-
                 if (mPattern.mInstrumentId >=0) {
                     InstrumentPercussion p = (InstrumentPercussion)mAppState.instrumentList.get(mPattern.mInstrumentId);
                     if (channel<p.mChannels.length)
@@ -75,7 +78,7 @@ public class ActivityPercussion extends AppCompatActivity {
         });
 
         mDrumTracker = (PatternBaseView)findViewById(R.id.tracksView);
-        mDrumTracker.SetPattern(mAppState.mPatternMaster, 0, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
+        mDrumTracker.SetPattern(mAppState.mPatternMaster, channel, mTimeLine,false, PatternBaseView.ViewMode.DRUMS);
         mDrumTracker.setInstrumentListener(new PatternBaseView.InstrumentListener() {
             @Override
             public boolean onMoveSelectedEvents(MotionEvent event) {

@@ -80,7 +80,7 @@ public class InstrumentSampler extends InstrumentBase {
     public void serializeToJson(JSONObject jsonObj) throws JSONException
     {
         super.serializeToJson(jsonObj);
-        mSample.serializeFromJson(jsonObj);
+        mSample.serializeToJson(jsonObj);
     }
 
     @Override

@@ -105,6 +105,7 @@ class PatternMaster extends PatternBase
         JSONObject jsonPercussion = new JSONObject();
         JSONObject jsonPianoRoll = new JSONObject();
         JSONObject jsonChords = new JSONObject();
+        JSONObject jsonVocals = new JSONObject();
 
         for (Integer key : mPatternDataBase.keySet()) {
             PatternBase channel = mPatternDataBase.get(key);
@@ -122,13 +123,15 @@ class PatternMaster extends PatternBase
                 else if (channel instanceof PatternChord) {
                     jsonChords.put(String.valueOf(key), jsonObj3);
                 }
-
+                else if (channel instanceof PatternVocals) {
+                    jsonVocals.put(String.valueOf(key), jsonObj3);
+                }
             }
         }
         jsonObj.put("percussion", jsonPercussion);
         jsonObj.put("pianoRoll", jsonPianoRoll);
         jsonObj.put("chords", jsonChords);
-
+        jsonObj.put("vocals", jsonVocals);
         // put volumes
         {
             JSONArray jsonVolumes = new JSONArray();
@@ -183,6 +186,19 @@ class PatternMaster extends PatternBase
                 int i = Integer.parseInt(key);
                 JSONObject jsonObj3 = jsonChords.getJSONObject(key);
                 PatternChord pattern = new PatternChord("", "", 16, 16);
+                mPatternDataBase.put(i, pattern);
+                pattern.serializeFromJson(jsonObj3);
+            }
+        }
+
+        {
+            JSONObject jsonChords = jsonObj.getJSONObject("vocals");
+            Iterator<String> iter = jsonChords.keys(); //This should be the iterator you want.
+            while (iter.hasNext()) {
+                String key = iter.next();
+                int i = Integer.parseInt(key);
+                JSONObject jsonObj3 = jsonChords.getJSONObject(key);
+                PatternVocals pattern = new PatternVocals("", "", 16, 16);
                 mPatternDataBase.put(i, pattern);
                 pattern.serializeFromJson(jsonObj3);
             }

@@ -46,12 +46,12 @@ public class ActivityPianoRoll extends AppCompatActivity {
 
         patternPianoRoll = (PatternPianoRoll)mAppState.mPatternMaster.mPatternDataBase.get(patternId);
 
-        mTimeLine.init(mAppState.mPatternMaster, 16); // at scale 1, draw 1 vertical line every tick
+        mTimeLine.init(mAppState.mPatternMaster, 16.0f); // at scale 1, draw 1 vertical line every tick
         mTimeLine.setTimeSpan(timeBegin,timeEnd);
         int min = patternPianoRoll.getMinChannel();
         int max = patternPianoRoll.getMaxChannel();
-        if (max-min<=0) { min = 40; max = 64;}
-        mTimeLine.mViewport.setSpanVertical(min, max);
+        if (max-min<=0) { min = 40; max = min + 24;}
+        mTimeLine.mViewport.setSpanVertical(88-max, 88-min+1);
         mTimeLine.mViewport.setLimits(0,0,256,88);
 
         //
@@ -223,11 +223,9 @@ public class ActivityPianoRoll extends AppCompatActivity {
         });
     }
 
-
     private void instrumentChooser()
     {
         InstrumentChooser instrumentChooser = new InstrumentChooser(this, mAppState.instrumentList, patternPianoRoll.mInstrumentId, new InstrumentChooser.InstrumentChooserListener()
-        //InstrumentChooser2 instrumentChooser = new InstrumentChooser2(this, mAppState.instrumentList, patternNote.sampleId, new InstrumentChooser2.InstrumentChooserListener()
         {
             @Override
             public void GetSelectedInstrumentId(InstrumentBase generator) {

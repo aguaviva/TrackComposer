@@ -57,6 +57,9 @@ public class InstrumentList
             } else if (instBase instanceof InstrumentKarplusStrong) {
                 InstrumentKarplusStrong inst = new InstrumentKarplusStrong();
                 type = inst.GetInstrumentType();
+            } else if (instBase instanceof InstrumentVocals) {
+                InstrumentVocals inst = new InstrumentVocals();
+                type = inst.GetInstrumentType();
             }
             jsonObj2.put("type", type);
             instBase.serializeToJson(jsonObj2);
@@ -87,6 +90,8 @@ public class InstrumentList
                 inst = new InstrumentSampler();
             } else if (type.equals(InstrumentKarplusStrong.GetInstrumentType())) {
                 inst = new InstrumentKarplusStrong();
+            } else if (type.equals(InstrumentVocals.GetInstrumentType())) {
+                inst = new InstrumentVocals();
             }
             inst.serializeFromJson(jsonObj2);
             mInstruments.put(inst.mInstrumentId, inst);

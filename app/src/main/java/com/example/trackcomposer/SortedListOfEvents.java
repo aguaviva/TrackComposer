@@ -217,8 +217,6 @@ class SortedListOfEvents
 
         if (mMinChannel>mMaxChannel)
             mMinChannel = mMaxChannel;
-
-        mMaxChannel++;
     }
 
     void serializeToJson(JSONObject jsonObj) throws JSONException

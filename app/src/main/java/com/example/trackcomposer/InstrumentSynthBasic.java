@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 public class InstrumentSynthBasic extends InstrumentBase {
     float TwoPi = 2.0f * 3.1415926f;
-    float mAmplitude = (float)((Short.MAX_VALUE-1)/4.0f);
+    float mAmplitude = (float)((Short.MAX_VALUE-1)/32.0f);
     float mTremoloFreq = 0, mTremoloAmplitude = 0.0f;
     float mVibratoFreq = 0, mVibratoAmplitude = 0.0f;
 

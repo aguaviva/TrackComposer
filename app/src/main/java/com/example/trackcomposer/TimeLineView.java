@@ -74,6 +74,20 @@ public class TimeLineView extends View {
         mViewport = timeLine.mViewport;
     }
 
+    void setRectCenter(float x, RectF rect) {
+        rect.top = 0;
+        rect.bottom = getHeight();
+        rect.left = x - getHeight() / 2;
+        rect.right = x + getHeight() / 2;
+    }
+
+    void setRectRight(float x, RectF rect) {
+        rect.top = 0;
+        rect.bottom = getHeight();
+        rect.left = x;
+        rect.right = x + getHeight();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -103,10 +117,7 @@ public class TimeLineView extends View {
             float time =  (mTimeLine.getTime());
             float x = mViewport.applyPosScaleX(time);
             RectF rf = new RectF();
-            rf.top = 0;
-            rf.bottom = getHeight();
-            rf.left = x - getHeight() / 2;
-            rf.right = x + getHeight() / 2;
+            setRectCenter(x, rf);
             canvas.drawBitmap(bmp, null, rf, null);
         }
 
@@ -115,10 +126,7 @@ public class TimeLineView extends View {
             float endTime =  (mTimeLine.getLength());
             float x = mViewport.applyPosScaleX(endTime);
             RectF rf = new RectF();
-            rf.top = 0;
-            rf.bottom = getHeight();
-            rf.left = x;
-            rf.right = x + getHeight();
+            setRectRight(x, rf);
             canvas.drawBitmap(end, null, rf, null);
         }
     }

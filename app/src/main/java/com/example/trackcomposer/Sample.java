@@ -26,6 +26,10 @@ public class Sample {
         return mSampleData.length/mTracks;
     }
 
+    public float getLengthInSeconds() {
+        return (float)getLengthInFrames() / mSampleRate;
+    }
+
     public String getName() { return mInstrumentName; }
     public boolean isSampleValid() { return mSampleData != null; }
 
