@@ -149,7 +149,7 @@ public class Sample {
 
                             default:
                                 ByteBuffer outBuffer = codecOutputBuffers[outIndex];
-                                Log.v("DecodeActivity", "We can't use this buffer but render it due to the API limit, " + outBuffer);
+                                //Log.v("DecodeActivity", "We can't use this buffer but render it due to the API limit, " + outBuffer);
 
                                 final short[] chunk = new short[info.size / 2];
                                 outBuffer.asShortBuffer().get(chunk); // Read the buffer all at once

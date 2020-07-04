@@ -347,8 +347,6 @@ public class PatternBaseView extends View {
         }
     }
 
-
-
     // draw events
     private void DrawDetailedPatternInRect(Canvas canvas, PatternBase pb, RectF rectParent) {
         canvas.drawRoundRect(rectParent, 10, 10, green);
@@ -382,13 +380,13 @@ public class PatternBaseView extends View {
         }
 
         //draw disk
-        if (mSelectedEvents.size()==1) {
+        if (pb == mPattern && mSelectedEvents.size()==1) {
 
             EventToRect(mSelectedEvents.get(0), rectEvent);
             TransformRect(rectParent, rectChild, rectEvent, rf);
 
             //draw disk
-            diskRadius = (rf.bottom - rf.top) / 4;
+            diskRadius = (rf.bottom - rf.top) / 2;
             diskX = rf.right + diskRadius * 1.1f;
             diskY = (rf.top + rf.bottom) / 2;
 
@@ -462,6 +460,12 @@ public class PatternBaseView extends View {
 
             EventToRect(event, rectEvent);
             TransformRect(rectParent, rectChild, rectEvent, rf);
+            if (rf.top>rf.bottom)
+            {
+                float t = rf.bottom;
+                rf.bottom = rf.top;
+                rf.top = t;
+            }
             canvas.drawRect(rf, greenFill);
         }
     }
@@ -477,36 +481,24 @@ public class PatternBaseView extends View {
         return (seconds*secondsToTicks);
     }
 
+
+    WaveFormDraw wfd;
+
     private void DrawWaveIcon(Canvas canvas, PatternBase pb, RectF rectParent) {
         canvas.drawRoundRect(rectParent, 10, 10, green);
         InstrumentVocals inst = (InstrumentVocals)InstrumentList.getInstance().get(0);
         float length = inst.getLengthInSeconds();
         int frames = inst.getLengthInFrames();
 
-        short frame[] = new short[2];
-
         float tickEnd = secondsToTicks(length);
         float s = mViewport.applyPosScaleX(tickEnd)- mViewport.applyPosScaleX(0);
-        int step = (int)(frames / s)*2;
-        for(int i=0;i<frames-step;i+=step)
-        {
-            short min = Short.MAX_VALUE;
-            short max = Short.MIN_VALUE;
-            float avpos = 0; int poscnt = 0;
-            float avneg = 0; int negcnt = 0;
-            for(int ii=0;ii<step;ii++) {
-                frame[0]=0;
-                inst.mSample.copyFrame(0, frame, i+ii, 3.0f);
-                min = (short) Math.min(min,frame[0]);
-                max = (short) Math.max(max,frame[0]);
-            }
 
-            float y0 = Misc.map(min, Short.MIN_VALUE, Short.MAX_VALUE, rectParent.top, rectParent.bottom);
-            float y1 = Misc.map(max, Short.MIN_VALUE, Short.MAX_VALUE, rectParent.top, rectParent.bottom);
-            float x = Misc.map(i, 0, frames, rectParent.left, rectParent.left+s);
-            //float x = rectParent.left + t0;
-            canvas.drawLine(x, y0, x,y1,green);
+        if (wfd==null) {
+            wfd = new WaveFormDraw();
+            wfd.init(inst);
         }
+
+        wfd.Draw(canvas, rectParent, s, green);
     }
 
     //------------------------------------------------------------------------------------------------------------
@@ -553,7 +545,7 @@ public class PatternBaseView extends View {
             return null;
 
         //snap to grid
-        float snap = .25f;
+        float snap = 1.0f;
         float sx = (float)Math.floor(pointF.x/snap)*snap;
         float sy = (float)indexToNote((int)Math.floor(pointF.y));
 

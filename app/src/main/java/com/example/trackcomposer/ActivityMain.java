@@ -116,6 +116,7 @@ public class ActivityMain extends AppCompatActivity {
         masterView = (PatternBaseView) findViewById(R.id.masterView);
         masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
         masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
+        masterView.setBPM(mAppState.mPatternMaster.mBPM);
         masterView.setInstrumentListener(new PatternBaseView.InstrumentListener() {
 
             Event noteDown;
@@ -261,7 +262,7 @@ public class ActivityMain extends AppCompatActivity {
             final int finalI = i;
             mTracks[i] = new Track();
             mTracks[i].patternType = none;
-            mTracks[i].trackControls = getLayoutInflater().inflate(R.layout.track_header, null);
+            mTracks[i].trackControls = getLayoutInflater().inflate(R.layout.track_header, headers,false);
 
             Button button = (Button) mTracks[i].trackControls.findViewById(R.id.set_instrument);
             button.setOnClickListener(new View.OnClickListener() {
@@ -445,7 +446,7 @@ public class ActivityMain extends AppCompatActivity {
                     setTrackNames();
                     masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
                     masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
-
+                    masterView.setBPM(mAppState.mPatternMaster.mBPM);
                     masterView.invalidate();
 
                     //overwrite listener with our own
