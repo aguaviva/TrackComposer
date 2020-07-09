@@ -210,7 +210,6 @@ public class ActivityMain extends AppCompatActivity {
             }
         });
 
-
         isStoragePermissionGranted();
 
         // Tempo controls
@@ -226,8 +225,10 @@ public class ActivityMain extends AppCompatActivity {
         toolbar.addView(noteControls, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.FILL_PARENT));
 
         mWidgetVcrControl = new WidgetVcrControl(toolbar, mAppState);
-    }
 
+
+        //loadSong("/storage/emulated/0/TrackComposer/don't stop me now.json");
+    }
 
     @Override
     public void onResume() {
@@ -415,6 +416,57 @@ public class ActivityMain extends AppCompatActivity {
         popupWindow.showAtLocation(masterView, Gravity.NO_GRAVITY, (int) pf.x, (int) pf.y);
     }
 
+    public void loadSong(String file) {
+        mAppState.Load(file, new ApplicationClass.EditorMetadata() {
+            @Override
+            public void Listener(JSONObject jsonObj) throws JSONException {
+                //here we can load some metadata for the editor
+                JSONArray jsonTracks = jsonObj.getJSONArray("tracks");
+                for (int i = 0; i < jsonTracks.length(); i++) {
+                    JSONObject jsonTrack = jsonTracks.getJSONObject(i);
+                    String type = jsonTrack.getString("type");
+                    PatternType pt = PatternType.valueOf(type);
+                    mTracks[i].patternType = pt;
+                }
+            }
+        });
+        mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
+        timeLineView.init(mAppState.mPatternMaster, mTimeLine);
+        setTrackNames();
+        masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
+        masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
+        masterView.setBPM(mAppState.mPatternMaster.mBPM);
+        masterView.invalidate();
+
+        //overwrite listener with our own
+        mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
+            @Override
+            public void beat(float currentBeat) {
+                masterView.setCurrentBeat(currentBeat);
+                masterView.invalidate();
+                mTimeLine.setTime(mAppState.mPatternMaster.getTime());
+                timeLineView.invalidate();
+            }
+        });
+
+
+        InstrumentList instruments = InstrumentList.getInstance();
+        for (int i = 0; i < mTracks.length; i++) {
+            InstrumentBase instrument = instruments.get(i);
+            if (instrument != null) {
+/*
+                            if (instrument instanceof InstrumentPercussion)
+                                mTracks[i].patternType = Percussion;
+                            else if (instrument instanceof InstrumentSampler)
+                                mTracks[i].patternType = PianoRoll;
+                            else if (instrument instanceof PatternChord)
+                                mTracks[i].patternType = Chords;
+*/
+                mTracks[i].trackNames.setText(instrument.mInstrumentName);
+            }
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -428,54 +480,7 @@ public class ActivityMain extends AppCompatActivity {
             filesChooser.setFileChooserListener(new FileChooser.FileSelectedListener() {
                 @Override
                 public void fileSelected(String file) {
-                    mAppState.Load(file, new ApplicationClass.EditorMetadata() {
-                        @Override
-                        public void Listener(JSONObject jsonObj) throws JSONException {
-                            //here we can load some metadata for the editor
-                            JSONArray jsonTracks = jsonObj.getJSONArray("tracks");
-                            for (int i = 0; i < jsonTracks.length(); i++) {
-                                JSONObject jsonTrack = jsonTracks.getJSONObject(i);
-                                String type = jsonTrack.getString("type");
-                                PatternType pt = PatternType.valueOf(type);
-                                mTracks[i].patternType = pt;
-                            }
-                        }
-                    });
-                    mTimeLine.init(mAppState.mPatternMaster, 16.0f);  //at scale 1 draw a vertical line every 16 ticks
-                    timeLineView.init(mAppState.mPatternMaster, mTimeLine);
-                    setTrackNames();
-                    masterView.SetPattern(mAppState.mPatternMaster, -1, mTimeLine, true, PatternBaseView.ViewMode.MAIN);
-                    masterView.patternImgDataBase(mAppState.mPatternImgDataBase);
-                    masterView.setBPM(mAppState.mPatternMaster.mBPM);
-                    masterView.invalidate();
-
-                    //overwrite listener with our own
-                    mAppState.mPatternMaster.SetBeatListener(new PatternBase.BeatListener() {
-                        @Override
-                        public void beat(float currentBeat) {
-                            masterView.setCurrentBeat(currentBeat);
-                            masterView.invalidate();
-                            mTimeLine.setTime(mAppState.mPatternMaster.getTime());
-                            timeLineView.invalidate();
-                        }
-                    });
-
-
-                    InstrumentList instruments = InstrumentList.getInstance();
-                    for (int i = 0; i < mTracks.length; i++) {
-                        InstrumentBase instrument = instruments.get(i);
-                        if (instrument != null) {
-/*
-                            if (instrument instanceof InstrumentPercussion)
-                                mTracks[i].patternType = Percussion;
-                            else if (instrument instanceof InstrumentSampler)
-                                mTracks[i].patternType = PianoRoll;
-                            else if (instrument instanceof PatternChord)
-                                mTracks[i].patternType = Chords;
-*/
-                            mTracks[i].trackNames.setText(instrument.mInstrumentName);
-                        }
-                    }
+                    loadSong(file);
                 }
 
                 @Override

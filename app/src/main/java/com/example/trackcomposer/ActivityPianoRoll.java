@@ -131,7 +131,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                         orgChannel = rowSelected;
 
                         if (deltaChannel!=0) {
-                            patternPianoRoll.play(noteDown);
+                            patternPianoRoll.play(noteDown, 1);
                         }
                         mNoteView.invalidate();
                         return true;
@@ -176,7 +176,7 @@ public class ActivityPianoRoll extends AppCompatActivity {
                     }
 
                     if (patternPianoRoll.mInstrumentId >=0) {
-                        patternPianoRoll.play(noteTouched);
+                        patternPianoRoll.play(noteTouched, 1);
                     }
                 } else {
                     if (noteTouched != null) {

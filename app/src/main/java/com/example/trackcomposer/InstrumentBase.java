@@ -38,7 +38,7 @@ public class InstrumentBase {
     }
     ChannelStateBase getNewChannelState() { return new ChannelStateBase(); }
 
-    public void playSample(int channel, float frequency, float duration) {
+    public void playSample(int channel, float frequency, float duration, float volume) {
     }
 
     public void playSample(short[] chunk, int ini, int fin) {

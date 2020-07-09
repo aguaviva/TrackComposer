@@ -64,13 +64,13 @@ public class InstrumentKarplusStrong extends InstrumentBase {
     ChannelStateBase getNewChannelState() { return new Channel(); }
 
     @Override
-    public void playSample(int note, float freq, float duration) {
+    public void playSample(int note, float freq, float duration, float volume) {
 
         int channelId = GetAvailableChannel();
         if (channelId>=0) {
             Channel channel = mChannels[channelId];
             channel.mNote = note;
-            channel.mVolume = 1.0f;
+            channel.mVolume = volume;
             channel.mFreq = freq;
             channel.mTimeInSamples = 0;
             channel.pluck((int) (44100.0f / freq));

@@ -29,7 +29,7 @@ class PatternMaster extends PatternBase
     {
         super(name, filename, channels, length);
 
-        master = new Mixer();
+        master = new Mixer(100000);
         master.mMixerListener = new Mixer.MixerListener() {
             @Override
             public void AddNote(Mixer mixer, float noteTime, Event event){
@@ -42,18 +42,39 @@ class PatternMaster extends PatternBase
             }
 
             @Override
-            public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
+            public void PlayBeat(short[] chunk, int ini, int fin) {
+
+                // do the mixing
                 for (int c = 0; c < mTracks.length; c++) {
-                    mTracks[c].renderChunk(chunk, ini, fin, 1.0f);
+                    for (int i = ini; i < fin; i++)
+                        mTracks[c].getChunk()[i]=0;
+                }
+
+                //render tracks
+                for (int c = 0; c < mTracks.length; c++) {
+                    mTracks[c].renderChunk(ini, fin);
+                }
+
+                // do the mixing
+                for (int i = ini; i < fin; i++) {
+                    float v = 0;
+                    for (int c = 0; c < mTracks.length; c++) {
+                        v +=  (mTracks[c].getChunk()[i] * mChannel[c].mVolume);
+                    }
+                    chunk[i] = (short)v;
                 }
             }
         };
 
-        mTracks = new Mixer[channels];
+
         mChannel = new Channel[channels];
-        for (int c = 0; c < mTracks.length; c++) {
-            mTracks[c] = new Mixer();
+        for (int c = 0; c < mChannel.length; c++) {
             mChannel[c] = new Channel();
+        }
+
+        mTracks = new Mixer[channels];
+        for (int c = 0; c < mTracks.length; c++) {
+            mTracks[c] = new Mixer(100000);
         }
 
         master.SetState(getIter());
@@ -71,7 +92,12 @@ class PatternMaster extends PatternBase
     void PlayBeat(short[] chunk, int ini, int fin, float volume)
     {
         CallBeatListener(master.getTime());
-        master.renderChunk(chunk, ini, fin, volume);
+
+        master.renderChunk(ini, fin);
+
+        for (int i = ini; i < fin; i++) {
+            chunk[i] =  master.getChunk()[i];
+        }
     }
 
     public void setVolume(int channel, float volume) {
@@ -207,7 +233,7 @@ class PatternMaster extends PatternBase
         if (jsonObj.has("volumes")) {
             JSONArray jsonVolumes = jsonObj.getJSONArray("volumes");
             if (jsonVolumes != null) {
-                mChannel = new Channel[jsonVolumes.length()];
+                mChannel = new Channel[2*jsonVolumes.length()];
                 for (int c = 0; c < mChannel.length; c++)
                     mChannel[c] = new Channel();
                 for (int i = 0; i < jsonVolumes.length(); i++) {

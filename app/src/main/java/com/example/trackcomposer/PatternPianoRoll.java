@@ -11,11 +11,11 @@ class PatternPianoRoll extends PatternBase
     Mixer.MixerListener mMixerListener = new Mixer.MixerListener() {
         @Override
         public void AddNote(Mixer mixer, float noteTime, Event event){
-            play(event);
+            play(event, 1.0f);
         }
 
         @Override
-        public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
+        public void PlayBeat(short[] chunk, int ini, int fin) {
             InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
             g.playSample(chunk, ini, fin);
         }
@@ -26,10 +26,10 @@ class PatternPianoRoll extends PatternBase
         super(name, filename, channels, length);
     }
 
-    public void play(Event event)
+    public void play(Event event, float volume)
     {
         InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4);
+        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4, volume);
     }
 
     @Override

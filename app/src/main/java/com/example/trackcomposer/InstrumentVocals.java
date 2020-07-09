@@ -32,17 +32,17 @@ class InstrumentVocals  extends InstrumentBase {
         return mSample.getLengthInSeconds();
     }
 
-    public void playSample(int note, float frequency, float duration, int noteTime) {
+    public void playSample(int note, float frequency, float duration, int noteTime, float volume) {
         mChannel.mNote = note;
         mChannel.mTimeInSamples = noteTime;
         mChannel.mFreq = frequency;
-        mChannel.mVolume = 1.0f;
+        mChannel.mVolume = volume;
         //mChannel.mSpeed = frequency/freqOne;
     }
 
     @Override
-    public void playSample(int note, float frequency, float duration) {
-        playSample(note, frequency, duration, 0);
+    public void playSample(int note, float frequency, float duration, float volume) {
+        playSample(note, frequency, duration, 0, volume);
     }
 
     @Override

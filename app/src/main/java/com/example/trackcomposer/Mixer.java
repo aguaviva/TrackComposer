@@ -8,13 +8,15 @@ class Mixer {
 
     boolean mStillNotes = false;
     boolean mStillPlaying = false;
-
     private SortedListOfEvents.State iter = null;
 
-    Mixer()
+    short[] mChunk;
+
+    Mixer(int bufferSize)
     {
         mTime = 0;
         mNextTime = 0;
+        mChunk = new short[bufferSize];
     }
 
     public void SetState(SortedListOfEvents.State state)
@@ -69,10 +71,14 @@ class Mixer {
         return true;
     }
 
-    void renderChunk(short[] chunk, int ini, int fin, float volume)
+    short[] getChunk()
+    {
+        return mChunk;
+    }
+
+    void renderChunk(int ini, int fin)
     {
         while(ini<fin) {
-
             int mid = fin;
 
             // hit notes
@@ -87,7 +93,7 @@ class Mixer {
             //mStillPlaying = render(chunk, ini, mid, volume);
             if (mMixerListener!=null){
 
-                mMixerListener.PlayBeat(chunk, ini, fin, volume);
+                mMixerListener.PlayBeat(mChunk, ini, fin);
             }
 
             mTime += (mid-ini)/2;
@@ -121,7 +127,7 @@ class Mixer {
     public interface MixerListener
     {
         public void AddNote(Mixer mixer, float time, Event event);
-        public void PlayBeat(short[] chunk, int ini, int fin, float volume);
+        public void PlayBeat(short[] chunk, int ini, int fin);
     }
 
     MixerListener mMixerListener;

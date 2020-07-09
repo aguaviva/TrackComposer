@@ -14,7 +14,7 @@ class PatternPercussion extends PatternBase
         }
 
         @Override
-        public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
+        public void PlayBeat(short[] chunk, int ini, int fin) {
             InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
             g.playSample(chunk, ini, fin);
         }
@@ -28,7 +28,7 @@ class PatternPercussion extends PatternBase
     public void play(Event event)
     {
         InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, 0,0);
+        g.playSample(event.mChannel, 0,0, 1);
     }
 
     @Override

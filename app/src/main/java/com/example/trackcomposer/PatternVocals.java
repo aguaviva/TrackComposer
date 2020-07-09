@@ -12,11 +12,11 @@ class PatternVocals extends PatternBase
         public void AddNote(Mixer mixer, float noteTime, Event event){
 
             int time = mixer.getTimeInSamples(event);
-            play(time, event);
+            play(time, event, 1.0f);
         }
 
         @Override
-        public void PlayBeat(short[] chunk, int ini, int fin, float volume) {
+        public void PlayBeat(short[] chunk, int ini, int fin) {
             InstrumentBase g = InstrumentList.getInstance().get(mInstrumentId);
             g.playSample(chunk, ini, fin);
         }
@@ -27,10 +27,10 @@ class PatternVocals extends PatternBase
         super(name, filename, channels, length);
     }
 
-    public void play(int noteTime, Event event)
+    private void play(int noteTime, Event event, float volume)
     {
         InstrumentVocals g = (InstrumentVocals)InstrumentList.getInstance().get(mInstrumentId);
-        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4, noteTime);
+        g.playSample(event.mChannel, Misc.GetFrequency(event.mChannel), event.mDuration/4, noteTime, volume);
     }
 
     @Override

@@ -43,12 +43,12 @@ public class InstrumentPercussion extends InstrumentBase {
     }
 
     @Override
-    public void playSample(int note, float frequency, float duration) {
+    public void playSample(int note, float frequency, float duration, float volume) {
         Channel channel = mChannels[note];
         channel.mNote = note;
         channel.mTimeInSamples = 0;
         channel.mFreq = 0;
-        channel.mVolume = 1.0f;
+        channel.mVolume = volume;
         //mPlayingChannels[note]=true;
     }
 

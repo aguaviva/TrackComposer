@@ -54,7 +54,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
     }
 
     @Override
-    public void playSample(int note, float frequency, float duration) {
+    public void playSample(int note, float frequency, float duration, float volume) {
         int channelId = GetAvailableChannel();
         if (channelId>=0) {
             Channel channel = mChannels[channelId];
@@ -62,7 +62,7 @@ public class InstrumentSynthBasic extends InstrumentBase {
             channel.mTimeInSamples = 0;
             channel.mDuration = duration;
             channel.mFreq = frequency;
-            channel.mVolume = 1.0f;
+            channel.mVolume = volume;
         }
     }
 
