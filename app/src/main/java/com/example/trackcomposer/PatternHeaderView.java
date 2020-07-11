@@ -152,7 +152,7 @@ public class PatternHeaderView extends View {
         switch (eventAction) {
             case MotionEvent.ACTION_DOWN:
                 if (instrumentListener!=null) {
-                    instrumentListener.noteTouched(touchY);
+                    instrumentListener.noteTouched((int)(touchY/mTimeLine.mViewport.mScaleY));
                 }
                 break;
             case MotionEvent.ACTION_UP:
