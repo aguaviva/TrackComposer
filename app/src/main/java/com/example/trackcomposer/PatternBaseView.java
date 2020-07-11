@@ -560,13 +560,12 @@ public class PatternBaseView extends View {
         pointF.y = rowF;
         return true;
     }
-    private MotionEvent ScreenCoords2PatternCoords(MotionEvent motionEvent) {
+    private MotionEvent ScreenCoords2PatternCoords(MotionEvent motionEvent, float snap) {
         PointF pointF = new PointF();
         if (ScreenCoords2PatternCoords(motionEvent.getX(), motionEvent.getY(), pointF)==false)
             return null;
 
         //snap to grid
-        float snap = 1.0f;
         float sx = (float)Math.floor(pointF.x/snap)*snap;
         float sy = (float)indexToNote((int)Math.floor(pointF.y));
 
@@ -713,7 +712,7 @@ public class PatternBaseView extends View {
     public boolean onDragEvents(MotionEvent event, boolean bInit) {
 
         if (instrumentListener != null) {
-            MotionEvent ev2 = ScreenCoords2PatternCoords(event);
+            MotionEvent ev2 = ScreenCoords2PatternCoords(event, 1.0f/mViewport.getLod());
             switch(event.getAction())
             {
                 case  MotionEvent.ACTION_DOWN: {
@@ -753,7 +752,7 @@ public class PatternBaseView extends View {
 
     public boolean onTouchEvent(MotionEvent event) {
 
-        MotionEvent ev2 = ScreenCoords2PatternCoords(event);
+        MotionEvent ev2 = ScreenCoords2PatternCoords(event, 1.0f);
         if (ev2!=null) {
             // dragging disk
             if (onDiskDraggedEvent(event, false)) {
@@ -801,7 +800,7 @@ public class PatternBaseView extends View {
         {
             selectClear();
 
-            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            MotionEvent ev = ScreenCoords2PatternCoords(event, 1.0f);
             if (ev!=null) {
                 if (instrumentListener != null) {
                     return instrumentListener.noteTouched(ev);
@@ -814,7 +813,7 @@ public class PatternBaseView extends View {
         @Override
         public boolean onDoubleTap (MotionEvent event)
         {
-            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            MotionEvent ev = ScreenCoords2PatternCoords(event, 1.0f);
             if (ev!=null) {
                 if (instrumentListener != null) {
                     return instrumentListener.onDoubleTap(ev);
@@ -827,7 +826,7 @@ public class PatternBaseView extends View {
         @Override
         public void onLongPress (MotionEvent event)
         {
-            MotionEvent ev = ScreenCoords2PatternCoords(event);
+            MotionEvent ev = ScreenCoords2PatternCoords(event, 1.0f);
             if (ev!=null) {
                 // long press on background -> square selection
                 if (mMasterPattern.get((int) ev.getY(), ev.getX()) == null) {
@@ -860,7 +859,7 @@ public class PatternBaseView extends View {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 
-            MotionEvent ev2 = ScreenCoords2PatternCoords(e1);
+            MotionEvent ev2 = ScreenCoords2PatternCoords(e1, 1.0f);
             if (ev2!=null) {
                 if (onDiskDraggedEvent(e1, true)) {
                     invalidate();
