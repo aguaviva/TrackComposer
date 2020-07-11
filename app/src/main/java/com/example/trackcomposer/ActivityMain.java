@@ -730,10 +730,12 @@ public class ActivityMain extends AppCompatActivity {
                 intent = new Intent(mContext, ActivityPianoRoll.class);
                 break;
             case Vocals:
-                PatternVocals patternVocals = new PatternVocals(filename, mAppState.extStoreDir+ "/"+filename, 1, 256);
+                InstrumentVocals iv = (InstrumentVocals)InstrumentList.getInstance().get(channel);
+                int lengthInMilliseconds = (int)(iv.getLengthInSeconds() * 1000.0f);
+                PatternVocals patternVocals = new PatternVocals(filename, mAppState.extStoreDir+ "/"+filename, 1, lengthInMilliseconds);
                 patternVocals.mInstrumentId = channel;
                 pattern = patternVocals;
-                duration = 256;
+                duration = lengthInMilliseconds;
                 intent = null;
 
                 Event event = new Event();
@@ -742,8 +744,6 @@ public class ActivityMain extends AppCompatActivity {
                 event.mDuration = duration;
                 event.mId = 0;
                 patternVocals.Set(event);
-
-
                 break;
             default:
                 return;
@@ -767,7 +767,6 @@ public class ActivityMain extends AppCompatActivity {
         }
         masterView.invalidate();
     }
-
 
     public boolean isStoragePermissionGranted() {
 

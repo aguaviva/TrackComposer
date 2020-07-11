@@ -314,6 +314,13 @@ public class PatternBaseView extends View {
         rectOut.right = event.mTime+event.mDuration;
     }
 
+    private void VocalEventToRect(Event event, RectF rectOut) {
+        rectOut.top = indexToNote(event.mChannel);
+        rectOut.bottom = indexToNote(event.mChannel)+1;
+        rectOut.left = event.mTime;
+        rectOut.right = event.mTime+(event.mDuration*secondsToTicks)/1000.0f;
+    }
+
     private void PadRect(RectF rf, float padding) {
         rf.top -=padding;
         rf.bottom +=padding;
@@ -412,7 +419,14 @@ public class PatternBaseView extends View {
 
         // draw selection rects
         for(Event selectedNote : mSelectedEvents) {
-            EventToRect(selectedNote, rectEvent);
+            PatternBase pb2 = mMasterPattern.mPatternDataBase.get(selectedNote.mId);
+
+            if (pb2 instanceof PatternVocals) {
+                VocalEventToRect(selectedNote, rectEvent);
+            } else {
+                EventToRect(selectedNote, rectEvent);
+            }
+
             TransformRect(rectMasterPattern, rectBackground, rectEvent, rf);
             canvas.drawRect(rf, selectedColor);
         }
@@ -423,9 +437,16 @@ public class PatternBaseView extends View {
             if (event == null)
                 break;
 
-            EventToRect(event, rectEvent);
-            TransformRect(rectMasterPattern, rectBackground, rectEvent, rf);
             PatternBase pb2 = mMasterPattern.mPatternDataBase.get(event.mId);
+
+            if (pb2 instanceof PatternVocals) {
+                VocalEventToRect(event, rectEvent);
+            } else {
+                EventToRect(event, rectEvent);
+            }
+
+            TransformRect(rectMasterPattern, rectBackground, rectEvent, rf);
+
             if (pb2 instanceof PatternVocals) {
                 DrawWaveIcon(canvas, pb2, rf);
             } else {
